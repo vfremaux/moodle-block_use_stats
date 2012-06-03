@@ -32,7 +32,6 @@
     */
     require('../../config.php');
     require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
-	require_once($CFG->dirroot . '/user/profile/lib.php');
 
 
     $courseid    = required_param('course', PARAM_INT);
@@ -43,13 +42,7 @@
     $onlycourse    = optional_param('restrict', false, PARAM_BOOL);
 
     require_login($courseid);
-
-	if ($COURSE->id > SITEID){
-	    $returnurl = $CFG->wwwroot.'/course/view.php?id='.$COURSE->id;
-	} else {
-	    $returnurl = $CFG->wwwroot;
-	}
-
+    
     $blockcontext = get_context_instance(CONTEXT_BLOCK, $id);
     $coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
     
@@ -91,35 +84,26 @@
     }
 
 	if (!$cansee){
-    	print_error('notallowed', 'block_use_stats');
+    	print_error('notallowed');
 	}
 
-	$user = $DB->get_record('user', array('id' => $userid), 'id,firstname,lastname,picture,imagealt,email');
+	$user = get_record('user', 'id', $userid, '', '', '', '', 'id,firstname,lastname');
 
-	$PAGE->set_title(get_string('modulename', 'block_use_stats'));
-	$PAGE->set_heading('');
-	$PAGE->set_focuscontrol('');
-	$PAGE->set_cacheable(true);
-	$PAGE->set_button('');
-	$PAGE->set_url($CFG->wwwroot.'/blocks/use_stats/detail.php');
-	$PAGE->set_headingmenu('');
-	$PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
-	$PAGE->navbar->add(fullname($user));
-	echo $OUTPUT->header(); 
-   
+    $navlinks[] = array('name' => get_string('blockname', 'block_use_stats'),
+                         'link' => '',
+                         'type' => 'title');
+    $navlinks[] = array('name' => fullname($user),
+                         'link' => '',
+                         'type' => 'title');
+
+    $navigation = build_navigation($navlinks);
+
+    print_header_simple(get_string('modulename', 'block_use_stats'), '', $navigation);
+    
     $daystocompilelogs = $fromwhen * DAYSECS;
     $timefrom = $towhen - $daystocompilelogs;
 
-	echo '<table class="list" summary=""><tr><td>';
-	echo $OUTPUT->user_picture($user, array('size'=> 100));
-	echo '</td><td>';
-	echo '<h2><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'">'.fullname($user).'</a></h2>';
-	echo '<table class="list" summary="" width="100%">';
-	profile_display_fields($user->id);
-	echo '</table>';
-	echo '</td></tr></table>';
-
-    $logs = use_stats_extract_logs($timefrom, $towhen, $userid);
+    $logs = use_stats_extract_logs($timefrom, $towhen);
     
     // log aggregation function
 
@@ -129,7 +113,6 @@
     $timestr = get_string('timeelapsed', 'block_use_stats');
     $eventsstr = get_string('eventscount', 'block_use_stats');
 
-	$table = new html_table();
     $table->head = array("<b>$dimensionitemstr</b>", "<b>$timestr</b>", "<b>$eventsstr</b>");
     $table->width = '100%';
     $table->size = array('70%', '30%');
@@ -137,28 +120,28 @@
     foreach($aggregate as $module => $moduleset){
         $table->data[] = array("<b>$module</b>", '');
         foreach($moduleset as $key => $value){
-            $cm = $DB->get_record('course_modules', array('id' => $key));
+            $cm = get_record('course_modules', 'id', $key);
             if ($cm){
-                $module = $DB->get_record('modules', array('id' => $cm->module));
-                $modrec = $DB->get_record($module->name, array('id' => $cm->instance));
+                $module = get_record('modules', 'id', $cm->module);
+                $modrec = get_record($module->name, 'id', $cm->instance);
                 $table->data[] = array($modrec->name, format_time($value->elapsed), $value->events);
             } else {
                 $table->data[] = array('', format_time($value->elapsed));
             }
         }
     }
-
+        
     if (!empty($table->data)){
-        echo html_writer::table($table);
+        print_table($table);
     } else {
-        notice(get_string('errornorecords', 'block_use_stats'), $returnurl);
+        notice(get_string('errornorecords', 'block_use_stats'));
     }
 
-    print_continue($returnurl);
-
-    $OUTPUT->footer();            
-
-	function print_row($left, $right) {
-	    echo "\n<tr><td class=\"label c0\">$left</td><td class=\"info c1\">$right</td></tr>\n";
+	if ($COURSE->id > SITEID){
+	    print_continue($CFG->wwwroot.'/course/view.php?id='.$COURSE->id);
+	} else {
+	    print_continue($CFG->wwwroot);
 	}
+
+    print_footer();            
 ?>

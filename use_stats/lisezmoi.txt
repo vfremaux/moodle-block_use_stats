@@ -8,8 +8,7 @@
 # type: bloc
 # utilisation: enseignants, administrateurs, éventuellement étudiants
 # développeur: Valery Fremaux (valery.Fremaux@club-internet.fr)
-# date: 2012/03/18
-# Version Moodle 2
+# date: 2007/05/02
 
 Ce bloc permet d'afficher les statistiques d'usage de l'utilisateur courant.
 

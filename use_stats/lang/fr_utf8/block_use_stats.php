@@ -1,8 +1,8 @@
 <?php
+global $COURSE;
 
-$string['blockname'] = 'Activité';
-$string['pluginname'] = 'Activité';
-$string['blocknameforstudents'] = 'Statistiques d\'usage';
+$string['blockname'] = 'Tracking activité';
+$string['blocknameforstudents'] = 'Statistiques '.$COURSE->student;
 $string['configcapturemodules'] = 'Liste des modules qui sont pris en compte dans l\'analyse de détail';
 $string['configignoremodules'] = 'Liste des modules ignorés par le tracking';
 $string['configfromwhen'] = 'Durée de compilation (en jours depuis aujourd\'hui) ';
@@ -10,6 +10,7 @@ $string['configstudentscanuse'] = 'Les étudiants peuvent voir ce bloc (pour leu
 $string['configstudentscanuseglobal'] = 'Autoriser les étudiants à voir les blocs de statistiques dans les espaces globaux (MyMoodle, hors cours)';
 $string['configthreshold'] = 'Seuil de détection (en minutes)';
 $string['configlastcompiled'] = 'Date de dernière compilation';
+$string['credittime'] = 'Forfaitaire : '; //used in reports
 $string['dimensionitem'] = 'Classes observables';
 $string['errornorecords'] = 'Aucune donnée de tracking';
 $string['eventscount'] = 'Nombre de hits';
@@ -19,7 +20,6 @@ $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthisMoodlefrom'] = ' sur ce Moodle depuis ';
 $string['showdetails'] = 'Montrer les détails';
 $string['timeelapsed'] = 'Temps passé';
-$string['use_stats:canaddto'] = 'Peut ajouter au cours';
 $string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage';
 $string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours';
 $string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes';
@@ -31,3 +31,4 @@ $string['use_stats_description'] = 'En publiant ce service, vous permettez au se
 $string['youspent'] = 'Vous avez déjà passé ';
 $string['ignored'] = 'Module/Activité non pris en compte';
 
+?>

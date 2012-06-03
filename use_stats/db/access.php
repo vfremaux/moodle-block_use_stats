@@ -30,65 +30,54 @@
 //
 // For the core capabilities, the variable is $moodle_capabilities.
 
-defined('MOODLE_INTERNAL') || die();
-
-$capabilities = array(
+$block_use_stats_capabilities = array(
 
     'block/use_stats:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'legacy' => array(
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
-
-    'block/use_stats:canaddto' => array(
-        'captype' => 'read',
-        'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
-            'teacher' => CAP_ALLOW,
-            'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'admin' => CAP_ALLOW
         )
     ),
 
     'block/use_stats:seesitedetails' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
+        'legacy' => array(
+            'admin' => CAP_ALLOW
         )
     ),
 
     'block/use_stats:seecoursedetails' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'legacy' => array(
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'admin' => CAP_ALLOW
         )
     ),
 
     'block/use_stats:seegroupdetails' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'legacy' => array(
             'teacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'admin' => CAP_ALLOW
         )
     ),
 
     'block/use_stats:seeowndetails' => array(
+
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'legacy' => array(
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
+            'admin' => CAP_ALLOW
         )
     )
 );

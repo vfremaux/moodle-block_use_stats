@@ -1,0 +1,78 @@
+<table cellpadding="9" cellspacing="0">
+<tr valign="top">
+    <td align="right">block_use_stats_fromwhen:</td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <input name="block_use_stats_fromwhen" type="text" size="5" value="<?php 
+    if(isset($CFG->block_use_stats_fromwhen)) {
+        p($CFG->block_use_stats_fromwhen);
+    } else {
+        p(5);
+    } ?>" />
+    </td>
+    <td>
+    <?php print_string('configfromwhen', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr valign="top">
+    <td align="right">block_use_stats_threshold:</td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <input name="block_use_stats_threshold" type="text" size="5" value="<?php 
+    if(isset($CFG->block_use_stats_threshold)) {
+        p($CFG->block_use_stats_threshold);
+    } else {
+        p(10 * 60);
+    } ?>" />
+    </td>
+    <td>
+    <?php print_string('configthreshold', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr valign="top">
+    <td align="right">block_use_stats_capturemodules:</td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <input name="block_use_stats_capturemodules" type="text" size="40" value="<?php 
+    if(isset($CFG->block_use_stats_capturemodules)) {
+        p($CFG->block_use_stats_capturemodules);
+    } else {
+        echo 'forum,resource,quiz,glossary,assignment,upload,scorm,survey,course,feedback,chat,user';
+    } ?>" />
+    </td>
+    <td>
+    <?php print_string('configcapturemodules', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr valign="top">
+    <td align="right">block_use_stats_ignoremodules:</td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <input name="block_use_stats_ignoremodules" type="text" size="40" value="<?php 
+    if(isset($CFG->block_use_stats_ignoremodules)) {
+        p($CFG->block_use_stats_ignoremodules);
+    } ?>" />
+    </td>
+    <td>
+    <?php print_string('configignoremodules', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr valign="top">
+    <td align="right">block_use_stats_lastcompiled:</td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <?php
+    $current =  (!empty($CFG->block_use_stats_lastcompiled))  ? $CFG->block_use_stats_lastcompiled : 0 ;
+    print_date_selector('startday', 'startmonth', 'startyear', $current);
+    print_time_selector('starthour', 'startmin', $current);
+    ?>
+    </td>
+    <td>
+    <?php print_string('configlastcompiled', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr>
+    <td colspan="3" align="center">
+    <input type="submit" value="<?php print_string('savechanges') ?>" /></td>
+</tr>
+</table>

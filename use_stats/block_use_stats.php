@@ -17,7 +17,7 @@ class block_use_stats extends block_base {
         } else {
             $this->title = get_string('blocknameforstudents','block_use_stats');
         }
-        $this->content_type = BLOCK_TYPE_TEXT;
+        $this->version = 2011042400;
     }
 
     /**
@@ -33,6 +33,15 @@ class block_use_stats extends block_base {
     function instance_allow_config() {
         global $COURSE;
 
+        // if admin always configure
+        $context = get_context_instance(CONTEXT_SYSTEM, 0);
+        if (has_capability('moodle/site:doanything', $context)) return true;
+
+        // if not "MyMoodle" and is teacher, can configure
+        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        if (has_capability('block/use_stats:view', $context)){
+            if ($COURSE->id > 1) return true;
+        }
         return false;
     }
 
@@ -46,13 +55,24 @@ class block_use_stats extends block_base {
     function user_can_addto($page) {
         global $CFG, $COURSE;
 
-        if (has_capability('moodle/site:config', context_system::instance())){
+        // guests never see anything
+        if (isguest()) return false;
+
+        if (has_capability('moodle/site:doanything', get_context_instance(CONTEXT_SYSTEM))){
             return true;
         }        
 
-		$context = course_context::instance($COURSE->id);
-        if (!has_capability('block/use_stats:canaddto', $context)){
-            return false;
+        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        if (has_capability('block/use_stats:view', $context)){
+            if ($COURSE->id > 1){ // if not MyMoodle, students see something if a teacher allowed to
+                if (empty($this->config->studentscanuse)){
+                    return false;
+                }
+            } else { // if MyMoodle students see something if they are allowed to by global config
+                if (empty($CFG->block_use_stats_studentscanuse)){
+                    return false;
+                }
+            }
         }
         return true;
     }
@@ -63,14 +83,33 @@ class block_use_stats extends block_base {
     function user_can_edit() {
         global $CFG, $COURSE;
 
-        return false;
+       // guests never see anything
+        if (isguest()) return false;
+        
+        if (has_capability('moodle/site:doanything', get_context_instance(CONTEXT_SYSTEM))){
+            return true;
+        }        
+
+        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+        if (has_capability('block/use_stats:view', $context)){
+            if ($COURSE->id > 1){ // if not MyMoodle, students see something if a teacher allowed to
+                if (empty($this->config->studentscanuse)){
+                    return false;
+                }
+            } else { // if MyMoodle students see something if they are allowed to by global config
+                if (empty($CFG->block_use_stats_studentscanuse)){
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 
     /**
     * Produce content for the bloc
     */
     function get_content() {
-        global $USER, $CFG, $COURSE, $DB;
+        global $USER, $CFG, $COURSE;
 
         if ($this->content !== NULL) {
             return $this->content;
@@ -91,9 +130,11 @@ class block_use_stats extends block_base {
             return $this->content;
         }
 
+        $id = optional_param('id', PARAM_INT);
         $fromwhen = 30;
-        $fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
-
+        if (!empty($CFG->block_use_stats_fromwhen)) {
+            $fromwhen = optional_param('ts_from',$CFG->block_use_stats_fromwhen, PARAM_INT);
+        }
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
         
@@ -133,16 +174,17 @@ class block_use_stats extends block_base {
             $remainder = $totalTime - $hours * HOURSECS;
             $min = floor($remainder/MINSECS);
 
-            if (file_exists("{$CFG->dirroot}/theme/{$CFG->theme}/block_use_stats.css")){
+            if (file_exists("$CFG->dirroot}/theme/{$CFG->theme}/block_use_stats.css")){
                 $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/".current_theme()."/block_use_stats.css\" type=\"text/css\" />";
-            } elseif (file_exists("{$CFG->dirroot}/theme/default/block_use_stats.css")){
+            } elseif (file_exists("$CFG->dirroot}/theme/default/block_use_stats.css")){
                 $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/default/block_use_stats.css\" type=\"text/css\" />";
             }
 
             $this->content->text .= "<div class=\"message\">";
             $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
+            $this->content->text .= "<input type=\"hidden\" name=\"id\" value=\"$id\" />";
             if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
-                $users = $DB->get_records('user', array('deleted' => 0), 'lastname', 'id, firstname, lastname');
+                $users = get_records('user', 'deleted', '0', 'lastname', 'id, firstname, lastname');
             } 
             else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
             	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
@@ -150,10 +192,11 @@ class block_use_stats extends block_base {
             }
             else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
             	$mygroups = groups_get_user_groups($COURSE->id);
+            	print_object($mygroups);
             	$users = array();
             	// get all users in my groups
             	foreach($mygroupids as $mygroupid){
-	            	$users = $fellows + groups_get_members($groupid, 'u.id, firstname, lastname');
+	            	$users = $fellows + groups_get_members ($groupid, 'u.id, firstname, lastname');
 	            }
             }
 
@@ -162,7 +205,7 @@ class block_use_stats extends block_base {
                 foreach($users as $user){
                     $usermenu[$user->id] = fullname($user);
                 }
-	            $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
+	            $this->content->text .= choose_from_menu($usermenu, 'uid', $userid, 'choose', 'document.ts_changeParms.submit();', '0', true);
             }
             $this->content->text .= get_string('from', 'block_use_stats');
             $this->content->text .= "<select name=\"ts_from\" onChange=\"document.ts_changeParms.submit();\">";
@@ -179,7 +222,7 @@ class block_use_stats extends block_base {
             if (count(array_keys($totalTimeCourse))){
                 $this->content->text .= "<table width=\"100%\">";
                 foreach(array_keys($totalTimeCourse) as $aCourseId){
-                    $aCourse = $DB->get_record('course', array('id' => $aCourseId));
+                    $aCourse = get_record('course', 'id', $aCourseId);
                     if ($totalTimeCourse[$aCourseId] < 60) continue;
                     if ($aCourse){
                         $hours = floor($totalTimeCourse[$aCourseId] / HOURSECS);
@@ -203,8 +246,9 @@ class block_use_stats extends block_base {
             $this->content->text .= get_string('noavailablelogs', 'block_use_stats');
             $this->content->text .= "<br/>";
             $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
+            $this->content->text .= "<input type=\"hidden\" name=\"id\" value=\"$id\" />";
             if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
-                $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id, firstname, lastname');
+                $users = get_records('user', 'deleted', '0', 'lastname', 'id, firstname, lastname');
             }
             else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
             	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
@@ -232,7 +276,7 @@ class block_use_stats extends block_base {
                 foreach($users as $user){
                     $usermenu[$user->id] = fullname($user);
                 }
-            	$this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
+            	$this->content->text .= choose_from_menu($usermenu, 'uid', $userid, 'choose', 'document.ts_changeParms.submit();', '0', true);
             }
             $this->content->text .= get_string('from', 'block_use_stats');
             $this->content->text .= "<select name=\"ts_from\" onChange=\"document.ts_changeParms.submit();\">";
@@ -254,7 +298,7 @@ class block_use_stats extends block_base {
 	 * @return boolean TRUE if the installation is successfull, FALSE otherwise.
 	 */
 	function after_install() {
-		global $CFG, $DB, $OUTPUT;
+		global $CFG;
 		
 		// Initialising
 		$result = true;
@@ -262,7 +306,7 @@ class block_use_stats extends block_base {
 		/*
 		 * Installing use_stats service
 		 */
-		if (!$DB->get_record('mnet_service', array('name' => 'use_stats'))) {
+		if (!get_record('mnet_service', 'name', 'use_stats')) {
 			// Installing service
 			$service = new stdclass;
 			$service->name = 'use_stats';
@@ -270,7 +314,7 @@ class block_use_stats extends block_base {
 			$service->apiversion = 1;
 			$service->offer = 1;
 			if (!$serviceid = insert_record('mnet_service', $service)){
-				$OUTPUT->notify('Error installing use_stats service.');
+				notify('Error installing use_stats service.');
 				$result = false;
 			}
 		}
@@ -279,7 +323,7 @@ class block_use_stats extends block_base {
 		 * Installing RPC call 'get_stats'
 		 */
 		// Checking if it is already installed
-		if (!$DB->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_stats'))) {
+		if (!get_record('mnet_rpc', 'function_name', 'use_stats_rpc_get_stats')) {
 			
 			// Creating RPC call
 			$rpc = new stdclass;
@@ -292,22 +336,22 @@ class block_use_stats extends block_base {
 			$rpc->profile = '';
 			
 			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_stats RPC call "get_stats".');
+			if (!$rpcid = insert_record('mnet_rpc', $rpc)) {
+				notify('Error installing use_stats RPC call "get_stats".');
 				$result = false;
 			} else {
 				// Mapping service and call
 				$rpcmap = new stdclass;
 				$rpcmap->serviceid = $serviceid;
 				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_stats" to the "use_stats" service.');
+				if (!insert_record('mnet_service2rpc', $rpcmap)) {
+					notify('Error mapping RPC call "get_stats" to the "use_stats" service.');
 					$result = false;
 				}
 			}
 		}
 
-		if (!$DBè->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_scores'))) {
+		if (!get_record('mnet_rpc', 'function_name', 'use_stats_rpc_get_scores')) {
 			
 			// Creating RPC call
 			$rpc = new stdclass;
@@ -320,16 +364,16 @@ class block_use_stats extends block_base {
 			$rpc->profile = '';
 			
 			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_scores RPC call "get_scores".');
+			if (!$rpcid = insert_record('mnet_rpc', $rpc)) {
+				notify('Error installing use_scores RPC call "get_scores".');
 				$result = false;
 			} else {
 				// Mapping service and call
 				$rpcmap = new stdclass;
 				$rpcmap->serviceid = $serviceid;
 				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_scores" to the "use_scores" service.');
+				if (!insert_record('mnet_service2rpc', $rpcmap)) {
+					notify('Error mapping RPC call "get_scores" to the "use_scores" service.');
 					$result = false;
 				}
 			}
@@ -344,17 +388,17 @@ class block_use_stats extends block_base {
 	 * @return					boolean				TRUE if the deletion is successfull, FALSE otherwise.
 	 */
 	function before_delete() {
-		global $CFG, $DB;
+		global $CFG;
 				
 		// Checking if use_stats service is installed
-		if (!($service = $DB->get_record('mnet_service', array('name' => 'use_stats'))))
+		if (!($service = get_record('mnet_service', 'name', 'use_stats')))
 			return true;
 		
 		// Uninstalling use_stats service
-		$DB->delete_records('mnet_host2service', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_service2rpc', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_rpc', array('parent' => 'use_stats'));
-		$DB->delete_records('mnet_service', array('name' => 'use_stats'));
+		delete_records('mnet_host2service', 'serviceid', $service->id);
+		delete_records('mnet_service2rpc', 'serviceid', $service->id);
+		delete_records('mnet_rpc', 'parent', 'use_stats');
+		delete_records('mnet_service', 'name', 'use_stats');
 		
 		// Returning result
 		return true;

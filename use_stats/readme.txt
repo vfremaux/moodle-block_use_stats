@@ -8,8 +8,7 @@
 # type: block
 # whouses: teachers, eventually students
 # developer: Valery Fremaux (valery.Fremaux@club-internet.fr)
-# date: 2012/03/18
-# Version : Moodle 2
+# date: 2007/05/02
 
 This block allows displaying use stats for the current user.
 

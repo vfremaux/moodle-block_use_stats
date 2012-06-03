@@ -1,12 +1,13 @@
 <?php
-
 /**
-* @version Moodle 2.2
+*
 * @param int $from
 * @param int $to
+* @param int $for a user ID 
+* @param int $courseid
 */
-function use_stats_extract_logs($from, $to, $for = null, $course = null){
-    global $CFG, $USER, $DB;
+function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
+    global $CFG, $USER;
 
     $for = (is_null($for)) ? $USER->id : $for ;
     
@@ -17,7 +18,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null){
         $userclause = " userid = {$for} AND ";
     }
     
-    $courseclause = (!is_null($course)) ? " AND course = $course " : '' ;
+    $courseclause = (!is_null($courseid)) ? " AND course = $courseid " : '' ;
 
     $sql = "
        SELECT
@@ -28,39 +29,40 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null){
          userid,
          cmid
        FROM
-         {log}
+         {$CFG->prefix}log
        WHERE
          $userclause
-         time > ? AND 
-         time < ?
+         time > $from AND 
+         time < $to
          $courseclause
        ORDER BY
          time
     ";
     
-    if($rs = $DB->get_recordset_sql($sql, array($from, $to))){
+    if($rs = get_recordset_sql($sql)){
         $logs = array();
-        foreach($rs as $log){
+        while($log = rs_fetch_next_record($rs)){
             $logs[] = $log;
         }
-        $rs->close($rs);
+        rs_close($rs);
         return $logs;
     }
     return array();    
 }
 
 /**
-* given an array of log records, make a displayable aggregate
+* given an array of log records, make a displayable aggregate. Needs a single
+* user log extraction. User will be guessed out from log records.
 * @param array $logs
 * @param string $dimension
 */
 function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
-    global $CFG, $DB, $OUTPUT;
+    global $CFG, $COURSE;
 
     if (isset($CFG->block_use_stats_capturemodules)){
         $modulelist = explode(',', $CFG->block_use_stats_capturemodules);
     } else {
-        print_error('errornotinitialized', 'block_use_stats');
+        error("The module is not initialized. Please setup global configuration for the use_sats module.");
     }
 
     if (isset($CFG->block_use_stats_ignoremodules)){
@@ -107,7 +109,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
             }
 
             if (!isset($log->$dimension)){
-                $OUTPUT->notice('unknown dimension');
+                notice('unknown dimension');
             }
             
            /// Standard global lap aggregation
@@ -123,15 +125,43 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
         }
     }
     
-    // we need finally adjust some times from time recording activities
+    // we need check if time credits are used and override by credit earned
+	if (file_exists($CFG->dirroot.'/mod/checklist/xlib.php')){
+		include_once($CFG->dirroot.'/mod/checklist/xlib.php');
+		$checklists = checklist_get_instances($COURSE->id, true); // get timecredit enabled ones
+		
+		foreach($checklists as $ckl){
+			if ($credittimes = checklist_get_credittimes($ckl->id, 0, $currentuser)){
+				foreach($credittimes as $credittime){
+					if (!empty($CFG->checklist_strict_credits)){
+						// if strict credits, do override time even if real time is higher 
+						$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+						$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+					} else {
+						// this processes validated modules that although have no logs
+						if (!isset($aggregate[$credittime->modname][$credittime->cmid])){
+							$aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
+							$aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
+							$aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+						}
+						if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime){
+							$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+							$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+						}
+					}
+				}
+			}
+		}
+	}
     
+    // we need finally adjust some times from time recording activities
 	if (array_key_exists('scorm', $aggregate)){
 		foreach(array_keys($aggregate['scorm']) as $cmid){
 			if ($cm = get_record('course_modules', 'id', $cmid)){ // these are all scorms
 
 				// scorm activities have their accurate recorded time
 				$realtotaltime = 0;
-				if ($realtimes = $DB->get_records_select('scorm_scoes_track', " element = 'cmi.core.total_time' AND scormid = $cm->instance AND userid = $currentuser ", 'id', 'id,element,value')){
+				if ($realtimes = get_records_select('scorm_scoes_track', " element = 'cmi.core.total_time' AND scormid = $cm->instance AND userid = $currentuser ", 'id', 'id,element,value')){
 					foreach($realtimes as $rt){
 						$realcomps = preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
 						$realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
@@ -151,12 +181,12 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 * @param string $dimension
 */
 function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
-    global $CFG, $DB, $OUTPUT;
+    global $CFG;
 
     if (isset($CFG->block_use_stats_capturemodules)){
         $modulelist = explode(',', $CFG->block_use_stats_capturemodules);
     } else {
-        print_error('errornotinitiaized', 'block_use_stats');
+        error("The module is not initialized. Please setup global configuration for the use_sats module.");
     }
 
     $aggregate = array();        
@@ -200,7 +230,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
             }
 
             if (!isset($log[$userid]->$dimension)){
-                $OUTPUT->notice('unknown dimension');
+                notice('unknown dimension');
             }
             
             if (!isset($aggregate[$userid])){
