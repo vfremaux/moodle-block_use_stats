@@ -3,13 +3,20 @@ global $COURSE;
 
 $string['blockname'] = 'Tracking activité';
 $string['blocknameforstudents'] = 'Statistiques '.$COURSE->student;
-$string['configcapturemodules'] = 'Liste des modules qui sont pris en compte dans l\'analyse de détail';
-$string['configignoremodules'] = 'Liste des modules ignorés par le tracking';
-$string['configfromwhen'] = 'Durée de compilation (en jours depuis aujourd\'hui) ';
+$string['configcapturemodules'] = 'Modules pris en compte';
+$string['configcapturemodules_desc'] = 'Liste des modules qui sont pris en compte dans l\'analyse de détail';
+$string['configignoremodules'] = 'Modules ignorés';
+$string['configignoremodules_desc'] = 'Liste des modules ignorés par le tracking';
+$string['configfromwhen'] = 'Durée de compilation ';
+$string['configfromwhen_desc'] = 'Valeur par défaut de la durée de compilation (en jours depuis aujourd\'hui) ';
+$string['configlastpingcredit'] = 'Crédit temps dernière transaction';
+$string['configlastpingcredit_desc'] = 'Lors du dernier contact d\'une session de travail, il  est impossible de déterminer quel temps effectif celui-ci a passé sur la dernière page. Ce paramètre permet d\'accorder un crédit temps systématique sur ce dernier enregistrement';
 $string['configstudentscanuse'] = 'Les étudiants peuvent voir ce bloc (pour leur compte)';
 $string['configstudentscanuseglobal'] = 'Autoriser les étudiants à voir les blocs de statistiques dans les espaces globaux (MyMoodle, hors cours)';
-$string['configthreshold'] = 'Seuil de détection (en minutes)';
+$string['configthreshold'] = 'Seuil de détection';
+$string['configthreshold_desc'] = 'Au dela d\'une certaine pérode d\'inactivité (en minutes), le traceur doit considérer que la session de travail a été interrompue.';
 $string['configlastcompiled'] = 'Date de dernière compilation';
+$string['configlastcompiled_desc'] = 'Concerne les précompilations automatiques';
 $string['credittime'] = 'Forfaitaire : '; //used in reports
 $string['dimensionitem'] = 'Classes observables';
 $string['errornorecords'] = 'Aucune donnée de tracking';

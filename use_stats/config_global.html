@@ -1,6 +1,6 @@
 <table cellpadding="9" cellspacing="0">
 <tr valign="top">
-    <td align="right">block_use_stats_fromwhen:</td>
+    <td align="right"><?php print_string('configfromwhen', 'block_use_stats') ?></td>
     <td>
     <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
     <input name="block_use_stats_fromwhen" type="text" size="5" value="<?php 
@@ -11,26 +11,41 @@
     } ?>" />
     </td>
     <td>
-    <?php print_string('configfromwhen', 'block_use_stats') ?>
+    <?php print_string('configfromwhen_desc', 'block_use_stats') ?>
     </td>
 </tr>
 <tr valign="top">
-    <td align="right">block_use_stats_threshold:</td>
+    <td align="right"><?php print_string('configthreshold', 'block_use_stats') ?></td>
     <td>
     <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
     <input name="block_use_stats_threshold" type="text" size="5" value="<?php 
     if(isset($CFG->block_use_stats_threshold)) {
         p($CFG->block_use_stats_threshold);
     } else {
-        p(10 * 60);
+        p(60);
     } ?>" />
     </td>
     <td>
-    <?php print_string('configthreshold', 'block_use_stats') ?>
+    <?php print_string('configthreshold_desc', 'block_use_stats') ?>
     </td>
 </tr>
 <tr valign="top">
-    <td align="right">block_use_stats_capturemodules:</td>
+    <td align="right"><?php print_string('configlastpingcredit', 'block_use_stats') ?></td>
+    <td>
+    <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
+    <input name="block_use_stats_lastpingcredit" type="text" size="5" value="<?php 
+    if(isset($CFG->block_use_stats_lastpingcredit)) {
+        p($CFG->block_use_stats_lastpingcredit);
+    } else {
+        p(5);
+    } ?>" />
+    </td>
+    <td>
+    <?php print_string('configlastpingcredit_desc', 'block_use_stats') ?>
+    </td>
+</tr>
+<tr valign="top">
+    <td align="right"><?php print_string('configcapturemodules', 'block_use_stats') ?></td>
     <td>
     <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
     <input name="block_use_stats_capturemodules" type="text" size="40" value="<?php 
@@ -45,7 +60,7 @@
     </td>
 </tr>
 <tr valign="top">
-    <td align="right">block_use_stats_ignoremodules:</td>
+    <td align="right"><?php print_string('configignoremodules', 'block_use_stats') ?></td>
     <td>
     <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
     <input name="block_use_stats_ignoremodules" type="text" size="40" value="<?php 
@@ -54,11 +69,11 @@
     } ?>" />
     </td>
     <td>
-    <?php print_string('configignoremodules', 'block_use_stats') ?>
+    <?php print_string('configignoremodules_desc', 'block_use_stats') ?>
     </td>
 </tr>
 <tr valign="top">
-    <td align="right">block_use_stats_lastcompiled:</td>
+    <td align="right"><?php print_string('configlastcompiled', 'block_use_stats') ?></td>
     <td>
     <input name="block" type="hidden" value="<?php echo intval($_REQUEST['block']); ?>" />
     <?php
@@ -68,7 +83,7 @@
     ?>
     </td>
     <td>
-    <?php print_string('configlastcompiled', 'block_use_stats') ?>
+    <?php print_string('configlastcompiled_desc', 'block_use_stats') ?>
     </td>
 </tr>
 <tr>

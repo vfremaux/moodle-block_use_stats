@@ -8,6 +8,10 @@
 */
 function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
     global $CFG, $USER;
+    
+    if (!isset($CFG->block_use_stats_lastpingcredit)){
+    	set_config('block_use_stats_lastpingcredit', 5);
+    }
 
     $for = (is_null($for)) ? $USER->id : $for ;
     
@@ -24,6 +28,7 @@ function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
        SELECT
          id,
          course,
+         action,
          time,
          module,
          userid,
@@ -33,8 +38,10 @@ function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
        WHERE
          $userclause
          time > $from AND 
-         time < $to
-         $courseclause
+         time < $to AND
+         ((course = 1 AND action = 'login') OR
+          1
+          $courseclause)
        ORDER BY
          time
     ";
@@ -58,6 +65,9 @@ function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
 */
 function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
     global $CFG, $COURSE;
+    
+    // will record session aggregation state as current session ordinal
+    $sessionid = 0;
 
     if (isset($CFG->block_use_stats_capturemodules)){
         $modulelist = explode(',', $CFG->block_use_stats_capturemodules);
@@ -74,16 +84,23 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
     $currentuser = 0;
 
     $aggregate = array();        
+	$aggregate['sessions'] = array();
+	
     if (!empty($logs)){
         $logs = array_values($logs);
 
         $memlap = 0; // will store the accumulated time for in the way but out of scope laps.
-
-        for($i = 0 ; $i < count($logs) - 2 ; $i++){
+        
+        for($i = 0 ; $i < count($logs) ; $i++){
             $log = $logs[$i];
-        	$currentuser = $log->userid;
-            $lognext = $logs[$i + 1];
-            $lap = $lognext->time - $log->time;
+        	$currentuser = $log->userid; // we "guess" here the real identity of the log's owner.
+        	
+        	if (isset($logs[$i + 1])){
+	            $lognext = $logs[$i + 1];
+	            $lap = $lognext->time - $log->time;
+	        } else {
+	        	$lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
+	        }
 
 			if (in_array($log->$dimension, $ignoremodulelist)){
 				$lap = 0;
@@ -93,7 +110,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 
             // do not loose last lap, but set sometime to it
             // if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = ($CFG->block_use_stats_threshold * MINSECS) / 2;
-            if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = 600;
+            if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
 
             switch($dimension){
                 case 'module':{
@@ -112,6 +129,30 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
                 notice('unknown dimension');
             }
             
+           	/// Per login session aggregation
+           	if ($log->action != 'login' && @$lognext->action == 'login'){
+           		// repair first visible session track that has no login
+           		if (!isset($aggregate['sessions'][$sessionid]->sessionstart)){
+           			 $aggregate['sessions'][$sessionid]->sessionstart = $logs[0]->time;
+           		}
+           		$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           	}
+           	if ($log->action == 'login'){
+           		$sessionid++;
+           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
+           		$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+           		if (@$lognext->action == 'login'){
+           			$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           		}
+           	} else {
+           		if (!isset($aggregate['sessions'][$sessionid])){
+           			$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+	           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
+           		} else {
+	           		$aggregate['sessions'][$sessionid]->elapsed += $lap;
+	           	}
+        	}
+                        
            /// Standard global lap aggregation
             if (array_key_exists($log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$logs[$i]->$dimension])){
                 $aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
@@ -123,30 +164,30 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
             
             $origintime = $log->time;
         }
-    }
     
-    // we need check if time credits are used and override by credit earned
-	if (file_exists($CFG->dirroot.'/mod/checklist/xlib.php')){
-		include_once($CFG->dirroot.'/mod/checklist/xlib.php');
-		$checklists = checklist_get_instances($COURSE->id, true); // get timecredit enabled ones
-		
-		foreach($checklists as $ckl){
-			if ($credittimes = checklist_get_credittimes($ckl->id, 0, $currentuser)){
-				foreach($credittimes as $credittime){
-					if (!empty($CFG->checklist_strict_credits)){
-						// if strict credits, do override time even if real time is higher 
-						$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
-						$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
-					} else {
-						// this processes validated modules that although have no logs
-						if (!isset($aggregate[$credittime->modname][$credittime->cmid])){
-							$aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
-							$aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
-							$aggregate[$credittime->modname][$credittime->cmid]->events = 0;
-						}
-						if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime){
+	    // we need check if time credits are used and override by credit earned
+		if (file_exists($CFG->dirroot.'/mod/checklist/xlib.php')){
+			include_once($CFG->dirroot.'/mod/checklist/xlib.php');
+			$checklists = checklist_get_instances($COURSE->id, true); // get timecredit enabled ones
+			
+			foreach($checklists as $ckl){
+				if ($credittimes = checklist_get_credittimes($ckl->id, 0, $currentuser)){
+					foreach($credittimes as $credittime){
+						if (!empty($CFG->checklist_strict_credits)){
+							// if strict credits, do override time even if real time is higher 
 							$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
 							$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+						} else {
+							// this processes validated modules that although have no logs
+							if (!isset($aggregate[$credittime->modname][$credittime->cmid])){
+								$aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
+								$aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
+								$aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+							}
+							if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime){
+								$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+								$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+							}
 						}
 					}
 				}
@@ -171,7 +212,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 			}
 		}
 	}    
-    
+	
     return $aggregate;    
 }
 
@@ -211,7 +252,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
 	            $lognext[$userid] = $logs[$j];
             	$lap[$userid] = $lognext[$userid]->time - $log[$userid]->time;
 	        } else {
-				$lap[$userid] = 600;
+				$lap[$userid] = $CFG->block_use_stats_lastpingcredit * MINSECS;
 			}
 			
 			if ($lap[$userid] == 0) continue;
@@ -229,6 +270,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
                 }
             }
 
+
             if (!isset($log[$userid]->$dimension)){
                 notice('unknown dimension');
             }
@@ -245,6 +287,27 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed = $lap[$userid];
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->events = 1;
             }
+
+           	/// Per login session aggregation
+           	if ($log[$userid]->action != 'login' && @$lognext[$userid]->action == 'login'){
+           		$aggregate[$userid]['sessions'][$sessionid]->sessionend = $log[$userid]->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           	}
+           	if ($log[$userid]->action == 'login'){
+           		$sessionid++;
+           		$aggregate[$userid]['sessions'][$sessionid]->elapsed = $lap[$userid];
+           		$aggregate[$userid]['sessions'][$sessionid]->sessionstart = $log[$userid]->time;
+           		if (@$lognext[$userid]->action == 'login'){
+           			$aggregate[$userid]['sessions'][$sessionid]->sessionend = $log[$userid]->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           		}
+           	} else {
+           		if (!isset($aggregate['sessions'][$sessionid])){
+           			$aggregate[$userid]['sessions'][$sessionid]->sessionstart = $log[$userid]->time;
+	           		$aggregate[$userid]['sessions'][$sessionid]->elapsed = $lap[$userid];
+           		} else {
+	           		$aggregate[$userid]['sessions'][$sessionid]->elapsed += $lap[$userid];
+	           	}
+        	}
+            
             
             // $origintime = $log[$userid]->time;
         }
