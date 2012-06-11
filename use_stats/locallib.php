@@ -110,7 +110,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 
             // do not loose last lap, but set sometime to it
             // if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = ($CFG->block_use_stats_threshold * MINSECS) / 2;
-            if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
+            $sessionpunch = false;
+            if ($lap > $CFG->block_use_stats_threshold * MINSECS){
+            	$lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
+            	if ($lognext->action != 'login' && $log->action != 'login') $sessionpunch = true;
+            }
 
             switch($dimension){
                 case 'module':{
@@ -138,19 +142,26 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
            		$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
            	}
            	if ($log->action == 'login'){
-           		$sessionid++;
-           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
-           		$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-           		if (@$lognext->action == 'login'){
-           			$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           		if (@$lognext->action != 'login'){
+	           		$sessionid++;
+	           		$aggregate['sessions'][$sessionid]->elapsed = 0;
+	           		$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
            		}
            	} else {
-           		if (!isset($aggregate['sessions'][$sessionid])){
-           			$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-	           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
+           		if ($sessionpunch){
+           			// this record is the last one of the current session.
+           			$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+	           		$sessionid++;
+           			$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
+           			$aggregate['sessions'][$sessionid]->elapsed = 0;
            		} else {
-	           		$aggregate['sessions'][$sessionid]->elapsed += $lap;
-	           	}
+	           		if (!isset($aggregate['sessions'][$sessionid])){
+	           			$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+		           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
+	           		} else {
+		           		$aggregate['sessions'][$sessionid]->elapsed += $lap;
+		           	}
+		        }
         	}
                         
            /// Standard global lap aggregation
@@ -293,11 +304,10 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
            		$aggregate[$userid]['sessions'][$sessionid]->sessionend = $log[$userid]->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
            	}
            	if ($log[$userid]->action == 'login'){
-           		$sessionid++;
-           		$aggregate[$userid]['sessions'][$sessionid]->elapsed = $lap[$userid];
-           		$aggregate[$userid]['sessions'][$sessionid]->sessionstart = $log[$userid]->time;
-           		if (@$lognext[$userid]->action == 'login'){
-           			$aggregate[$userid]['sessions'][$sessionid]->sessionend = $log[$userid]->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           		if (@$lognext[$userid]->action != 'login'){
+	           		$sessionid++;
+	           		$aggregate[$userid]['sessions'][$sessionid]->elapsed = 0; // do not use first login time
+	           		$aggregate[$userid]['sessions'][$sessionid]->sessionstart = $log[$userid]->time;
            		}
            	} else {
            		if (!isset($aggregate['sessions'][$sessionid])){
