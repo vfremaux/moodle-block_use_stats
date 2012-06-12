@@ -14,6 +14,25 @@ function use_stats_extract_logs($from, $to, $for = null, $courseid = null){
     }
 
     $for = (is_null($for)) ? $USER->id : $for ;
+
+    if ($courseid){
+	    $coursecontext = get_context_instance(CONTEXT_COURSE, $courseid);
+	        
+	    // we search first enrol time for this user
+	    $sql = "
+			SELECT
+				id,
+				MIN(timestart) as timestart
+			FROM
+				{$CFG->prefix}role_assignments ra
+			WHERE
+				contextid = $coursecontext->id AND
+				userid = $for
+	    ";
+	    $firstenrol = get_record_sql($sql);
+    
+	    $from = max($from, $firstenrol->timestart);
+	}
     
     if (is_array($for)){
         $userlist = implode("','", $for);
@@ -144,8 +163,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
            	if ($log->action == 'login'){
            		if (@$lognext->action != 'login'){
 	           		$sessionid++;
-	           		$aggregate['sessions'][$sessionid]->elapsed = 0;
+	           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
 	           		$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+           		}
+           		else {
+           			continue;
            		}
            	} else {
            		if ($sessionpunch){
@@ -153,7 +175,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
            			$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
 	           		$sessionid++;
            			$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
-           			$aggregate['sessions'][$sessionid]->elapsed = 0;
+           			$aggregate['sessions'][$sessionid]->elapsed = $lap;
            		} else {
 	           		if (!isset($aggregate['sessions'][$sessionid])){
 	           			$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
