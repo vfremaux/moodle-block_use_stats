@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="use_stats" COMMENT="Default comment for use_stats, please edit me" NEXT="use_stats_userdata">
+    <TABLE NAME="block_use_stats" COMMENT="Default comment for use_stats, please edit me" NEXT="block_use_stats_userdata">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="contextid"/>
@@ -20,7 +20,7 @@
         <INDEX NAME="index_contextid" UNIQUE="false" FIELDS="contextid" PREVIOUS="index_userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="use_stats_userdata" COMMENT="Default comment for the table, please edit me" PREVIOUS="use_stats">
+    <TABLE NAME="block_use_stats_userdata" COMMENT="Default comment for the table, please edit me" PREVIOUS="block_use_stats">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="lastcompiled"/>
