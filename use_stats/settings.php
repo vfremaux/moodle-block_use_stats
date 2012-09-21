@@ -14,3 +14,5 @@ $settings->add(new admin_setting_configtext('block_use_stats_capturemodules', ge
 $settings->add(new admin_setting_configtext('block_use_stats_ignoremodules', get_string('ignoremodules', 'block_use_stats'),
                    get_string('configignoremodules', 'block_use_stats'), ''));
 
+$settings->add(new admin_setting_configtext('block_use_stats_lastpingcredit', get_string('lastpingcredit', 'block_use_stats'),
+                   get_string('configlastpingcredit', 'block_use_stats'), ''));
