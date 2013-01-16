@@ -287,11 +287,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 
 	if (array_key_exists('scorm', $aggregate)){
 		foreach(array_keys($aggregate['scorm']) as $cmid){
-			if ($cm = get_record('course_modules', 'id', $cmid)){ // these are all scorms
+			if ($cm = $DB->get_records('course_modules', array('id'=> $cmid))){ // these are all scorms
 
 				// scorm activities have their accurate recorded time
 				$realtotaltime = 0;
-				if ($realtimes = $DB->get_records_select('scorm_scoes_track', " element = 'cmi.core.total_time' AND scormid = $cm->instance AND userid = $currentuser ", 'id', 'id,element,value')){
+				if ($realtimes = $DB->get_records_select('scorm_scoes_track', " element = 'cmi.core.total_time' AND scormid = $scormid->instance AND userid = $currentuser ",array(),'id,element,value')){
 					foreach($realtimes as $rt){
 						$realcomps = preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
 						$realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
