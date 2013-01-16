@@ -50,7 +50,7 @@ class block_use_stats extends block_base {
             return true;
         }        
 
-		$context = course_context::instance($COURSE->id);
+		$context = context_course::instance($COURSE->id);
         if (!has_capability('block/use_stats:canaddto', $context)){
             return false;
         }
