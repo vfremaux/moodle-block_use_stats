@@ -9,14 +9,8 @@ require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 class block_use_stats extends block_base {
 
     function init() {
-        global $COURSE;
 
-        $context = get_context_instance(CONTEXT_COURSE, $COURSE->id);
-        if (has_capability('block/use_stats:view', $context)){
-            $this->title = get_string('blockname','block_use_stats');
-        } else {
-            $this->title = get_string('blocknameforstudents','block_use_stats');
-        }
+        $this->title = get_string('blockname','block_use_stats');
         $this->content_type = BLOCK_TYPE_TEXT;
     }
 
