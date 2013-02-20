@@ -287,7 +287,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 
 	if (array_key_exists('scorm', $aggregate)){
 		foreach(array_keys($aggregate['scorm']) as $cmid){
-			if ($cm = $DB->get_records('course_modules', array('id'=> $cmid))){ // these are all scorms
+			if ($cm = $DB->get_record('course_modules', array('id' => $cmid))){ // these are all scorms
 
 				// scorm activities have their accurate recorded time
 				$realtotaltime = 0;
