@@ -25,8 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2012031802;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2011120500;        // Requires this Moodle version
+$plugin->version   = 2013010100;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->requires  = 2012062500;        // Requires this Moodle version
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
-$plugin->maturity = MATURITY_RC; // Full name of the plugin (used for diagnostics)
-$plugin->release = '2.2.0 (build 2012031802)'; // Full name of the plugin (used for diagnostics)
+$plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
+$plugin->release = '2.3.0 (build 2013010100)'; // Full name of the plugin (used for diagnostics)
