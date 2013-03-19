@@ -1,6 +1,5 @@
 <?php
 
-
 /*
  * Moodle - Modular Object-Oriented Dynamic Learning Environment
  *          http://moodle.org
@@ -34,7 +33,6 @@
     require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 	require_once($CFG->dirroot . '/user/profile/lib.php');
 
-
     $courseid    = required_param('course', PARAM_INT);
     $userid    = required_param('userid', PARAM_INT);
     $id        = required_param('id', PARAM_INT); // ID of the calling use_stat block
@@ -50,8 +48,8 @@
 	    $returnurl = $CFG->wwwroot;
 	}
 
-    $blockcontext = get_context_instance(CONTEXT_BLOCK, $id);
-    $coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+    $blockcontext = context_block::instance($id);
+    $coursecontext = context_course::instance($COURSE->id);
     
     // check for capability to view user details and resolve
 	$cansee = false;
@@ -135,13 +133,16 @@
     $table->size = array('70%', '30%');
     $table->align = array('left', 'left');
     foreach($aggregate as $module => $moduleset){
+        if (preg_match('/label$/', $module)) continue;
         $table->data[] = array("<b>$module</b>", '');
         foreach($moduleset as $key => $value){
+        	if (!is_object($value)) continue;
             $cm = $DB->get_record('course_modules', array('id' => $key));
             if ($cm){
                 $module = $DB->get_record('modules', array('id' => $cm->module));
-                $modrec = $DB->get_record($module->name, array('id' => $cm->instance));
-                $table->data[] = array($modrec->name, format_time($value->elapsed), $value->events);
+                if ($modrec = $DB->get_record($module->name, array('id' => $cm->instance))){
+	                $table->data[] = array($modrec->name, format_time($value->elapsed), 0 + @$value->events);
+	            }
             } else {
                 $table->data[] = array('', format_time($value->elapsed));
             }

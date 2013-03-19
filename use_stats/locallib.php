@@ -153,63 +153,62 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
            	if ($log->action != 'login' && @$lognext->action == 'login'){
            		// repair first visible session track that has no login
            		if (!isset($aggregate['sessions'][$sessionid]->sessionstart)){
-           			 $aggregate['sessions'][$sessionid]->sessionstart = $logs[0]->time;
+           			 @$aggregate['sessions'][$sessionid]->sessionstart = $logs[0]->time;
            		}
-           		$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           		@$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
            	}
            	if ($log->action == 'login'){
            		if (@$lognext->action != 'login'){
 	           		$sessionid++;
-	           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
-	           		$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-           		}
-           		else {
+	           		@$aggregate['sessions'][$sessionid]->elapsed = $lap;
+	           		@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+           		} else {
            			continue;
            		}
            	} else {
            		if ($sessionpunch){
            			// this record is the last one of the current session.
-           			$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
+           			@$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
 	           		$sessionid++;
-           			$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
-           			$aggregate['sessions'][$sessionid]->elapsed = $lap;
+           			@$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
+           			@$aggregate['sessions'][$sessionid]->elapsed = $lap;
            		} else {
 	           		if (!isset($aggregate['sessions'][$sessionid])){
-	           			$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-		           		$aggregate['sessions'][$sessionid]->elapsed = $lap;
+	           			@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+		           		@$aggregate['sessions'][$sessionid]->elapsed = $lap;
 	           		} else {
-		           		$aggregate['sessions'][$sessionid]->elapsed += $lap;
+		           		@$aggregate['sessions'][$sessionid]->elapsed += $lap;
 		           	}
 		        }
         	}
                         
             /// Standard global lap aggregation
             if (array_key_exists($log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$logs[$i]->$dimension])){
-                $aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
-                $aggregate[$log->$dimension][$log->cmid]->events += 1;
+                @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
+                @$aggregate[$log->$dimension][$log->cmid]->events += 1;
             } else {
-                $aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
-                $aggregate[$log->$dimension][$log->cmid]->events = 1;
+                @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
+                @$aggregate[$log->$dimension][$log->cmid]->events = 1;
             }
 
             /// Standard inactivity level lap aggregation
             if ($log->cmid){
 	            if (array_key_exists('activities', $aggregate)){
-	                $aggregate['activities']->elapsed += $lap;
-	                $aggregate['activities']->events += 1;
+	                @$aggregate['activities']->elapsed += $lap;
+	                @$aggregate['activities']->events += 1;
 	            } else {
-	                $aggregate['activities']->elapsed = $lap;
-	                $aggregate['activities']->events = 1;
+	                @$aggregate['activities']->elapsed = $lap;
+	                @$aggregate['activities']->events = 1;
 	            }
 	        }
 
             /// Standard course level lap aggregation
             if (array_key_exists('coursetotal', $aggregate) && array_key_exists($log->course, $aggregate['coursetotal'])){
-                $aggregate['coursetotal'][$log->course]->elapsed += $lap;
-                $aggregate['coursetotal'][$log->course]->events += 1;
+                @$aggregate['coursetotal'][$log->course]->elapsed += $lap;
+                @$aggregate['coursetotal'][$log->course]->events += 1;
             } else {
-                $aggregate['coursetotal'][$log->course]->elapsed = $lap;
-                $aggregate['coursetotal'][$log->course]->events = 1;
+                @$aggregate['coursetotal'][$log->course]->elapsed = $lap;
+                @$aggregate['coursetotal'][$log->course]->events = 1;
             }
             
             $origintime = $log->time;
@@ -287,8 +286,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 
 	if (array_key_exists('scorm', $aggregate)){
 		foreach(array_keys($aggregate['scorm']) as $cmid){
-			if ($cm = $DB->get_record('course_modules', array('id' => $cmid))){ // these are all scorms
-
+			if ($cm = $DB->get_record('course_modules', array('id'=> $cmid))){ // these are all scorms
+				
 				// scorm activities have their accurate recorded time
 				$realtotaltime = 0;
 				if ($realtimes = $DB->get_records_select('scorm_scoes_track', " element = 'cmi.core.total_time' AND scormid = $cm->instance AND userid = $currentuser ",array(),'id,element,value')){

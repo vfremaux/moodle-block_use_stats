@@ -37,23 +37,6 @@ class block_use_stats extends block_base {
     /**
     *
     */
-    function user_can_addto($page) {
-        global $CFG, $COURSE;
-
-        if (has_capability('moodle/site:config', context_system::instance())){
-            return true;
-        }        
-
-		$context = context_course::instance($COURSE->id);
-        if (!has_capability('block/use_stats:canaddto', $context)){
-            return false;
-        }
-        return true;
-    }
-
-    /**
-    *
-    */
     function user_can_edit() {
         global $CFG, $COURSE;
 
