@@ -110,11 +110,13 @@ class block_use_stats extends block_base {
             $remainder = $totalTime - $hours * HOURSECS;
             $min = floor($remainder/MINSECS);
 
+			/*
             if (file_exists("{$CFG->dirroot}/theme/{$CFG->theme}/block_use_stats.css")){
                 $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/".current_theme()."/block_use_stats.css\" type=\"text/css\" />";
             } elseif (file_exists("{$CFG->dirroot}/theme/default/block_use_stats.css")){
                 $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/default/block_use_stats.css\" type=\"text/css\" />";
             }
+            */
 
             $this->content->text .= "<div class=\"message\">";
             $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
