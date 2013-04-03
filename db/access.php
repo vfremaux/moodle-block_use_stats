@@ -44,7 +44,7 @@ $capabilities = array(
         )
     ),
 
-    'block/use_stats:canaddto' => array(
+    'block/use_stats:addinstance' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
         'archetypes' => array(

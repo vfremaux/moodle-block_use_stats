@@ -1,6 +1,6 @@
 <?php
 
-$string['blockname'] = 'Activité';
+$string['blockname'] = 'Mesure d\'activité';
 $string['capturemodules'] = 'Modules à capturer';
 $string['configcapturemodules'] = 'Liste des modules qui sont pris en compte dans l\'analyse de détail';
 $string['configfromwhen'] = 'Durée de compilation (en jours depuis aujourd\'hui) ';
@@ -19,14 +19,13 @@ $string['fromwhen'] = 'Depuis ';
 $string['ignored'] = 'Module/Activité non pris en compte';
 $string['ignoremodules'] = 'Liste des modules ignorés';
 $string['lastpingcredit'] = 'Crédit exceptionnel de fin de session';
-$string['modulename'] = 'Tracking activité';
 $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthisMoodlefrom'] = ' sur ce Moodle depuis ';
-$string['pluginname'] = 'Activité';
+$string['pluginname'] = 'Mesure d\'activité';
 $string['showdetails'] = 'Montrer les détails';
 $string['threshold'] = 'Seuil';
 $string['timeelapsed'] = 'Temps passé';
-$string['use_stats:canaddto'] = 'Peut ajouter au cours';
+$string['use_stats:addinstance'] = 'Peut ajouter une instance';
 $string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours';
 $string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes';
 $string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage';
