@@ -4,6 +4,8 @@
 * @version Moodle 2.2
 * @param int $from
 * @param int $to
+* @param int $for a user ID 
+* @param int $courseid
 */
 function use_stats_extract_logs($from, $to, $for = null, $course = null){
     global $CFG, $USER, $DB;
@@ -75,7 +77,8 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null){
 }
 
 /**
-* given an array of log records, make a displayable aggregate
+* given an array of log records, make a displayable aggregate. Needs a single
+* user log extraction. User will be guessed out from log records.
 * @param array $logs
 * @param string $dimension
 */
@@ -146,7 +149,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
             }
 
             if (!isset($log->$dimension)){
-                $OUTPUT->notice('unknown dimension');
+                echo $OUTPUT->notification('unknown dimension');
             }
             
            	/// Per login session aggregation
@@ -360,7 +363,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
 
 
             if (!isset($log[$userid]->$dimension)){
-                $OUTPUT->notice('unknown dimension');
+                echo $OUTPUT->notification('unknown dimension');
             }
             
             if (!isset($aggregate[$userid])){
@@ -463,4 +466,116 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
         }
     }
     return $aggregate;    
+}
+
+/**
+* this new function uses the log storage enhancement with precalculated gaps
+* in order to extract multicourse time aggregations
+* @param object ref $result to be filled in
+* @param string $from
+* @param string $to
+* @param string $users
+* @param string $courses
+* @param string $dimensions
+*/
+function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = null, $courses = null, $dimensions = 'course,user,institution'){
+    global $CFG, $COURSE, $DB;
+
+	// make quick accessible memory variables to test
+	$dimensionsarr = explode(',', $dimensions);
+	$courseresult = in_array('course', $dimensionsarr);
+	$userresult = in_array('user', $dimensionsarr);
+	$institutionresult = in_array('institution', $dimensionsarr);
+    
+    if ($to == 0) $to = time;
+    
+    $userclause = '';
+    if (!empty($users)){
+    	$userclause = ' AND userid IN ('.implode(',', $users).' )';
+    }
+
+    $courseclause = '';
+    if (!empty($courses)){
+    	$courseclause = ' AND course IN ('.implode(',', $courses).' )';
+    }
+    
+    $sql = "
+    	SELECT
+    		l.id,
+    		l.time,
+    		l.userid,
+    		l.course,
+    		usl.gap,
+    		u.institution,
+    		u.department,
+    		u.city,
+    		u.country
+    	FROM
+    		{log} l,
+    		{use_stats_log} usl,
+    		{user} u
+    	WHERE
+    		u.id = l.userid AND
+    		time >= ? AND
+    		time <= ?
+    		$courseclause
+    		$userclause
+    ";
+
+	// pre_loop structure inits
+	if ($institutionresult){
+		$result->institutions = array();
+		$institutionid = 1;
+	}
+	
+	if (!isset($CFG->block_use_stats_threshold)) $CFG->block_use_stats_threshold = 15 * MINSECS;
+	if (!isset($CFG->block_use_stats_lastpingcredit)) $CFG->block_use_stats_lastpingcredit = 15 * MINSECS;
+    
+	$rs = get_recordset_sql($sql, array($from, $to));
+    if ($rs){
+    	
+    	while($rs->valid()){
+			$gap = $rs->current();
+    		
+    		if ($gap->gap > $CFG->block_use_stats_threshold){
+    			$gap->gap = $CFG->block_use_stats_lastpingcredit * MINSECS;
+    		}
+
+			// overall     		
+    		@$result->all->hits += 1; 
+    		@$result->all->elapsed += $gap->gap; 
+    		if (!isset($result->all->firsthit)) $result->all->firsthit = $gap->time; 
+    		$result->all->lasthit = $gap->time; 
+
+			// course detail
+			if ($courseresult){
+	    		@$result->course[$gap->course]->hits += 1; 
+	    		@$result->course[$gap->course]->elapsed += $gap->gap; 
+	    		if (!isset($result->course[$gap->course]->firsthit)) $result->all->firsthit = $gap->time; 
+	    		$result->course[$gap->course]->lasthit = $gap->time; 
+	    	}
+
+			// user detail
+			if ($userresult){
+	    		@$result->user[$gap->userid]->hits += 1; 
+	    		@$result->user[$gap->userid]->elapsed += $gap->gap; 
+	    		if (!isset($result->user[$gap->userid]->firsthit)) $result->user[$gap->userid]->firsthit = $gap->time; 
+	    		$result->user[$gap->userid]->lasthit = $gap->time;
+	    	}
+
+			// user detail
+			if ($institutionresult){
+				if (!array_key_exists($gap->institution, $result->institutions)){
+					$result->institutions[$gap->institution] = $institutionid;
+				}
+				$gapinstitutionid = $result->institutions[$gap->institution];
+	    		@$result->institution[$gapinstitutionid]->hits += 1; 
+	    		@$result->institution[$gapinstitutionid]->elapsed += $gap->gap; 
+	    		if (!isset($result->institution[$gapinstitutionid]->firsthit)) $result->institution[$gapinstitutionid]->firsthit = $gap->time; 
+	    		$result->institution[$gapinstitutionid]->lasthit = $gap->time;
+	    	}
+			$rs->next();
+    	}
+	$rs->close();
+    }
 }

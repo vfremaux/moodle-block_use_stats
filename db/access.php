@@ -54,6 +54,15 @@ $capabilities = array(
         )
     ),
 
+    'block/use_stats:myaddinstance' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_BLOCK,
+        'archetypes' => array(
+            'user' => CAP_ALLOW,
+            'manager' => CAP_ALLOW
+        )
+    ),
+
     'block/use_stats:seesitedetails' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,

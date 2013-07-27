@@ -102,7 +102,7 @@
 	$PAGE->set_url($CFG->wwwroot.'/blocks/use_stats/detail.php');
 	$PAGE->set_headingmenu('');
 	$PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
-	$PAGE->navbar->add(fullname($user));
+	$PAGE->navbar->add(fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())));
 	echo $OUTPUT->header(); 
    
     $daystocompilelogs = $fromwhen * DAYSECS;
@@ -111,7 +111,7 @@
 	echo '<table class="list" summary=""><tr><td>';
 	echo $OUTPUT->user_picture($user, array('size'=> 100));
 	echo '</td><td>';
-	echo '<h2><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'">'.fullname($user).'</a></h2>';
+	echo '<h2><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'">'.fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())).'</a></h2>';
 	echo '<table class="list" summary="" width="100%">';
 	profile_display_fields($user->id);
 	echo '</table>';
@@ -152,14 +152,17 @@
     if (!empty($table->data)){
         echo html_writer::table($table);
     } else {
-        notice(get_string('errornorecords', 'block_use_stats'), $returnurl);
+        echo $OUPTUT->notification(get_string('errornorecords', 'block_use_stats'), $returnurl);
     }
 
-    print_continue($returnurl);
+    echo $OUTPUT->continue_button($returnurl);
 
     $OUTPUT->footer();            
 
+/*	
 	function print_row($left, $right) {
 	    echo "\n<tr><td class=\"label c0\">$left</td><td class=\"info c1\">$right</td></tr>\n";
 	}
+*/
+
 ?>

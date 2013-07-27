@@ -5,7 +5,6 @@ define('USE_STATS_COURSE_SCOPE', 2);
 define('USE_STATS_MODULE_SCOPE', 3);
 
 include_once $CFG->dirroot.'/blocks/use_stats/locallib.php';
-include_once $CFG->libdir.'/pear/HTML/AJAX/JSON.php';
 require_once $CFG->dirroot.'/mnet/xmlrpc/client.php';
 
 /**
@@ -52,7 +51,7 @@ function use_stats_invoke_local_user($user, $capability, $context=null) {
 	}
 
 	// Get local identity
-	if (!$remotehost = get_record('mnet_host', 'wwwroot', $user['remotehostroot'])){
+	if (!$remotehost = $DB->get_record('mnet_host', array('wwwroot' => $user['remotehostroot']))){
 		$response->status = RPC_FAILURE;
 		$response->errors[] = 'Calling host is not registered. Check MNET configuration';
 		return(json_encode($response));
@@ -72,7 +71,7 @@ function use_stats_invoke_local_user($user, $capability, $context=null) {
 
 	// Checking capabilities
 	if (is_null($context))
-	    $context = get_context_instance(CONTEXT_SYSTEM);
+	    $context = context_system::instance();
 	if ((is_string($capability) && !has_capability($capability, $context)) || (is_string($capability) && !has_one_capability($capability, $context))) {
 		$response->status = RPC_FAILURE_CAPABILITY;
 		$response->errors[] = 'Local user\'s identity has no capability to run';
@@ -115,13 +114,13 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
 		/*
 		switch($courseidfield){
 			case 'id':
-				$course = get_record('course', 'id', $courseidentifier);
+				$course = $DB->get_record('course', array('id' => $courseidentifier));
 				break;
 			case 'shortname':
-				$course = get_record('course', 'shortname', $courseidentifier);
+				$course = $DB->get_record('course', array('shortname' => $courseidentifier));
 				break;
 			case 'idnumber':
-				$course = get_record('course', 'idnumber', $courseidentifier);
+				$course = $DB->get_record('course', array('idnumber' => $courseidentifier));
 				break;		
 		}
 		
