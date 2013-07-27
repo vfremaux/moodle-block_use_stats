@@ -4,7 +4,7 @@
     xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
 >
   <TABLES>
-    <TABLE NAME="block_use_stats" COMMENT="Default comment for use_stats, please edit me" NEXT="block_use_stats_userdata">
+    <TABLE NAME="block_use_stats" COMMENT="Default comment for use_stats, please edit me" NEXT="block_use_stats_log">
       <FIELDS>
         <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
         <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="contextid"/>
@@ -20,11 +20,20 @@
         <INDEX NAME="index_contextid" UNIQUE="false" FIELDS="contextid" PREVIOUS="index_userid"/>
       </INDEXES>
     </TABLE>
-    <TABLE NAME="block_use_stats_userdata" COMMENT="Default comment for the table, please edit me" PREVIOUS="block_use_stats">
+    <TABLE NAME="block_use_stats_log" COMMENT="Default comment for the table, please edit me" PREVIOUS="block_use_stats">
       <FIELDS>
-        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="userid"/>
-        <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="lastcompiled"/>
-        <FIELD NAME="lastcompiled" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="userid"/>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" UNSIGNED="true" SEQUENCE="true" ENUM="false" NEXT="logid"/>
+        <FIELD NAME="logid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="id" NEXT="gap"/>
+        <FIELD NAME="gap" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="logid" NEXT="userid" />
+        <FIELD NAME="userid" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="gap" NEXT="course" />
+        <FIELD NAME="course" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="userid" NEXT="time" />
+        <FIELD NAME="time" TYPE="int" LENGTH="11" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="course" NEXT="customtag1" />
+        <FIELD NAME="customtag1" TYPE="char" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="time" NEXT="customtag2" />
+        <FIELD NAME="customtag2" TYPE="char" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="customtag1" NEXT="customtag3" />
+        <FIELD NAME="customtag3" TYPE="char" LENGTH="20" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="customtag2" NEXT="customtag4" />
+        <FIELD NAME="customtag4" TYPE="char" LENGTH="128" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="customtag3" NEXT="customtag5" />
+        <FIELD NAME="customtag5" TYPE="char" LENGTH="128" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="customtag4" NEXT="customtag6" />
+        <FIELD NAME="customtag6" TYPE="char" LENGTH="128" NOTNULL="false" UNSIGNED="true" DEFAULT="0" SEQUENCE="false" ENUM="false" PREVIOUS="customtag5"/>
       </FIELDS>
       <KEYS>
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>

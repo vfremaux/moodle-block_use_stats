@@ -9,7 +9,6 @@ require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 class block_use_stats extends block_base {
 
     function init() {
-
         $this->title = get_string('blockname','block_use_stats');
         $this->content_type = BLOCK_TYPE_TEXT;
     }
@@ -68,8 +67,11 @@ class block_use_stats extends block_base {
             return $this->content;
         }
 
+        $id = optional_param('id', 0, PARAM_INT);
         $fromwhen = 30;
-        $fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
+        if (!empty($CFG->block_use_stats_fromwhen)) {
+			$fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
+		}
 
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
@@ -110,16 +112,9 @@ class block_use_stats extends block_base {
             $remainder = $totalTime - $hours * HOURSECS;
             $min = floor($remainder/MINSECS);
 
-			/*
-            if (file_exists("{$CFG->dirroot}/theme/{$CFG->theme}/block_use_stats.css")){
-                $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/".current_theme()."/block_use_stats.css\" type=\"text/css\" />";
-            } elseif (file_exists("{$CFG->dirroot}/theme/default/block_use_stats.css")){
-                $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/default/block_use_stats.css\" type=\"text/css\" />";
-            }
-            */
-
             $this->content->text .= "<div class=\"message\">";
             $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
+            $this->content->text .= "<input type=\"hidden\" name=\"id\" value=\"$id\" />";
             if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
                 $users = $DB->get_records('user', array('deleted' => 0), 'lastname', 'id, firstname, lastname');
             } 
@@ -139,7 +134,7 @@ class block_use_stats extends block_base {
             if (!empty($users)){
                 $usermenu = array();
                 foreach($users as $user){
-                    $usermenu[$user->id] = fullname($user);
+                    $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
                 }
 	            $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
             }
@@ -182,6 +177,7 @@ class block_use_stats extends block_base {
             $this->content->text .= get_string('noavailablelogs', 'block_use_stats');
             $this->content->text .= "<br/>";
             $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
+            $this->content->text .= "<input type=\"hidden\" name=\"id\" value=\"$id\" />";
             if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
                 $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id, firstname, lastname');
             }
@@ -209,7 +205,7 @@ class block_use_stats extends block_base {
             if (!empty($users)){
                 $usermenu = array();
                 foreach($users as $user){
-                    $usermenu[$user->id] = fullname($user);
+                    $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
                 }
             	$this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
             }
@@ -227,117 +223,66 @@ class block_use_stats extends block_base {
         return $this->content;
     }
 
-
-	/**
-	 * Setup the XMLRPC service, RPC calls and default block parameters.
-	 * @return boolean TRUE if the installation is successfull, FALSE otherwise.
-	 */
-	function after_install() {
-		global $CFG, $DB, $OUTPUT;
-		
-		// Initialising
-		$result = true;
-		
-		/*
-		 * Installing use_stats service
-		 */
-		if (!$DB->get_record('mnet_service', array('name' => 'use_stats'))) {
-			// Installing service
-			$service = new stdclass;
-			$service->name = 'use_stats';
-			$service->description = get_string('use_stats_rpc_service_name', 'use_stats');
-			$service->apiversion = 1;
-			$service->offer = 1;
-			if (!$serviceid = insert_record('mnet_service', $service)){
-				$OUTPUT->notify('Error installing use_stats service.');
-				$result = false;
-			}
-		}
-		
-		/*
-		 * Installing RPC call 'get_stats'
-		 */
-		// Checking if it is already installed
-		if (!$DB->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_stats'))) {
-			
-			// Creating RPC call
-			$rpc = new stdclass;
-			$rpc->function_name = 'use_stats_rpc_get_stats';
-			$rpc->xmlrpc_path = 'blocks/use_stats/rpclib.php/use_stats_rpc_get_stats';
-			$rpc->parent_type = 'block';  
-			$rpc->parent = 'use_stats';
-			$rpc->enabled = 0; 
-			$rpc->help = 'get remotely use stats information.';
-			$rpc->profile = '';
-			
-			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_stats RPC call "get_stats".');
-				$result = false;
-			} else {
-				// Mapping service and call
-				$rpcmap = new stdclass;
-				$rpcmap->serviceid = $serviceid;
-				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_stats" to the "use_stats" service.');
-					$result = false;
-				}
-			}
-		}
-
-		if (!$DBè->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_scores'))) {
-			
-			// Creating RPC call
-			$rpc = new stdclass;
-			$rpc->function_name = 'use_stats_rpc_get_scores';
-			$rpc->xmlrpc_path = 'blocks/use_stats/rpclib.php/use_stats_rpc_get_scores';
-			$rpc->parent_type = 'block';  
-			$rpc->parent = 'use_stats';
-			$rpc->enabled = 0; 
-			$rpc->help = 'get remotely scores information.';
-			$rpc->profile = '';
-			
-			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_scores RPC call "get_scores".');
-				$result = false;
-			} else {
-				// Mapping service and call
-				$rpcmap = new stdclass;
-				$rpcmap->serviceid = $serviceid;
-				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_scores" to the "use_scores" service.');
-					$result = false;
-				}
-			}
-		}
-				
-		// Returning result
-		return $result;    
-	}
-	
-	/**
-	 * Remove the XMLRPC service.
-	 * @return					boolean				TRUE if the deletion is successfull, FALSE otherwise.
-	 */
-	function before_delete() {
+	function cron(){
 		global $CFG, $DB;
-				
-		// Checking if use_stats service is installed
-		if (!($service = $DB->get_record('mnet_service', array('name' => 'use_stats'))))
-			return true;
 		
-		// Uninstalling use_stats service
-		$DB->delete_records('mnet_host2service', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_service2rpc', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_rpc', array('parent' => 'use_stats'));
-		$DB->delete_records('mnet_service', array('name' => 'use_stats'));
+		if (!isset($CFG->block_use_stats_lastcompiled)) $CFG->block_use_stats_lastcompiled = 0;
 		
-		// Returning result
-		return true;
+		mtrace("\n".'... Compiling gaps from : '.$CFG->block_use_stats_lastcompiled);
+		
+	/// feed the table with log gaps
+		$previouslog = array();
+		$rs = $DB->get_recordset_select('log', " time > ? ", array($CFG->block_use_stats_lastcompiled), 'time', 'id,time,userid,course,cmid');
+	    if($rs){
+	    	
+	    	$r = 0;
+	    	
+	    	$starttime = time();
+	        
+	        while($rs->valid()){
+	        	$log = $rs->current();
+        		$gaprec = new StdClass;
+        		$gaprec->logid = $log->id;
+        		$gaprec->userid = $log->userid;
+        		$gaprec->time = $log->time;
+        		$gaprec->course = $log->course;
+
+				for($ci = 1 ; $ci <= 6; $ci++){
+					$key = "customtag".$ci;
+					$gaprec->$key = '';
+					if (!empty($CFG->block_use_stats_enablecompilecube)){
+						$customselectkey = "block_use_stats_customtag{$ci}select";
+			    		if (!empty($CFG->$customselectkey)){
+			        		$customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($CFG->$customselectkey));
+			        		$customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
+			        		$customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
+			        		$customsql = str_replace('<%%CMID%%>', $log->cmid, $customsql);
+							$gaprec->$key = $DB->get_field_sql($customsql, array());
+			        	}
+			        }
+				}
+				        		        		
+        		$gaprec->gap = 0;
+        		if (!$DB->record_exists('block_use_stats_log', array('logid' => $log->id))){
+	        		$DB->insert_record('block_use_stats_log', $gaprec);
+	        	}
+	        	if (array_key_exists($log->userid, $previouslog)){
+	        		$DB->set_field('block_use_stats_log', 'gap', $log->time - $previouslog[$log->userid]->time, array('logid' => $previouslog[$log->userid]->id));
+	        	}
+        		$previouslog[$log->userid] = $log;
+        		$lasttime = $log->time;
+        		$r++;
+				if ($r %10 == 0){
+	        		$processtime = time();
+					if (($processtime > $starttime + 60 * 15) || ($r > 30000)) break; // do not process more than 15 minutes
+				}
+				$rs->next();
+	        }
+	        $rs->close();
+	        
+	        mtrace("... $r logs gapped");
+	        // register last log time for cron further updates
+	        if (!empty($lasttime)) set_config('block_use_stats_lastcompiled', $lasttime);
+	    }
 	}
 }
-
-?>

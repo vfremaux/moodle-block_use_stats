@@ -71,7 +71,7 @@ function use_stats_invoke_local_user($user, $capability, $context=null) {
 
 	// Checking capabilities
 	if (is_null($context))
-	    $context = get_context_instance(CONTEXT_SYSTEM);
+	    $context = context_system::instance();
 	if ((is_string($capability) && !has_capability($capability, $context)) || (is_string($capability) && !has_one_capability($capability, $context))) {
 		$response->status = RPC_FAILURE_CAPABILITY;
 		$response->errors[] = 'Local user\'s identity has no capability to run';
