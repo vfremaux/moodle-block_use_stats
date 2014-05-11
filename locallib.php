@@ -88,10 +88,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
     // will record session aggregation state as current session ordinal
     $sessionid = 0;
 
-    if (isset($CFG->block_use_stats_capturemodules)){
+    if (!empty($CFG->block_use_stats_capturemodules)){
         $modulelist = explode(',', $CFG->block_use_stats_capturemodules);
-    } else {
-        print_error('errornotinitialized', 'block_use_stats');
     }
 
     if (isset($CFG->block_use_stats_ignoremodules)){
@@ -101,6 +99,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
     }
     
     $currentuser = 0;
+    $automatondebug = optional_param('debug', 0, PARAM_BOOL);
 
     $aggregate = array();        
 	$aggregate['sessions'] = array();
@@ -121,69 +120,99 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
 	        	$lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
 	        }
 
-			if (in_array($log->$dimension, $ignoremodulelist)){
-				$lap = 0;
-			}
-
-            if ($lap == 0) continue;
-
-            // do not loose last lap, but set sometime to it
-            // if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = ($CFG->block_use_stats_threshold * MINSECS) / 2;
             $sessionpunch = false;
             if ($lap > $CFG->block_use_stats_threshold * MINSECS){
             	$lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
-            	if ($lognext->action != 'login' && $log->action != 'login') $sessionpunch = true;
+            	if ($log->action != 'login') $sessionpunch = true;
             }
 
-            switch($dimension){
-                case 'module':{
-                    if (!in_array($log->$dimension, $modulelist)){
-                        $memlap += $lap;
-                        continue;
-                    } else {
-                        $lap += $memlap;
-                        $memlap = 0;
-                    }
-                    break;
+			// this is the most usual case...
+            if ($dimension == 'module' && ($log->action != 'login')) {
+                if (!empty($CFG->block_use_stats_capturemodules) && !in_array($log->$dimension, $modulelist)){
+                    $memlap = $memlap + $lap;
+                    continue;
+                }
+
+                if (!empty($CFG->block_use_stats_ignoremodules) && in_array($log->$dimension, $ignoremodulelist)){
+                    $memlap = $memlap + $lap;
+                    continue;
                 }
             }
+
+            $lap = $lap + $memlap;
+            $memlap = 0;
 
             if (!isset($log->$dimension)){
                 echo $OUTPUT->notification('unknown dimension');
             }
             
-           	/// Per login session aggregation
-           	if ($log->action != 'login' && @$lognext->action == 'login'){
-           		// repair first visible session track that has no login
-           		if (!isset($aggregate['sessions'][$sessionid]->sessionstart)){
-           			 @$aggregate['sessions'][$sessionid]->sessionstart = $logs[0]->time;
+       	/// Per login session aggregation
+
+       		// repair inconditionally first visible session track that has no login
+       		if ($sessionid == 0){
+           		if (!isset($aggregate['sessions'][0]->sessionstart)){
+	       			if ($automatondebug){
+	       				mtrace('First record repair</br>');
+	       			}
+           			@$aggregate['sessions'][0]->sessionstart = $logs[0]->time;
            		}
-           		@$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
            	}
-           	if ($log->action == 'login'){
-           		if (@$lognext->action != 'login'){
-	           		$sessionid++;
-	           		@$aggregate['sessions'][$sessionid]->elapsed = $lap;
-	           		@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-           		} else {
-           			continue;
+
+			// next visible log is a login. So current session ends
+       		@$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course; // this will collect all visited course ids during this session
+           	if (($log->action != 'login') && ('login' == @$lognext->action)){
+           		@$aggregate['sessions'][$sessionid]->elapsed += $lap;
+           		@$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+           		if ($automatondebug){
+		           	mtrace(" <span style=\"background-color:#FF8080\">implicit logout. next : {$lognext->action}</span> ".format_time($lap)." at ".userdate($log->time).' >> '.format_time($aggregate['sessions'][$sessionid]->elapsed).'<br/>');
            		}
            	} else {
-           		if ($sessionpunch){
-           			// this record is the last one of the current session.
-           			@$aggregate['sessions'][$sessionid]->sessionend = $log->time + ($CFG->block_use_stats_lastpingcredit * MINSECS);
-	           		$sessionid++;
-           			@$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
-           			@$aggregate['sessions'][$sessionid]->elapsed = $lap;
-           		} else {
-	           		if (!isset($aggregate['sessions'][$sessionid])){
-	           			@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+
+	           	if ($log->action == 'login'){
+	           		if (@$lognext->action != 'login'){
+		           		$sessionid++;
 		           		@$aggregate['sessions'][$sessionid]->elapsed = $lap;
+		           		@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+           				if ($automatondebug){
+		           		 	mtrace(" <span style=\"background-color:#80FF80\">login</span> ".format_time($lap)." at ".userdate($log->time).' >> '.format_time($aggregate['sessions'][$sessionid]->elapsed).'<br/>');
+		           		}
 	           		} else {
-		           		@$aggregate['sessions'][$sessionid]->elapsed += $lap;
-		           	}
-		        }
-        	}
+           				if ($automatondebug){
+	 	           			mtrace(" not true session. next : {$lognext->action} ".userdate($log->time).'<br/>');
+	 	           		}
+	           			// continue;
+	           		}
+	           	} else {
+	           		if ($sessionpunch || $lognext->action == 'login'){
+	           			// this record is the last one of the current session.
+	           			@$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+	           			@$aggregate['sessions'][$sessionid]->elapsed += $lap;
+           				if ($automatondebug){
+           					$punch = ($sessionpunch) ? 'punchout' : '' ;
+		           			mtrace("$punch beforelogin $lap session end ".userdate($log->time).' +'.$CFG->block_use_stats_lastpingcredit.'mins <br/>');
+		           		}
+						if ($sessionpunch){
+			           		$logs[$i + 1]->action = 'login';
+			           	}
+		           		// $sessionid++;
+	           			// @$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
+	           			// @$aggregate['sessions'][$sessionid]->elapsed = $lap;
+	           		} else {
+		           		if (!isset($aggregate['sessions'][$sessionid])){
+		           			@$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
+			           		@$aggregate['sessions'][$sessionid]->elapsed = $lap;
+           					if ($automatondebug){
+		           				mtrace(" firstrecord ".format_time($lap)." ".userdate($log->time).'<br/>');
+		           			}
+		           		} else {
+			           		@$aggregate['sessions'][$sessionid]->elapsed += $lap;
+           					if ($automatondebug){
+		           				mtrace(" simple record ".format_time($lap)." at ".userdate($log->time).' >> '.format_time($aggregate['sessions'][$sessionid]->elapsed).'<br/>');
+		           			}
+			           	}
+			        }
+	        	}
+	        }
                         
             /// Standard global lap aggregation
             if (array_key_exists($log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$logs[$i]->$dimension])){
@@ -317,8 +346,12 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
 
     if (isset($CFG->block_use_stats_capturemodules)){
         $modulelist = explode(',', $CFG->block_use_stats_capturemodules);
+    }
+
+    if (isset($CFG->block_use_stats_ignoremodules)){
+        $ignoremodulelist = explode(',', $CFG->block_use_stats_ignoremodules);
     } else {
-        print_error('errornotinitiaized', 'block_use_stats');
+    	$ignoremodulelist = array();
     }
 
     $aggregate = array();        
@@ -350,13 +383,17 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
 
             switch($dimension){
                 case 'module':{
-                    if (!in_array($log[$userid]->$dimension, $modulelist)){
+                    if (!empty($CFG->block_use_stats_capturemodules) && !in_array($log[$userid]->$dimension, $modulelist)){
                         $memlap[$userid] = 0 + @$memlap[$userid] + $lap[$userid];
                         continue;
-                    } else {
-                        $lap[$userid] += 0 + @$memlap[$userid];
-                        $memlap[$userid] = 0;
                     }
+
+                    if (!empty($CFG->block_use_stats_ignoremodules) && in_array($log[$userid]->$dimension, $ignoremodulelist)){
+                        $memlap[$userid] = 0 + @$memlap[$userid] + $lap[$userid];
+                        continue;
+                    }
+                    $lap[$userid] += 0 + @$memlap[$userid];
+                    $memlap[$userid] = 0;
                     break;
                 }
             }

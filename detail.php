@@ -157,7 +157,7 @@
 
     echo $OUTPUT->continue_button($returnurl);
 
-    $OUTPUT->footer();            
+    echo $OUTPUT->footer();            
 
 /*	
 	function print_row($left, $right) {
