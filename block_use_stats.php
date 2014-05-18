@@ -61,8 +61,8 @@ class block_use_stats extends block_base {
         }
         
         // Get context so we can check capabilities.
-        $context = get_context_instance(CONTEXT_BLOCK, $this->instance->id);
-        $systemcontext = get_context_instance(CONTEXT_SYSTEM);
+        $context = context_block::instance($this->instance->id);
+        $systemcontext = context_system::instance();
         if (!has_capability('block/use_stats:view', $context)){
             return $this->content;
         }
@@ -119,7 +119,7 @@ class block_use_stats extends block_base {
                 $users = $DB->get_records('user', array('deleted' => 0), 'lastname', 'id, firstname, lastname');
             } 
             else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
-            	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+            	$coursecontext = context_course::instance($COURSE->id);
                 $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id, firstname, lastname');
             }
             else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
@@ -182,7 +182,7 @@ class block_use_stats extends block_base {
                 $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id, firstname, lastname');
             }
             else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
-            	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
+            	$coursecontext = context_course::instance($COURSE->id);
                 $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id, firstname, lastname');
             }
             else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
@@ -226,6 +226,8 @@ class block_use_stats extends block_base {
 	function cron(){
 		global $CFG, $DB;
 		
+		if (empty($CFG->block_use_stats_enablecompilelogs)) return;
+		
 		if (!isset($CFG->block_use_stats_lastcompiled)) $CFG->block_use_stats_lastcompiled = 0;
 		
 		mtrace("\n".'... Compiling gaps from : '.$CFG->block_use_stats_lastcompiled);
@@ -266,15 +268,18 @@ class block_use_stats extends block_base {
         		if (!$DB->record_exists('block_use_stats_log', array('logid' => $log->id))){
 	        		$DB->insert_record('block_use_stats_log', $gaprec);
 	        	}
-	        	if (array_key_exists($log->userid, $previouslog)){
-	        		$DB->set_field('block_use_stats_log', 'gap', $log->time - $previouslog[$log->userid]->time, array('logid' => $previouslog[$log->userid]->id));
+	        	// is there a last log found before actual compilation session ?
+	        	if (!array_key_exists($log->userid, $previouslog)){
+	        		$maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($CFG->block_use_stats_lastcompiled));
+	        		$previouslog[$log->userid] = $DB->get_record('log', array('time' => $maxlasttime));
 	        	}
+        		$DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
         		$previouslog[$log->userid] = $log;
         		$lasttime = $log->time;
         		$r++;
 				if ($r %10 == 0){
 	        		$processtime = time();
-					if (($processtime > $starttime + 60 * 15) || ($r > 30000)) break; // do not process more than 15 minutes
+					if (($processtime > $starttime + 60 * 15) || ($r > 100000)) break; // do not process more than 15 minutes
 				}
 				$rs->next();
 	        }
