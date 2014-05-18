@@ -48,3 +48,4 @@ $string['use_stats_name'] = 'Remote access to statistics';
 $string['use_stats_rpc_service'] = 'Remote access to statistics';
 $string['use_stats_rpc_service_name'] = 'Remote access to statistics';
 $string['youspent'] = 'You already spent ';
+$string['credittime'] = 'Credit time';

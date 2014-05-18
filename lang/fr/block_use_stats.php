@@ -48,4 +48,5 @@ $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage';
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques';
 $string['use_stats_rpc_service_name'] = 'Acces distant aux statistiques d\'usage';
 $string['youspent'] = 'Vous avez déjà passé ';
+$string['credittime'] = 'Crédit temps';
 

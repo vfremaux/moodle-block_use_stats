@@ -8,16 +8,16 @@ $settings->add(new admin_setting_configtext('block_use_stats_fromwhen', get_stri
                    get_string('configfromwhen_desc', 'block_use_stats'), 60));
 
 $settings->add(new admin_setting_configtext('block_use_stats_threshold', get_string('configthreshold', 'block_use_stats'),
-                   get_string('configthreshold_desc', 'block_use_stats'), '60'));
+                   get_string('configthreshold_desc', 'block_use_stats'), 60));
 
 $settings->add(new admin_setting_configtext('block_use_stats_capturemodules', get_string('configcapturemodules', 'block_use_stats'),
-                   get_string('configcapturemodules_desc', 'block_use_stats'), 'course,download,user,forum,glossary,assignment,quiz,feedback,resource,lesson,survey'));
+                   get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 
 $settings->add(new admin_setting_configtext('block_use_stats_ignoremodules', get_string('configignoremodules', 'block_use_stats'),
                    get_string('configignoremodules_desc', 'block_use_stats'), ''));
 
 $settings->add(new admin_setting_configtext('block_use_stats_lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
-                   get_string('configlastpingcredit_desc', 'block_use_stats'), ''));
+                   get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
 
 $settings->add(new admin_setting_configcheckbox('block_use_stats_enablecompilelogs', get_string('configenablecompilelogs', 'block_use_stats'),
                    get_string('configenablecompilelogs_desc', 'block_use_stats'), ''));

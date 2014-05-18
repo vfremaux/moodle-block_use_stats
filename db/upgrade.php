@@ -1,4 +1,4 @@
-<?php  //$Id: upgrade.php,v 1.6 2011-07-29 09:02:12 vf Exp $
+<?php
 
 // This file keeps track of upgrades to 
 // the online_users block
@@ -26,6 +26,8 @@ function xmldb_block_use_stats_upgrade($oldversion=0) {
     $result = true;
     
     $dbman = $DB->get_manager();
+
+	// Moodle 2.x      
     
 	if ($result && $oldversion < 2013040900) { //New version in version.php
 		

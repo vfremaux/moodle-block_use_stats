@@ -273,7 +273,7 @@ class block_use_stats extends block_base {
 	        		$maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($CFG->block_use_stats_lastcompiled));
 	        		$previouslog[$log->userid] = $DB->get_record('log', array('time' => $maxlasttime));
 	        	}
-        		$DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => $previouslog[$log->userid]->id));
+        		$DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
         		$previouslog[$log->userid] = $log;
         		$lasttime = $log->time;
         		$r++;
