@@ -15,23 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
- * Moodle - Modular Object-Oriented Dynamic Learning Environment
- *          http://moodle.org
- * Copyright (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 2 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
  * @package    block-use-stats
  * @category   blocks
  * @author     Valery Fremaux <valery.fremaux@club-internet.fr>
@@ -67,7 +50,7 @@ $cansee = false;
 if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
     $cansee = true;
 } elseif ($USER->id != $userid) {
-    if (has_capability('block/use_stats:seegroupdetails', $blockcontext)){
+    if (has_capability('block/use_stats:seegroupdetails', $blockcontext)) {
         // If not in a group of mine, is an error.
         $mygroups = groups_get_user_groups($COURSE->id);
         $groups = array();
@@ -84,8 +67,8 @@ if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
         }
     }
 
-    if (has_capability('block/use_stats:seecoursedetails', $blockcontext)){
-        // If not user in current course of mine, is an error.
+    if (has_capability('block/use_stats:seecoursedetails', $blockcontext)) {
+        // if not user in current course of mine, is an error.
         if (has_capability('moodle/course:view', $coursecontext, $userid)) {
             $cansee = true;
         }
@@ -102,7 +85,7 @@ if (!$cansee) {
     print_error('notallowed', 'block_use_stats');
 }
 
-$user = $DB->get_record('user', array('id' => $userid), 'id,firstname,lastname,picture,imagealt,email');
+$user = $DB->get_record('user', array('id' => $userid), 'id,'.get_all_user_name_fields(true, '').',picture,imagealt,email');
 
 $PAGE->set_title(get_string('modulename', 'block_use_stats'));
 $PAGE->set_heading('');
