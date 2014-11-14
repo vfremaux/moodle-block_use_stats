@@ -133,7 +133,7 @@ class block_use_stats extends block_base {
                 }
                 $lasttime = $aLog->time;
             }
-            
+
             $hours = floor($totalTime/HOURSECS);
             $remainder = $totalTime - $hours * HOURSECS;
             $min = floor($remainder/MINSECS);
