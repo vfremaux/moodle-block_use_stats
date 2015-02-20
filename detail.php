@@ -15,11 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
- * @package    block-use-stats
+ * @package    block
+ * @subpackage use_stats
  * @category   blocks
- * @author     Valery Fremaux <valery.fremaux@club-internet.fr>
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
- * @copyright  (C) 1999 onwards Martin Dougiamas  http://dougiamas.com
  *
  */
 
@@ -27,17 +28,17 @@ require('../../config.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot . '/user/profile/lib.php');
 
-$courseid    = required_param('course', PARAM_INT);
-$userid    = required_param('userid', PARAM_INT);
-$id        = required_param('id', PARAM_INT); // ID of the calling use_stat block
-$fromwhen  = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
-$towhen    = optional_param('ts_to', time(), PARAM_INT);
-$onlycourse    = optional_param('restrict', false, PARAM_BOOL);
+$courseid = required_param('course', PARAM_INT);
+$userid = required_param('userid', PARAM_INT);
+$id = required_param('id', PARAM_INT); // ID of the calling use_stat block
+$fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
+$towhen = optional_param('ts_to', time(), PARAM_INT);
+$onlycourse = optional_param('restrict', false, PARAM_BOOL);
 
 require_login($courseid);
 
 if ($COURSE->id > SITEID) {
-    $returnurl = $CFG->wwwroot.'/course/view.php?id='.$COURSE->id;
+    $returnurl = new moodle_url('/course/view.php', array('id' => $COURSE->id));
 } else {
     $returnurl = $CFG->wwwroot;
 }
@@ -92,7 +93,7 @@ $PAGE->set_heading('');
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(true);
 $PAGE->set_button('');
-$PAGE->set_url($CFG->wwwroot.'/blocks/use_stats/detail.php');
+$PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php'));
 $PAGE->set_headingmenu('');
 $PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
 $PAGE->navbar->add(fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())));
@@ -104,7 +105,8 @@ $timefrom = $towhen - $daystocompilelogs;
 echo '<table class="list" summary=""><tr><td>';
 echo $OUTPUT->user_picture($user, array('size'=> 100));
 echo '</td><td>';
-echo '<h2><a href="'.$CFG->wwwroot.'/user/view.php?id='.$user->id.'">'.fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())).'</a></h2>';
+$userurl = new moodle_url('/user/view.php', array('id' => $user->id));
+echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())).'</a></h2>';
 echo '<table class="list" summary="" width="100%">';
 profile_display_fields($user->id);
 echo '</table>';

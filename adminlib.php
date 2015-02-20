@@ -1,4 +1,26 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * @package    blocks
+ * @subpackage use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 /**
  * Time selector
@@ -29,15 +51,15 @@ class admin_setting_configdatetime extends admin_setting {
      */
     public function get_setting() {
         $result = $this->config_read($this->name);
-        
-		$datearr = getdate($result);
 
-		$data = array('h' => $datearr['hours'],
-			'm' => $datearr['minutes'],
-			'y' => $datearr['year'],
-			'M' => $datearr['mon'],
-			'd' => $datearr['mday']);
-		return $data;
+        $datearr = getdate($result);
+
+        $data = array('h' => $datearr['hours'],
+            'm' => $datearr['minutes'],
+            'y' => $datearr['year'],
+            'M' => $datearr['mon'],
+            'd' => $datearr['mday']);
+        return $data;
     }
 
     /**
@@ -50,7 +72,7 @@ class admin_setting_configdatetime extends admin_setting {
         if (!is_array($data)) {
             return '';
         }
-        
+
         $datetime = mktime($data['h'], $data['m'], 0, $data['M'], $data['d'], $data['y']);
 
         $result = $this->config_write($this->name, $datetime);
@@ -64,7 +86,7 @@ class admin_setting_configdatetime extends admin_setting {
      * @param string $query
      * @return string XHTML time select fields and wrapping div(s)
      */
-    public function output_html($data, $query='') {
+    public function output_html($data, $query = '') {
         $default = $this->get_defaultsetting();
 
         if (is_array($default)) {
@@ -78,24 +100,28 @@ class admin_setting_configdatetime extends admin_setting {
         for ($i = 2010; $i < 2030; $i++) {
             $return .= '<option value="'.$i.'"'.($i == $data['y'] ? ' selected="selected"' : '').'>'.$i.'</option>';
         }
+
         $return .= '</select><select id="'.$this->get_id().'M" name="'.$this->get_full_name().'[M]">';
         for ($i = 1; $i < 12; $i++) {
             $return .= '<option value="'.$i.'"'.($i == $data['M'] ? ' selected="selected"' : '').'>'.sprintf('%02d', $i).'</option>';
         }
+
         $return .= '</select><select id="'.$this->get_id().'d" name="'.$this->get_full_name().'[d]">';
         for ($i = 1; $i < 31; $i++) {
             $return .= '<option value="'.$i.'"'.($i == $data['d'] ? ' selected="selected"' : '').'>'.sprintf('%02d', $i).'</option>';
         }
+
         $return .= '</select><select id="'.$this->get_id().'h" name="'.$this->get_full_name().'[h]">';
         for ($i = 0; $i < 24; $i++) {
             $return .= '<option value="'.$i.'"'.($i == $data['h'] ? ' selected="selected"' : '').'>'.$i.'</option>';
         }
+
         $return .= '</select>:<select id="'.$this->get_id().'m" name="'.$this->get_full_name().'[m]">';
         for ($i = 0; $i < 60; $i += 5) {
             $return .= '<option value="'.$i.'"'.($i == $data['m'] ? ' selected="selected"' : '').'>'.$i.'</option>';
         }
+
         $return .= '</select></div>';
         return format_admin_setting($this, $this->visiblename, $return, $this->description, false, '', $defaultinfo, $query);
     }
-
 }

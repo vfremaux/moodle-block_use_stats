@@ -18,8 +18,9 @@
  * Master block ckass for use_stats compiler
  *
  * @package    blocks
- * @subpackage use-stats
+ * @subpackage use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -40,7 +41,7 @@ class block_use_stats extends block_base {
     function has_config() {
         return true;
     }
-    
+
     /**
      * do we have local config
      */
@@ -56,7 +57,7 @@ class block_use_stats extends block_base {
     function applicable_formats() {
         return array('all' => true);
     }
-    
+
     /**
      *
      */
@@ -79,11 +80,11 @@ class block_use_stats extends block_base {
         $this->content = new stdClass;
         $this->content->text = '';
         $this->content->footer = '';
-        
+
         if (empty($this->instance)) {
             return $this->content;
         }
-        
+
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
@@ -185,7 +186,7 @@ class block_use_stats extends block_base {
                         $hours = floor($totalTimeCourse[$aCourseId] / HOURSECS);
                         $remainder = $totalTimeCourse[$aCourseId] - $hours * HOURSECS;
                         $min = floor($remainder/MINSECS);
-                        $courseelapsed = $hours . ' ' . get_string('hours') . ' ' . $min . ' ' . get_string('mins'); 
+                        $courseelapsed = $hours . ' ' . get_string('hours') . ' ' . $min . ' ' . get_string('mins');
                         $this->content->text .= "<tr><td class=\"teacherstatsbycourse\" align=\"left\" title=\"".htmlspecialchars(format_string($aCourse->fullname))."\">{$aCourse->shortname}</td><td class=\"teacherstatsbycourse\" align=\"right\">{$courseelapsed}</td></tr>";
                     }
                 }
@@ -216,7 +217,7 @@ class block_use_stats extends block_base {
                 foreach ($mygroupings as $grouping) {
                     $mygroups = $mygroups + $grouping;
                 }
-                
+
                 $users = array();
                 // get all users in my groups
                 foreach ($mygroups as $mygroupid) {
@@ -260,7 +261,7 @@ class block_use_stats extends block_base {
 
         mtrace("\n".'... Compiling gaps from : '.$CFG->block_use_stats_lastcompiled);
 
-        // feed the table with log gaps.
+        // Feed the table with log gaps.
         $previouslog = array();
         $rs = $DB->get_recordset_select('log', " time > ? ", array($CFG->block_use_stats_lastcompiled), 'time', 'id,time,userid,course,cmid');
         if ($rs) {

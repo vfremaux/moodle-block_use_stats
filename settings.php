@@ -25,15 +25,11 @@ $settings->add(new admin_setting_configcheckbox('block_use_stats_enablecompilelo
 $settings->add(new admin_setting_configcheckbox('block_use_stats_enablecompilecube', get_string('configenablecompilecube', 'block_use_stats'),
                    get_string('configenablecompilecube_desc', 'block_use_stats'), ''));
 
-for ($i = 1 ; $i <= 6 ; $i++){
-	$configkey = "block_use_stats_customtag{$i}select";
-	$settings->add(new admin_setting_configtext($configkey, get_string('configcustomtagselect', 'block_use_stats').' '.$i,
-	                   get_string('configcustomtagselect_desc', 'block_use_stats', $i), ''));
+for ($i = 1 ; $i <= 6 ; $i++) {
+    $configkey = "block_use_stats_customtag{$i}select";
+    $settings->add(new admin_setting_configtext($configkey, get_string('configcustomtagselect', 'block_use_stats').' '.$i,
+                       get_string('configcustomtagselect_desc', 'block_use_stats', $i), ''));
 }
 
 $settings->add(new admin_setting_configdatetime('block_use_stats_lastcompiled', get_string('configlastcompiled', 'block_use_stats'),
                    get_string('configlastcompiled_desc', 'block_use_stats'), ''));
-
-
-//
-

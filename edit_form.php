@@ -1,5 +1,4 @@
 <?php
-
 // This file is part of Moodle - http://moodle.org/
 //
 // Moodle is free software: you can redistribute it and/or modify
@@ -18,17 +17,13 @@
 /**
  * Form for editing HTML block instances.
  *
- * @package   moodlecore
- * @copyright 2009 Tim Hunt
+ * @package   blocks
+ * @subpackage use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Form for editing Random glossary entry block instances.
- *
- * @copyright 2009 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
 class block_use_stats_edit_form extends block_edit_form {
     protected function specific_definition($mform) {
         global $DB;
