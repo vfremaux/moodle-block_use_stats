@@ -59,15 +59,6 @@ class block_use_stats extends block_base {
     }
 
     /**
-     *
-     */
-    function user_can_edit() {
-        global $CFG, $COURSE;
-
-        return false;
-    }
-
-    /**
      * Produce content for the bloc
      */
     function get_content() {

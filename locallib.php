@@ -37,7 +37,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $logmanger = get_log_manager();
     $readers = $logmanger->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
-    
+
     if (empty($reader)) {
         return false; // No log reader found.
     }
