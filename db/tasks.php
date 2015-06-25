@@ -15,26 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Form for editing HTML block instances.
+ * Definition of block dashboard scheduled tasks.
  *
- * @package   blocks_use_stats
- * @category blocks
- * @author     Valery Fremaux (valery.fremaux@gmail.com)
- * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @package   block_dashboard
+ * @category  task
+ * @copyright 2014 Dan Poltawski <dan@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-/**
- * Form for editing Random glossary entry block instances.
- *
- * @copyright 2009 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-class block_use_stats_edit_form extends block_edit_form {
-    protected function specific_definition($mform) {
-        global $DB;
+defined('MOODLE_INTERNAL') || die();
 
-        // Fields for editing HTML block title and contents.
-        $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
-    }
-}
+$tasks = array(
+    array(
+        'classname' => 'block_use_stats\task\compile_task',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
+);
