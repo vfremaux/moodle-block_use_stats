@@ -53,7 +53,7 @@ if (!defined('RPC_SUCCESS')) {
  * @param string $capability The capability to check.
  * @param object $context The capability's context (optional / CONTEXT_SYSTEM by default).
  */
-function use_stats_invoke_local_user($user, $capability, $context=null) {
+function use_stats_invoke_local_user($user, $capability, $context = null) {
     global $CFG, $USER, $DB;
 
     // Creating response
@@ -78,7 +78,7 @@ function use_stats_invoke_local_user($user, $capability, $context=null) {
     if (!$remotehost = $DB->get_record('mnet_host', array('wwwroot' => $user['remotehostroot']))){
         $response->status = RPC_FAILURE;
         $response->errors[] = 'Calling host is not registered. Check MNET configuration';
-        return(json_encode($response));
+        return (json_encode($response));
     }
 
 
@@ -87,21 +87,23 @@ function use_stats_invoke_local_user($user, $capability, $context=null) {
     if (!$localuser = $DB->get_record('user', array('username' => $user['username'], 'mnethostid' => $userhost->id))) {
         $response->status = RPC_FAILURE_USER;
         $response->errors[] = "Calling user has no local account. Register remote user first";
-        return(json_encode($response));
+        return (json_encode($response));
     }
-    // Replacing current user by remote user
+    // Replacing current user by remote user.
 
     $USER = $localuser;
 
     // Checking capabilities
-    if (is_null($context))
+    if (is_null($context)) {
         $context = context_system::instance();
+    }
+
     if ((is_string($capability) && !has_capability($capability, $context)) || (is_string($capability) && !has_one_capability($capability, $context))) {
         $response->status = RPC_FAILURE_CAPABILITY;
         $response->errors[] = 'Local user\'s identity has no capability to run';
-        return(json_encode($response));
+        return (json_encode($response));
     }
-    
+
     return '';
 }
 
@@ -122,7 +124,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
     $extresponse->status = RPC_SUCCESS;
     $extresponse->errors[] = array();
 
-    // Invoke local user and check his rights
+    // Invoke local user and check his rights.
     // debug_trace("checking calling user ".json_encode($callinguser));
     if ($auth_response = use_stats_invoke_local_user((array)$callinguser, array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails'))) {
         if ($json_response) {
@@ -168,9 +170,10 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
             }
         }
 
-        // get stats and report answer
-        if (empty($CFG->block_use_stats_threshold)) {
-            set_config('block_use_stats_threshold', 60);
+        // Get stats and report answer.
+        if (empty($config->threshold)) {
+            set_config('threshold', 15, 'block_use_stats');
+            $config->threshold = 15;
         }
 
         $logs = use_stats_extract_logs($timefrom, time(), $targetuser->id);
@@ -184,7 +187,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
         if ($logs) {
             foreach ($logs as $aLog) {
                 $delta = $aLog->time - $lasttime;
-                if ($delta < $CFG->block_use_stats_threshold * MINSECS) {
+                if ($delta < $config->threshold * MINSECS) {
                     $totalTime = $totalTime + $delta;
 
                     if ($statsscope >= USE_STATS_COURSE_SCOPE) {
@@ -277,7 +280,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
         // debug_trace("remote source process : $wherewwwroot <> $CFG->wwwroot");    
         // Make remote call
         $userhostroot = $DB->get_field('mnet_host', 'wwwroot', array('id' => $USER->mnethostid)); 
-            
+
         $rpcclient = new mnet_xmlrpc_client();
         $rpcclient->set_method('blocks/use_stats/rpclib.php/use_stats_rpc_get_stats');
         $caller->username = $USER->username;
@@ -352,13 +355,13 @@ function use_stats_rpc_get_stats_wrapped($wrap) {
  */
 function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scorescope = 'notes/global', $courseidfield, $courseidentifier, $json_response = true) {
     global $CFG, $USER, $DB;
-    
+
     $extresponse = new stdclass;
     $extresponse->status = RPC_SUCCESS;
     $extresponse->errors[] = array();
 
     // Invoke local user and check his rights
-    // debug_trace("checking calling user");    
+    // debug_trace("checking calling user");
     if ($auth_response = use_stats_invoke_local_user((array)$callinguser, array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails'))) {
         if ($json_response) {
             return $auth_response;
@@ -416,7 +419,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
             $message = "<USER>\n$data\n</USER>";
             $message .= "<SCORE>$grade->rawgrade</SCORE>";
         } else {
-               $message = "<ERROR>Not implemented</ERROR>";
+            $message = "<ERROR>Not implemented</ERROR>";
             $extresponse->message = "<USER_SCORES>\n{$message}\n</USER_SCORES>";
         }
 
@@ -445,7 +448,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
         $rpcclient->add_param($statsscope, 'string');
         $rpcclient->add_param($courseidfield, 'string');
         $rpcclient->add_param($courseidentifier, 'string');
-    
+
         $mnet_host = new mnet_peer();
         $mnet_host->set_wwwroot($whereroot);
         if (!$rpcclient->send($mnet_host)) {
