@@ -59,15 +59,6 @@ class block_use_stats extends block_base {
     }
 
     /**
-     *
-     */
-    function user_can_edit() {
-        global $CFG, $COURSE;
-
-        return false;
-    }
-
-    /**
      * Produce content for the bloc
      */
     function get_content() {
@@ -248,22 +239,21 @@ class block_use_stats extends block_base {
         return $this->content;
     }
 
-    function cron() {
+    static function cron() {
         global $CFG, $DB;
 
-        if (empty($CFG->block_use_stats_enablecompilelogs)) {
-            return;
+        $config = get_config('block_use_stats');
+
+        if (!isset($config->lastcompiled)) {
+            set_config('lastcompiled', '0', 'block_use_stats');
+            $config->lastcompiled = 0;
         }
 
-        if (!isset($CFG->block_use_stats_lastcompiled)) {
-            $CFG->block_use_stats_lastcompiled = 0;
-        }
-
-        mtrace("\n".'... Compiling gaps from : '.$CFG->block_use_stats_lastcompiled);
+        mtrace("\n".'... Compiling gaps from : '.$config->lastcompiled);
 
         // Feed the table with log gaps.
         $previouslog = array();
-        $rs = $DB->get_recordset_select('log', " time > ? ", array($CFG->block_use_stats_lastcompiled), 'time', 'id,time,userid,course,cmid');
+        $rs = $DB->get_recordset_select('log', " time > ? ", array($config->lastcompiled), 'time', 'id,time,userid,course,cmid');
         if ($rs) {
 
             $r = 0;
@@ -281,10 +271,10 @@ class block_use_stats extends block_base {
                 for ($ci = 1 ; $ci <= 6; $ci++) {
                     $key = "customtag".$ci;
                     $gaprec->$key = '';
-                    if (!empty($CFG->block_use_stats_enablecompilecube)) {
-                        $customselectkey = "block_use_stats_customtag{$ci}select";
-                        if (!empty($CFG->$customselectkey)) {
-                            $customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($CFG->$customselectkey));
+                    if (!empty($config->enablecompilecube)) {
+                        $customselectkey = "customtag{$ci}select";
+                        if (!empty($config->$customselectkey)) {
+                            $customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($config->$customselectkey));
                             $customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
                             $customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
                             $customsql = str_replace('<%%CMID%%>', $log->cmid, $customsql);
@@ -299,7 +289,7 @@ class block_use_stats extends block_base {
                 }
                 // Is there a last log found before actual compilation session ?
                 if (!array_key_exists($log->userid, $previouslog)) {
-                    $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($CFG->block_use_stats_lastcompiled));
+                    $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
                     $previouslog[$log->userid] = $DB->get_record('log', array('time' => $maxlasttime));
                 }
                 $DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
@@ -320,7 +310,7 @@ class block_use_stats extends block_base {
             mtrace("... $r logs gapped");
             // Register last log time for cron further updates.
             if (!empty($lasttime)) {
-                set_config('block_use_stats_lastcompiled', $lasttime);
+                set_config('lastcompiled', $lasttime, 'block_use_stats');
             }
         }
     }

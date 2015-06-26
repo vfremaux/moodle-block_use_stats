@@ -26,12 +26,14 @@
 
 require('../../config.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
-require_once($CFG->dirroot . '/user/profile/lib.php');
+require_once($CFG->dirroot.'/user/profile/lib.php');
+
+$config = get_config('use_stats');
 
 $courseid = required_param('course', PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
 $id = required_param('id', PARAM_INT); // ID of the calling use_stat block
-$fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
+$fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
 $towhen = optional_param('ts_to', time(), PARAM_INT);
 $onlycourse = optional_param('restrict', false, PARAM_BOOL);
 
@@ -93,7 +95,7 @@ $PAGE->set_heading('');
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(true);
 $PAGE->set_button('');
-$PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php'));
+$PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php', array('courseid' => $courseid, 'is' => $id, 'userid' => $userid)));
 $PAGE->set_headingmenu('');
 $PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
 $PAGE->navbar->add(fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())));
@@ -127,6 +129,7 @@ $table->head = array("<b>$dimensionitemstr</b>", "<b>$timestr</b>", "<b>$eventss
 $table->width = '100%';
 $table->size = array('70%', '30%');
 $table->align = array('left', 'left');
+
 foreach ($aggregate as $module => $moduleset) {
     if (preg_match('/label$/', $module)) {
         continue;

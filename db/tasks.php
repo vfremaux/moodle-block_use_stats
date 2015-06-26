@@ -15,18 +15,24 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Definition of block dashboard scheduled tasks.
  *
- * @package    block
- * @subpackage use_stats
- * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @package   block_dashboard
+ * @category  task
+ * @copyright 2014 Dan Poltawski <dan@moodle.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015062500;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2014041100;        // Requires this Moodle version
-$plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
-$plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
-$plugin->release = '2.7.0 (build 2015062500)'; // Full name of the plugin (used for diagnostics)
+$tasks = array(
+    array(
+        'classname' => 'block_use_stats\task\compile_task',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    )
+);

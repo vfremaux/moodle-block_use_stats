@@ -53,7 +53,7 @@ if (!defined('RPC_SUCCESS')) {
  * @param string $capability The capability to check.
  * @param object $context The capability's context (optional / CONTEXT_SYSTEM by default).
  */
-function use_stats_invoke_local_user($user, $capability, $context=null) {
+function use_stats_invoke_local_user($user, $capability, $context = null) {
     global $CFG, $USER, $DB;
 
     // Creating response
@@ -352,13 +352,13 @@ function use_stats_rpc_get_stats_wrapped($wrap) {
  */
 function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scorescope = 'notes/global', $courseidfield, $courseidentifier, $json_response = true) {
     global $CFG, $USER, $DB;
-    
+
     $extresponse = new stdclass;
     $extresponse->status = RPC_SUCCESS;
     $extresponse->errors[] = array();
 
     // Invoke local user and check his rights
-    // debug_trace("checking calling user");    
+    // debug_trace("checking calling user");
     if ($auth_response = use_stats_invoke_local_user((array)$callinguser, array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails'))) {
         if ($json_response) {
             return $auth_response;
@@ -416,7 +416,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
             $message = "<USER>\n$data\n</USER>";
             $message .= "<SCORE>$grade->rawgrade</SCORE>";
         } else {
-               $message = "<ERROR>Not implemented</ERROR>";
+            $message = "<ERROR>Not implemented</ERROR>";
             $extresponse->message = "<USER_SCORES>\n{$message}\n</USER_SCORES>";
         }
 
