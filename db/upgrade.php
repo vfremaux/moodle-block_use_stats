@@ -17,8 +17,10 @@
 // using the functions defined in lib/ddllib.php
 
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
-    // This function does anything necessary to upgrade
-    // older versions to match current functionality
+    /*
+     * This function does anything necessary to upgrade
+     * older versions to match current functionality
+     */
     global $CFG, $DB;
 
     $result = true;

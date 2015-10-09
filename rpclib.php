@@ -78,16 +78,15 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
     if (!$remotehost = $DB->get_record('mnet_host', array('wwwroot' => $user['remotehostroot']))){
         $response->status = RPC_FAILURE;
         $response->errors[] = 'Calling host is not registered. Check MNET configuration';
-        return (json_encode($response));
+        return(json_encode($response));
     }
-
 
     $userhost = $DB->get_record('mnet_host', array('wwwroot' => $user['remoteuserhostroot']));
 
     if (!$localuser = $DB->get_record('user', array('username' => $user['username'], 'mnethostid' => $userhost->id))) {
         $response->status = RPC_FAILURE_USER;
         $response->errors[] = "Calling user has no local account. Register remote user first";
-        return (json_encode($response));
+        return(json_encode($response));
     }
     // Replacing current user by remote user.
 
@@ -101,7 +100,7 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
     if ((is_string($capability) && !has_capability($capability, $context)) || (is_string($capability) && !has_one_capability($capability, $context))) {
         $response->status = RPC_FAILURE_CAPABILITY;
         $response->errors[] = 'Local user\'s identity has no capability to run';
-        return (json_encode($response));
+        return(json_encode($response));
     }
 
     return '';
@@ -172,8 +171,8 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
 
         // Get stats and report answer.
         if (empty($config->threshold)) {
-            set_config('threshold', 15, 'block_use_stats');
-            $config->threshold = 15;
+            set_config('threshold', 60, 'block_use_stats');
+            $config->threshold = 60;
         }
 
         $logs = use_stats_extract_logs($timefrom, time(), $targetuser->id);

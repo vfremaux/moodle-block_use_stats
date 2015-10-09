@@ -14,7 +14,7 @@ $settings->add(new admin_setting_configtext('block_use_stats/ignoremodules', get
                    get_string('configignoremodules_desc', 'block_use_stats'), ''));
 
 $settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
-                   get_string('configthreshold_desc', 'block_use_stats'), 15));
+                   get_string('configthreshold_desc', 'block_use_stats'), 60));
 
 $settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
                    get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
