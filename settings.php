@@ -5,10 +5,7 @@ defined('MOODLE_INTERNAL') || die;
 require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
 
 $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
-                   get_string('configfromwhen_desc', 'block_use_stats'), 60));
-
-$settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
-                   get_string('configthreshold_desc', 'block_use_stats'), 60));
+                   get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
 $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
                    get_string('configcapturemodules_desc', 'block_use_stats'), ''));
@@ -16,11 +13,11 @@ $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', ge
 $settings->add(new admin_setting_configtext('block_use_stats/ignoremodules', get_string('configignoremodules', 'block_use_stats'),
                    get_string('configignoremodules_desc', 'block_use_stats'), ''));
 
+$settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
+                   get_string('configthreshold_desc', 'block_use_stats'), 60));
+
 $settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
                    get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
-
-$settings->add(new admin_setting_configcheckbox('block_use_stats/enablecompilelogs', get_string('configenablecompilelogs', 'block_use_stats'),
-                   get_string('configenablecompilelogs_desc', 'block_use_stats'), ''));
 
 $settings->add(new admin_setting_configcheckbox('block_use_stats/enablecompilecube', get_string('configenablecompilecube', 'block_use_stats'),
                    get_string('configenablecompilecube_desc', 'block_use_stats'), ''));

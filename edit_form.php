@@ -17,8 +17,8 @@
 /**
  * Form for editing HTML block instances.
  *
- * @package   blocks
- * @subpackage use_stats
+ * @package   blocks_use_stats
+ * @category blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later

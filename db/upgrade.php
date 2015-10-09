@@ -17,8 +17,10 @@
 // using the functions defined in lib/ddllib.php
 
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
-    // This function does anything necessary to upgrade 
-    // older versions to match current functionality 
+    /*
+     * This function does anything necessary to upgrade
+     * older versions to match current functionality
+     */
     global $CFG, $DB;
 
     $result = true;
@@ -135,7 +137,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
      // Moodle 2
 
-    if ($result && $oldversion < 2013060900) { 
+    if ($result && $oldversion < 2013060900) {
 
         // transfer the last compile time in new config variable
         // Beware : at this epoch, the configuration is still centric.
@@ -150,7 +152,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
     if ($result && $oldversion < 2015062500) {
 
         // Transfer old settings values to component scope.
-        $settingskeys = preg_grep('/^block_use_stats_/', array_keys((array)$CFG));
+        $settingkeys = preg_grep('/^block_use_stats_/', array_keys((array)$CFG));
         foreach ($settingkeys as $settingkey) {
             $newkey = str_replace('block_use_stats_', '', $settingkey);
             set_config($newkey, $CFG->$settingkey, 'block_use_stats');

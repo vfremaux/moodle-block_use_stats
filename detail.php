@@ -99,7 +99,7 @@ $PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php', array('courseid' =
 $PAGE->set_headingmenu('');
 $PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
 $PAGE->navbar->add(fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())));
-echo $OUTPUT->header(); 
+echo $OUTPUT->header();
 
 $daystocompilelogs = $fromwhen * DAYSECS;
 $timefrom = $towhen - $daystocompilelogs;

@@ -28,7 +28,7 @@ $string['configlastpingcredit'] = 'Crédit exceptionnel de fin de session';
 $string['configlastpingcredit_desc'] = 'Ce temps (en minutes) sera ajouté au calcul à chaque fois qu\'une fin ou une discontinuité de session est supposée';
 $string['configstudentscanuse'] = 'Les étudiants peuvent voir ce bloc (pour leur compte)';
 $string['configstudentscanuseglobal_desc'] = 'Autoriser les étudiants à voir les blocs de statistiques dans les espaces globaux (MyMoodle, hors cours)';
-$string['configthreshold'] = 'Seuil';
+$string['configthreshold'] = 'Seuil de session';
 $string['configthreshold_desc'] = 'Seuil de détection (en minutes). Au dessus de ce délai entre deux traces successives, l\'analyseur conclut à une déconnexion de l\'utilisateur et attribue le temps forfaitaire.';
 $string['dimensionitem'] = 'Classes observables';
 $string['errornorecords'] = 'Aucune donnée de tracking';
@@ -49,4 +49,5 @@ $string['use_stats_rpc_service'] = 'Lecture distante des statistiques';
 $string['use_stats_rpc_service_name'] = 'Acces distant aux statistiques d\'usage';
 $string['youspent'] = 'Vous avez déjà passé ';
 $string['credittime'] = 'Crédit temps';
+$string['task_compile'] = 'Compilation des temps';
 
