@@ -26,6 +26,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/lib/blocklib.php');
+require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 
 class block_use_stats extends block_base {
@@ -246,7 +248,7 @@ class block_use_stats extends block_base {
         return $this->content;
     }
 
-    static function cron() {
+    static function crontask() {
         global $CFG, $DB;
 
         $config = get_config('block_use_stats');
