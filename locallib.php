@@ -66,59 +66,43 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         $userclause = " AND userid = {$for} ";
     }
 
-    if (is_object($course) && !empty($course->id)) {
-        $coursecontext = context_course::instance($course->id);
-
-        // we search first enrol time for this user
-        $sql = "
-            SELECT
-                id,
-                MIN(timestart) as timestart
-            FROM
-                {role_assignments} ra
-            WHERE
-                contextid = $coursecontext->id
-                $userclause
-        ";
-        $firstenrol = $DB->get_record_sql($sql);
-
-        $from = max($from, $firstenrol->timestart);
-    }
-
     $courseclause = '';
+    $courseenrolclause = '';
+    $inparams = array();
+
     if (is_object($course)) {
-
         if (!empty($course->id)) {
-            $coursecontext = context_course::instance($course->id);
-
-            // We search first enrol time for this user.
-            $sql = "
-                SELECT
-                    id,
-                    MIN(timestart) as timestart
-                FROM
-                    {role_assignments} ra
-                WHERE
-                    contextid = $coursecontext->id
-                    $userclause
-            ";
-            $firstenrol = $DB->get_record_sql($sql);
-
-            $from = max($from, $firstenrol->timestart);
-
             $courseclause = " AND {$courseparm} = $course->id " ;
+            list($insql, $inparams) = $DB->get_in_or_equal(array($course->id));
+            $courseenrolclause = "e.courseid $insql AND ";
         }
-
     } elseif (is_array($course)) {
-
         // Finish solving from value as MIN(firstassignement).
-
         foreach ($course as $c) {
             $cids[] = $c->id;
         }
         $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-
+        list($insql, $inparams) = $DB->get_in_or_equal($cids);
+        $courseenrolclause = "e.courseid $insql AND ";
     }
+
+    // We search first enrol time still active for this user.
+    $sql = "
+        SELECT
+            ue.id,
+            MIN(timestart) as timestart
+        FROM
+            {enrol} e,
+            {user_enrolments} ue
+        WHERE
+            $courseenrolclause
+            e.id = ue.enrolid AND
+            (ue.timeend = 0 OR ue.timeend > ".time().")
+            $userclause
+    ";
+    $firstenrol = $DB->get_record_sql($sql, $inparams);
+
+    $from = max($from, $firstenrol->timestart);
 
     if ($reader instanceof \logstore_standard\log\store) {
         $sql = "
@@ -135,7 +119,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
            WHERE
              timecreated > ? AND
              timecreated < ? AND
-             ((courseid = 1 AND action = 'login') OR
+             ((courseid = 0 AND action = 'loggedin') OR
               (1
               $courseclause))
             $userclause
@@ -222,7 +206,6 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
 
         for ($i = 0 ; $i < count($logs) ; $i++) {
             $log = $logs[$i];
-
             // We "guess" here the real identity of the log's owner.
             $currentuser = $log->userid;
 
@@ -309,7 +292,6 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
                             echo(" <span style=\"background-color:#FF8080\">implicit logout on non elligible. next : {$lognext->action}</span> ".format_time($lap)." at ".userdate($log->time).' >> '.format_time($aggregate['sessions'][$sessionid]->elapsed).'<br/>');
                         }
                     }
-
                     continue;
                 }
             }
@@ -403,30 +385,49 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
             }
 
             // Standard global lap aggregation.
-            if (array_key_exists(''.$log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$logs[$i]->$dimension])){
-                @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
-                @$aggregate[$log->$dimension][$log->cmid]->events += 1;
-                @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
-                @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+            if ($log->$dimension == 'course') {
+                if (array_key_exists(''.$log->$dimension, $aggregate) && array_key_exists($log->course, $aggregate[$log->$dimension])){
+                    @$aggregate['course'][$log->course]->elapsed += $lap;
+                    @$aggregate['course'][$log->course]->events += 1;
+                    @$aggregate['course'][$log->course]->lastaccess = $log->time;
+                } else {
+                    @$aggregate['course'][$log->course]->elapsed = $lap;
+                    @$aggregate['course'][$log->course]->events = 1;
+                    @$aggregate['course'][$log->course]->firstaccess = $log->time;
+                    @$aggregate['course'][$log->course]->lastaccess = $log->time;
+                }
             } else {
-                @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
-                @$aggregate[$log->$dimension][$log->cmid]->events = 1;
-                @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                if (array_key_exists(''.$log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$log->$dimension])){
+                    @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
+                    @$aggregate[$log->$dimension][$log->cmid]->events += 1;
+                    @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                } else {
+                    @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
+                    @$aggregate[$log->$dimension][$log->cmid]->events = 1;
+                    @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
+                    @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                }
             }
 
-            /// Standard in-activity level lap aggregation
-            if ($log->cmid && !preg_match('/label$/', $log->$dimension) && ($log->$dimension != 'course')){
-                if (array_key_exists('activities', $aggregate)){
-                    @$aggregate['activities'][$log->course]->elapsed += $lap;
-                    @$aggregate['activities'][$log->course]->events += 1;
+            /// Standard non course level aggregation
+            if ($log->$dimension != 'course') {
+                if ($log->cmid) {
+                    $key = 'activities';
                 } else {
-                    @$aggregate['activities'][$log->course]->elapsed = $lap;
-                    @$aggregate['activities'][$log->course]->events = 1;
+                    $key = 'other';
+                }
+                if (array_key_exists($key, $aggregate) && array_key_exists($log->course, $aggregate[$key])) {
+                    $aggregate[$key][$log->course]->elapsed += $lap;
+                    $aggregate[$key][$log->course]->events += 1;
+                } else {
+                    $aggregate[$key][$log->course] = new StdClass();
+                    $aggregate[$key][$log->course]->elapsed = $lap;
+                    $aggregate[$key][$log->course]->events = 1;
                 }
             }
 
             // Standard course level lap aggregation.
-            if (array_key_exists('coursetotal', $aggregate) && array_key_exists($log->course, $aggregate['coursetotal'])){
+            if (array_key_exists('coursetotal', $aggregate) && array_key_exists($log->course, $aggregate['coursetotal'])) {
                 @$aggregate['coursetotal'][$log->course]->elapsed += $lap;
                 @$aggregate['coursetotal'][$log->course]->events += 1;
                 @$aggregate['coursetotal'][$log->course]->firstaccess = $log->time;
@@ -434,12 +435,29 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
             } else {
                 @$aggregate['coursetotal'][$log->course]->elapsed = $lap;
                 @$aggregate['coursetotal'][$log->course]->events = 1;
-                if (!isset($aggregate['coursetotal'][$log->course]->firstaccess)){
+                if (!isset($aggregate['coursetotal'][$log->course]->firstaccess)) {
                     @$aggregate['coursetotal'][$log->course]->firstaccess = $log->time;
                 }
                 @$aggregate['coursetotal'][$log->course]->lastaccess = $log->time;
             }
             $origintime = $log->time;
+        }
+    }
+
+    if (!empty($aggregate['coursetotal'])) {
+        foreach(array_keys($aggregate['coursetotal']) as $courseid) {
+            if ($aggregate['coursetotal'][$courseid]->events != 
+                        $aggregate['course'][$courseid]->events + 
+                        $aggregate['activities'][$courseid]->events + 
+                        $aggregate['other'][$courseid]->events) {
+                echo "Bad sumcheck on events for course $courseid <br/>";
+            }
+            if ($aggregate['coursetotal'][$courseid]->elapsed != 
+                        $aggregate['course'][$courseid]->elapsed + 
+                        $aggregate['activities'][$courseid]->elapsed + 
+                        $aggregate['other'][$courseid]->elapsed) {
+                echo "Bad sumcheck on time for course $courseid <br/>";
+            }
         }
     }
 
@@ -457,7 +475,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
         $checklists = learningtimecheck_get_instances($COURSE->id, true); // get timecredit enabled ones
 
         foreach ($checklists as $ckl) {
-            if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)){
+            if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
                 foreach ($credittimes as $credittime) {
 
                     // if credit time is assigned to NULL course module, we assign it to the checklist itself
