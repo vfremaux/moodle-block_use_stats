@@ -80,6 +80,15 @@ class block_use_stats extends block_base {
             return $this->content;
         }
 
+        // Know wich reader we are working with.
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $reader = reset($readers);
+    
+        if (empty($reader)) {
+            return $this->content; // No log reader found.
+        }
+
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
@@ -109,6 +118,12 @@ class block_use_stats extends block_base {
         $totalTimeModule = array();
         if ($logs) {
             foreach ($logs as $aLog) {
+
+                if ($reader instanceof \logstore_standard\log\store) {
+                    // Get module from context
+                    use_stats_add_module_from_context($aLog);
+                }
+
                 $delta = $aLog->time - $lasttime;
                 if ($delta < @$config->threshold * MINSECS) {
                     $totalTime = $totalTime + $delta;
@@ -253,11 +268,12 @@ class block_use_stats extends block_base {
 
         $config = get_config('block_use_stats');
 
-        $logmanger = get_log_manager();
-        $readers = $logmanger->get_readers('\core\log\sql_select_reader');
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_reader');
         $reader = reset($readers);
 
         if (empty($reader)) {
+            mtrace('No log reader.');
             return false; // No log reader found.
         }
 
@@ -265,7 +281,8 @@ class block_use_stats extends block_base {
             $courseparm = 'courseid';
         } elseif($reader instanceof \logstore_legacy\log\store) {
             $courseparm = 'course';
-        } else{
+        } else {
+            mtrace('Unsupported log reader.');
             return;
         }
 
@@ -344,16 +361,23 @@ class block_use_stats extends block_base {
                 $r++;
 
                 if ($r %10 == 0) {
+                    echo '.';
                     $processtime = time();
                     if (($processtime > $starttime + 60 * 15) || ($r > 100000)) {
                         break; // Do not process more than 15 minutes.
+                    }
+                }
+                if ($r %1000 == 0) {
+                    // Store intermediary track points.
+                    if (!empty($lasttime)) {
+                        set_config('lastcompiled', $lasttime, 'block_use_stats');
                     }
                 }
                 $rs->next();
             }
             $rs->close();
 
-            mtrace("... $r logs gapped");
+            mtrace("\n... $r logs gapped");
             // Register last log time for cron further updates.
             if (!empty($lasttime)) {
                 set_config('lastcompiled', $lasttime, 'block_use_stats');
