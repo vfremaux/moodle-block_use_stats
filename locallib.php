@@ -37,7 +37,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -219,7 +219,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
 
             // Adjust "module" for new logstore
             $logmanager = get_log_manager();
-            $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+            $readers = $logmanager->get_readers('\core\log\sql_reader');
             $reader = reset($readers);
 
             if ($reader instanceof \logstore_standard\log\store) {
@@ -609,7 +609,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0) {
 
             // Adjust "module" for new logstore
             $logmanager = get_log_manager();
-            $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+            $readers = $logmanager->get_readers('\core\log\sql_reader');
             $reader = reset($readers);
 
             if ($reader instanceof \logstore_standard\log\store) {
