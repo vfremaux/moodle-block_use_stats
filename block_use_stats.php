@@ -133,7 +133,7 @@ class block_use_stats extends block_base {
                     } else {
                         $totalTimeCourse[$aLog->course] = $totalTimeCourse[$aLog->course] + $delta;
                     }
-
+                    if (empty($aLog->module)) $aLog->module = 'system';
                     if (!array_key_exists($aLog->course, $totalTimeModule)) {
                         $totalTimeModule[$aLog->course][$aLog->module] = 0;
                     } elseif (!array_key_exists($aLog->module, $totalTimeModule[$aLog->course])) {
