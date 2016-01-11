@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/lib/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
+require_once $CFG->dirroot.'/blocks/use_stats/lib.php';
 
 class block_use_stats extends block_base {
 
@@ -54,7 +55,7 @@ class block_use_stats extends block_base {
     }
 
     /**
-     *
+     * In which course format can we see and add the block.
      */
     function applicable_formats() {
         return array('all' => true);
@@ -78,6 +79,15 @@ class block_use_stats extends block_base {
 
         if (empty($this->instance)) {
             return $this->content;
+        }
+
+        // Know wich reader we are working with.
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $reader = reset($readers);
+    
+        if (empty($reader)) {
+            return $this->content; // No log reader found.
         }
 
         // Get context so we can check capabilities.
@@ -109,6 +119,12 @@ class block_use_stats extends block_base {
         $totalTimeModule = array();
         if ($logs) {
             foreach ($logs as $aLog) {
+
+                if ($reader instanceof \logstore_standard\log\store) {
+                    // Get module from context
+                    use_stats_add_module_from_context($aLog);
+                }
+
                 $delta = $aLog->time - $lasttime;
                 if ($delta < @$config->threshold * MINSECS) {
                     $totalTime = $totalTime + $delta;
@@ -118,7 +134,7 @@ class block_use_stats extends block_base {
                     } else {
                         $totalTimeCourse[$aLog->course] = $totalTimeCourse[$aLog->course] + $delta;
                     }
-
+                    if (empty($aLog->module)) $aLog->module = 'system';
                     if (!array_key_exists($aLog->course, $totalTimeModule)) {
                         $totalTimeModule[$aLog->course][$aLog->module] = 0;
                     } elseif (!array_key_exists($aLog->module, $totalTimeModule[$aLog->course])) {
@@ -169,7 +185,7 @@ class block_use_stats extends block_base {
             $this->content->text .= '</form><br/>';
             $this->content->text .= get_string('youspent', 'block_use_stats');
             $this->content->text .= $hours.' '.get_string('hours').' '.$min.' '.get_string('mins');
-            $this->content->text .= get_string('onthisMoodlefrom', 'block_use_stats');
+            $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
             $this->content->text .= userdate($timefrom);
             if (count(array_keys($totalTimeCourse))) {
                 $this->content->text .= '<table width="100%">';
@@ -248,16 +264,20 @@ class block_use_stats extends block_base {
         return $this->content;
     }
 
+    /**
+     * Used by the component associated task.
+     */
     static function crontask() {
         global $CFG, $DB;
 
         $config = get_config('block_use_stats');
 
-        $logmanger = get_log_manager();
-        $readers = $logmanger->get_readers('\core\log\sql_select_reader');
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
         $reader = reset($readers);
 
         if (empty($reader)) {
+            mtrace('No log reader.');
             return false; // No log reader found.
         }
 
@@ -265,7 +285,8 @@ class block_use_stats extends block_base {
             $courseparm = 'courseid';
         } elseif($reader instanceof \logstore_legacy\log\store) {
             $courseparm = 'course';
-        } else{
+        } else {
+            mtrace('Unsupported log reader.');
             return;
         }
 
@@ -299,7 +320,10 @@ class block_use_stats extends block_base {
         } elseif ($reader instanceof \logstore_legacy\log\store) {
             $rs = $DB->get_recordset_select('log', " time > ? ", array($config->lastcompiled), 'time', 'id,time,userid,course,cmid');
         } else {
+            mtrace("this logstore is not supported");
+            return;
         }
+
         if ($rs) {
 
             $r = 0;
@@ -344,20 +368,32 @@ class block_use_stats extends block_base {
                 $r++;
 
                 if ($r %10 == 0) {
+                    echo '.';
                     $processtime = time();
                     if (($processtime > $starttime + 60 * 15) || ($r > 100000)) {
                         break; // Do not process more than 15 minutes.
+                    }
+                }
+                if ($r %1000 == 0) {
+                    // Store intermediary track points.
+                    if (!empty($lasttime)) {
+                        set_config('lastcompiled', $lasttime, 'block_use_stats');
                     }
                 }
                 $rs->next();
             }
             $rs->close();
 
-            mtrace("... $r logs gapped");
+            mtrace("\n... $r logs gapped");
             // Register last log time for cron further updates.
             if (!empty($lasttime)) {
                 set_config('lastcompiled', $lasttime, 'block_use_stats');
             }
         }
     }
+}
+
+global $PAGE;
+if ($PAGE->state < moodle_page::STATE_IN_BODY) {
+    block_use_stats_setup_theme_requires();
 }
