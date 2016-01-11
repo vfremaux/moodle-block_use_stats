@@ -4,29 +4,54 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
 
-$settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
-                   get_string('configfromwhen_desc', 'block_use_stats'), 90));
+if ($ADMIN->fulltree) {
+    $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
+                       get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
-$settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
-                   get_string('configcapturemodules_desc', 'block_use_stats'), ''));
+    
+    $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
+                       get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 
-$settings->add(new admin_setting_configtext('block_use_stats/ignoremodules', get_string('configignoremodules', 'block_use_stats'),
-                   get_string('configignoremodules_desc', 'block_use_stats'), ''));
+    $settings->add(new admin_setting_configtext('block_use_stats/ignoremodules', get_string('configignoremodules', 'block_use_stats'),
+                       get_string('configignoremodules_desc', 'block_use_stats'), ''));
 
-$settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
-                   get_string('configthreshold_desc', 'block_use_stats'), 60));
+    $settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
+                       get_string('configthreshold_desc', 'block_use_stats'), 60));
 
-$settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
-                   get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
+    $settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
+                       get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
 
-$settings->add(new admin_setting_configcheckbox('block_use_stats/enablecompilecube', get_string('configenablecompilecube', 'block_use_stats'),
-                   get_string('configenablecompilecube_desc', 'block_use_stats'), ''));
+    $settings->add(new admin_setting_configcheckbox('block_use_stats/enablecompilecube', get_string('configenablecompilecube', 'block_use_stats'),
+                       get_string('configenablecompilecube_desc', 'block_use_stats'), ''));
 
-for ($i = 1 ; $i <= 6 ; $i++) {
-    $configkey = "block_use_stats/customtag{$i}select";
-    $settings->add(new admin_setting_configtext($configkey, get_string('configcustomtagselect', 'block_use_stats').' '.$i,
-                       get_string('configcustomtagselect_desc', 'block_use_stats', $i), ''));
+    for ($i = 1 ; $i <= 6 ; $i++) {
+        $configkey = "block_use_stats/customtag{$i}select";
+        $settings->add(new admin_setting_configtext($configkey, get_string('configcustomtagselect', 'block_use_stats').' '.$i,
+                           get_string('configcustomtagselect_desc', 'block_use_stats', $i), ''));
+    }
+
+    $settings->add(new admin_setting_configdatetime('block_use_stats/lastcompiled', get_string('configlastcompiled', 'block_use_stats'),
+                       get_string('configlastcompiled_desc', 'block_use_stats'), ''));
+
+    $settings->add(new admin_setting_heading('activetracking', get_string('activetrackingparams', 'block_use_stats'), ''));
+
+    $settings->add(new admin_setting_configtext('block_use_stats/keepalive_delay', get_string('configkeepalivedelay', 'block_use_stats'),
+                   get_string('configkeepalivedelay_desc', 'block_use_stats'), 10));
+
+    $ctloptions = array();
+    $ctloptions['0'] = get_string('allusers', 'block_use_stats');
+    $ctloptions['allow'] = get_string('allowrule', 'block_use_stats');
+    $ctloptions['deny'] = get_string('denyrule', 'block_use_stats');
+
+    $settings->add(new admin_setting_configselect('block_use_stats/keepalive_rule', get_string('configkeepaliverule', 'block_use_stats'),
+                   get_string('configkeepaliverule_desc', 'block_use_stats'), 'deny', $ctloptions));
+
+    $options = array();
+    $options['capability'] = get_string('capabilitycontrol', 'block_use_stats');
+    $options['profilefield'] = get_string('profilefieldcontrol', 'block_use_stats');
+    $settings->add(new admin_setting_configselect('block_use_stats/keepalive_control', get_string('configkeepalivecontrol', 'block_use_stats'),
+                   get_string('configkeepalivecontrol_desc', 'block_use_stats'), 'capability', $options));
+
+    $settings->add(new admin_setting_configtext('block_use_stats/keepalive_control_value', get_string('configkeepalivecontrolvalue', 'block_use_stats'),
+                   get_string('configkeepalivecontrolvalue_desc', 'block_use_stats'), 'moodle/site:config', PARAM_TEXT));
 }
-
-$settings->add(new admin_setting_configdatetime('block_use_stats/lastcompiled', get_string('configlastcompiled', 'block_use_stats'),
-                   get_string('configlastcompiled_desc', 'block_use_stats'), ''));

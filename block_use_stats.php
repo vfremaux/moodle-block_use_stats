@@ -29,6 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/lib/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
+require_once $CFG->dirroot.'/blocks/use_stats/lib.php';
 
 class block_use_stats extends block_base {
 
@@ -54,7 +55,7 @@ class block_use_stats extends block_base {
     }
 
     /**
-     *
+     * In which course format can we see and add the block.
      */
     function applicable_formats() {
         return array('all' => true);
@@ -184,7 +185,7 @@ class block_use_stats extends block_base {
             $this->content->text .= '</form><br/>';
             $this->content->text .= get_string('youspent', 'block_use_stats');
             $this->content->text .= $hours.' '.get_string('hours').' '.$min.' '.get_string('mins');
-            $this->content->text .= get_string('onthisMoodlefrom', 'block_use_stats');
+            $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
             $this->content->text .= userdate($timefrom);
             if (count(array_keys($totalTimeCourse))) {
                 $this->content->text .= '<table width="100%">';
@@ -263,6 +264,9 @@ class block_use_stats extends block_base {
         return $this->content;
     }
 
+    /**
+     * Used by the component associated task.
+     */
     static function crontask() {
         global $CFG, $DB;
 
@@ -316,7 +320,10 @@ class block_use_stats extends block_base {
         } elseif ($reader instanceof \logstore_legacy\log\store) {
             $rs = $DB->get_recordset_select('log', " time > ? ", array($config->lastcompiled), 'time', 'id,time,userid,course,cmid');
         } else {
+            mtrace("this logstore is not supported");
+            return;
         }
+
         if ($rs) {
 
             $r = 0;
@@ -384,4 +391,9 @@ class block_use_stats extends block_base {
             }
         }
     }
+}
+
+global $PAGE;
+if ($PAGE->state < moodle_page::STATE_IN_BODY) {
+    block_use_stats_setup_theme_requires();
 }
