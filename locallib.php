@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Master block ckass for use_stats compiler
  *
- * @package    blocks
- * @subpackage use_stats
+ * @package    blocks_use_stats
+ * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -445,7 +447,9 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
     }
 
     // Finish last session.
-    @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+    if (!empty($aggregate['sessions'])) {
+        @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+    }
 
     // This is our last change to guess a user when no logs available.
     if (empty($currentuser)) {
@@ -574,6 +578,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0) {
     }
 
     $aggregate = array();
+    $aggregate['group'] = array();
 
     if (!empty($logs)) {
         $logs = array_values($logs);
@@ -683,6 +688,17 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0) {
                     @$aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->firstaccess = $log[$userid]->time;
                     @$aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->lastaccess = $log[$userid]->time;
                 }
+
+                // User group aggregators by module
+                if (!array_key_exists($log[$userid]->$dimension, $aggregate['group']) || 
+                    !isset($aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid])) {
+                    $aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid] = new StdClass();
+                    $aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed = $lap[$userid];
+                    $aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid]->events = 1;
+                } else {
+                    $aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed += $lap[$userid];
+                    $aggregate['group'][$log[$userid]->$dimension][$log[$userid]->cmid]->events += 1;
+                }
             }
 
             /// Standard non course level aggregation
@@ -716,26 +732,6 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0) {
                 }
                 @$aggregate[$userid]['coursetotal'][$log[$userid]->course]->lastaccess = $log[$userid]->time;
             }
-
-            // Standard global lap aggregation.
-            /*
-            if (array_key_exists(''.$log[$userid]->$dimension, $aggregate[$userid]) && array_key_exists($log[$userid]->cmid, $aggregate[$userid][$logs[$i]->$dimension])){
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed += $lap[$userid];
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->events += 1;
-                if (!isset($aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->firstaccess)) {
-                    $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->firstaccess = $log[$userid]->time;
-                }
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->lastaccess = $log[$userid]->time;
-            } else {
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid] = new StdClass;
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed = $lap[$userid];
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->events = 1;
-                if (!isset($aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->firstaccess)) {
-                    $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->firstaccess = $log[$userid]->time;
-                }
-                $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->lastaccess = $log[$userid]->time;
-            }
-            */
 
             // Per login session aggregation.
             if ($log[$userid]->action != 'login' && @$lognext[$userid]->action == 'login') {
@@ -805,7 +801,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0) {
                     if ($declarativetimes = learningtimecheck_get_declaredtimes($ckl->id, 0, $userid)) {
                         foreach ($declarativetimes as $declaredtime) {
 
-                            // If declared time is assigned to NULL course module, we assign it to the checklist itself
+                            // If declared time is assigned to NULL course module, we assign it to the checklist itself.
                             if (!$declaredtime->cmid) {
                                 $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
                                 $declaredtime->cmid = $cklcm->id;
@@ -865,6 +861,20 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 
     $config = get_config('block_use_stats');
 
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $reader = reset($readers);
+
+    if (empty($reader)) {
+        return false; // No log reader found.
+    }
+
+    if ($reader instanceof \logstore_standard\log\store) {
+        $coursefield = 'courseid';
+    } elseif($reader instanceof \logstore_legacy\log\store) {
+        $coursefield = 'course';
+    }
+
     // make quick accessible memory variables to test
     $dimensionsarr = explode(',', $dimensions);
     $courseresult = in_array('course', $dimensionsarr);
@@ -872,7 +882,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
     $institutionresult = in_array('institution', $dimensionsarr);
 
     if ($to == 0) {
-        $to = time;
+        $to = time();
     }
 
     $userclause = '';
@@ -882,31 +892,56 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 
     $courseclause = '';
     if (!empty($courses)) {
-        $courseclause = ' AND course IN ('.implode(',', $courses).' )';
+        $courseclause = ' AND '.$coursefield.' IN ('.implode(',', $courses).' )';
     }
 
-    $sql = "
-        SELECT
-            l.id,
-            l.time,
-            l.userid,
-            l.course,
-            usl.gap,
-            u.institution,
-            u.department,
-            u.city,
-            u.country
-        FROM
-            {log} l,
-            {use_stats_log} usl,
-            {user} u
-        WHERE
-            u.id = l.userid AND
-            time >= ? AND
-            time <= ?
-            $courseclause
-            $userclause
-    ";
+    if ($reader instanceof \logstore_standard\log\store) {
+        $sql = "
+            SELECT
+                l.id,
+                l.timecreated as time,
+                l.userid,
+                l.courseid as course,
+                usl.gap,
+                u.institution,
+                u.department,
+                u.city,
+                u.country
+            FROM
+                {logstore_standard_log} l,
+                {use_stats_log} usl,
+                {user} u
+            WHERE
+                u.id = l.userid AND
+                time >= ? AND
+                time <= ?
+                $courseclause
+                $userclause
+        ";
+    } elseif($reader instanceof \logstore_legacy\log\store) {
+        $sql = "
+            SELECT
+                l.id,
+                l.time,
+                l.userid,
+                l.course,
+                usl.gap,
+                u.institution,
+                u.department,
+                u.city,
+                u.country
+            FROM
+                {log} l,
+                {use_stats_log} usl,
+                {user} u
+            WHERE
+                u.id = l.userid AND
+                time >= ? AND
+                time <= ?
+                $courseclause
+                $userclause
+        ";
+    }
 
     // pre_loop structure inits
     if ($institutionresult) {
@@ -924,8 +959,8 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
         $config->lastpingcredit = 15;
     }
 
-    $threshold = 15 * MINSECS;
-    $lastpingcredit = 15 * MINSECS;
+    $threshold = $config->threshold * MINSECS;
+    $lastpingcredit = $config->lastpingcredit * MINSECS;
 
     $rs = get_recordset_sql($sql, array($from, $to));
     if ($rs) {
@@ -949,7 +984,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
                 @$result->course[$gap->course]->elapsed += $gap->gap;
                 if (!isset($result->course[$gap->course]->firsthit)) {
                     $result->all->firsthit = $gap->time;
-                } 
+                }
                 $result->course[$gap->course]->lasthit = $gap->time; 
             }
 

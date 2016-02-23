@@ -17,8 +17,8 @@
 /**
  * Master block ckass for use_stats compiler
  *
- * @package    blocks
- * @subpackage use_stats
+ * @package    block_use_stats
+ * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -81,7 +81,7 @@ class block_use_stats extends block_base {
             return $this->content;
         }
 
-        // Know wich reader we are working with.
+        // Know which reader we are working with.
         $logmanager = get_log_manager();
         $readers = $logmanager->get_readers('\core\log\sql_select_reader');
         $reader = reset($readers);
@@ -391,9 +391,44 @@ class block_use_stats extends block_base {
             }
         }
     }
+
+    /**
+     * to cleanup some logs to delete.
+     */
+    static function cleanup_task() {
+        global $CFG, $DB;
+
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $reader = reset($readers);
+
+        if (empty($reader)) {
+            mtrace('No log reader.');
+            return false; // No log reader found.
+        }
+
+        if ($reader instanceof \logstore_standard\log\store) {
+            $sql = "DELETE FROM
+                        {block_use_stats_log}
+                    WHERE
+                        logid NOT IN(SELECT id FROM {log})
+            ";
+        } elseif ($reader instanceof \logstore_legacy\log\store) {
+            $sql = "DELETE FROM
+                        {block_use_stats_log}
+                    WHERE
+                        logid NOT IN(SELECT id FROM {logstore_standard_log})
+            ";
+        } else {
+            mtrace('Unsupported log reader.');
+            return;
+        }
+
+        $DB->execute($sql);
+    }
 }
 
 global $PAGE;
-if ($PAGE->state < moodle_page::STATE_IN_BODY) {
+if ($PAGE->state < moodle_page::STATE_PRINTING_HEADER) {
     block_use_stats_setup_theme_requires();
 }

@@ -28,7 +28,7 @@ defined('MOODLE_INTERNAL') || die();
 /**
  * Scheduled task to compile lap tims.
  */
-class compile_task extends \core\task\scheduled_task {
+class cleanup_task extends \core\task\scheduled_task {
 
     /**
      * Get a descriptive name for this task (shown to admins).
@@ -36,7 +36,7 @@ class compile_task extends \core\task\scheduled_task {
      * @return string
      */
     public function get_name() {
-        return get_string('task_compile', 'block_use_stats');
+        return get_string('task_cleanup', 'block_use_stats');
     }
 
     /**
@@ -46,6 +46,6 @@ class compile_task extends \core\task\scheduled_task {
         global $CFG;
 
         require_once($CFG->dirroot.'/blocks/use_stats/block_use_stats.php');
-        \block_use_stats::crontask();
+        \block_use_stats::cleanup_task();
     }
 }

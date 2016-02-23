@@ -8,8 +8,15 @@
 # type: block
 # whouses: teachers, eventually students
 # developer: Valery Fremaux (valery.Fremaux@club-internet.fr)
-# date: 2012/03/18
+# date: 2016/01/21
 # Version : Moodle 2
+
+## 20160121
+
+Adding cleanup task to track log cleanups
+Adding indexes on mdl_block_use_stats_log
+
+##
 
 This block allows displaying use stats for the current user.
 

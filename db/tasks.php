@@ -15,9 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Definition of block dashboard scheduled tasks.
+ * Definition of block use stats scheduled tasks.
  *
- * @package   block_dashboard
+ * @package   block_use_stats
  * @category  task
  * @copyright 2014 Dan Poltawski <dan@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,6 +31,16 @@ $tasks = array(
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
+    ),
+
+    array(
+        'classname' => 'block_use_stats\task\cleanup_task',
+        'blocking' => 0,
+        'minute' => '0',
+        'hour' => '3',
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*'
