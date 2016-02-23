@@ -14,12 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * This file contains the mnet services for the user_mnet_host plugin
  *
- * @since 2.0
- * @package blocks
- * @subpackage use_stats
+ * @package   block_use_stats
+ * @category  blocks
  * @copyright 2012 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */

@@ -65,5 +65,6 @@ $string['use_stats_rpc_service_name'] = 'Remote access to statistics';
 $string['youspent'] = 'You already spent ';
 $string['credittime'] = 'Credit time';
 $string['task_compile'] = 'Time gaps compilation';
+$string['task_cleanup'] = 'Time gaps cleanup';
 $string['eventusestatskeepalive'] = 'Session keep alive';
 $string['keepuseralive'] = 'User {$a} is still in session';

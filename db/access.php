@@ -32,6 +32,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
+/**
+ * @package   block_use_stats
+ * @category  blocks
+ * @copyright 2012 Valery Fremaux
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 $capabilities = array(
 
     'block/use_stats:view' => array(
