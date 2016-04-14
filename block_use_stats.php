@@ -267,7 +267,7 @@ class block_use_stats extends block_base {
     /**
      * Used by the component associated task.
      */
-    static function crontask() {
+    static function cron_task() {
         global $CFG, $DB;
 
         $config = get_config('block_use_stats');

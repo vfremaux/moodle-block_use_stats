@@ -226,7 +226,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
     }
 
     if ($oldversion < 2016020600) {
-        $table = new xmldb_table('use_stats_userdata');
+        $table = new xmldb_table('block_use_stats');
 
         $field = new xmldb_field('compiletime');
         $field->set_attributes(XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0', 'events');

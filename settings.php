@@ -26,11 +26,12 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
 
+use \block\use_stats\admin_setting_configdatetime;
+
 if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
                        get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
-    
     $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
                        get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 
@@ -58,7 +59,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('activetracking', get_string('activetrackingparams', 'block_use_stats'), ''));
 
     $settings->add(new admin_setting_configtext('block_use_stats/keepalive_delay', get_string('configkeepalivedelay', 'block_use_stats'),
-                   get_string('configkeepalivedelay_desc', 'block_use_stats'), 10));
+                   get_string('configkeepalivedelay_desc', 'block_use_stats'), 600));
 
     $ctloptions = array();
     $ctloptions['0'] = get_string('allusers', 'block_use_stats');

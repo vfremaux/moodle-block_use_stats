@@ -46,6 +46,6 @@ class compile_task extends \core\task\scheduled_task {
         global $CFG;
 
         require_once($CFG->dirroot.'/blocks/use_stats/block_use_stats.php');
-        \block_use_stats::crontask();
+        \block_use_stats::cron_task();
     }
 }
