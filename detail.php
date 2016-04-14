@@ -15,13 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
- * @package    block
- * @subpackage use_stats
+ * @package    block_use_stats
  * @category   blocks
  * @author     Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright  Valery Fremaux <valery.fremaux@gmail.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
- *
  */
 
 require('../../config.php');
@@ -36,6 +34,8 @@ $id = required_param('id', PARAM_INT); // ID of the calling use_stat block
 $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
 $towhen = optional_param('ts_to', time(), PARAM_INT);
 $onlycourse = optional_param('restrict', false, PARAM_BOOL);
+
+// Security.
 
 require_login($courseid);
 

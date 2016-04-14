@@ -18,14 +18,15 @@
  * Version details
  *
  * @package    block_use_stats
+ * @category   blocks
  * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2015122001;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2016020600;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2014110400;        // Requires this Moodle version
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
-$plugin->release = '2.8.0 (build 2015062500)'; // Full name of the plugin (used for diagnostics)
+$plugin->release = '2.8.0 (build 2016020600)'; // Full name of the plugin (used for diagnostics)

@@ -1,14 +1,37 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 defined('MOODLE_INTERNAL') || die;
 
+/**
+ * @package    block_use_stats
+ * @category   blocks
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
+
+use \block\use_stats\admin_setting_configdatetime;
 
 if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
                        get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
-    
     $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
                        get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 
@@ -36,7 +59,7 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_heading('activetracking', get_string('activetrackingparams', 'block_use_stats'), ''));
 
     $settings->add(new admin_setting_configtext('block_use_stats/keepalive_delay', get_string('configkeepalivedelay', 'block_use_stats'),
-                   get_string('configkeepalivedelay_desc', 'block_use_stats'), 10));
+                   get_string('configkeepalivedelay_desc', 'block_use_stats'), 600));
 
     $ctloptions = array();
     $ctloptions['0'] = get_string('allusers', 'block_use_stats');

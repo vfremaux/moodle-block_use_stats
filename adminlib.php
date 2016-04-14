@@ -15,12 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package    blocks
- * @subpackage use_stats
+ * @package    block_use_stats
+ * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+namespace block\use_stats;
+
+defined('MOODLE_INTERNAL') || die;
 
 /**
  * Time selector
@@ -30,7 +34,7 @@
  *
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class admin_setting_configdatetime extends admin_setting {
+class admin_setting_configdatetime extends \admin_setting {
 
     /**
      * Constructor

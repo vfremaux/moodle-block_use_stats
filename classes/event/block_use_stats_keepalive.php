@@ -14,17 +14,18 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+namespace block_use_stats\event;
+
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * The mod_assign feedback viewed event.
  *
  * @package    block_use_stats
+ * @category   blocks
  * @copyright  2014 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-namespace block_use_stats\event;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The class for registering a keepalive event.
@@ -34,11 +35,6 @@ defined('MOODLE_INTERNAL') || die();
  *
  *      - int assignid: the id of the assignment.
  * }
- *
- * @package    block_use_stats
- * @since      Moodle 2.7
- * @copyright  2014 Mark Nelson <markn@moodle.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_use_stats_keepalive extends \core\event\base {
 

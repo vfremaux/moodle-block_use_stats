@@ -8,8 +8,15 @@
 # type: block
 # whouses: teachers, eventually students
 # developer: Valery Fremaux (valery.Fremaux@club-internet.fr)
-# date: 2012/03/18
+# date: 2016/01/21
 # Version : Moodle 2
+
+## 20160121
+
+Adding cleanup task to track log cleanups
+Adding indexes on mdl_block_use_stats_log
+
+##
 
 This block allows displaying use stats for the current user.
 
@@ -36,7 +43,3 @@ browse to the "administration" page to make the block registered by Moodle.
 Add a block in any workspace you use. Compilation will be visible to the current user, with no restrictions if he is a teacher. 
 
 Students may be given access to their own report, if the instance is programmed for by the teacher within a course context, or by the administrator out of a course context (MyMoodle, general pages)
-
-## Language files ##
-
-For Moodle < 1.7.0, copy the lang directory in the adequate location.

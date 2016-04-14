@@ -14,11 +14,13 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+defined('MOODLE_INTERNAL') || die();
+
 /**
  * Library for theme notifications.
  *
- * @package   block_livedesk
- * @version   moodle 2.2 to 2.5
+ * @package   block_use_stats
+ * @category  blocks
  * @copyright 2012 Wafa Adham,, Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
