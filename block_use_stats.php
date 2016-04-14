@@ -83,7 +83,7 @@ class block_use_stats extends block_base {
 
         // Know which reader we are working with.
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers('\core\log\sql_reader');
         $reader = reset($readers);
     
         if (empty($reader)) {
@@ -267,7 +267,7 @@ class block_use_stats extends block_base {
     /**
      * Used by the component associated task.
      */
-    static function crontask() {
+    static function cron_task() {
         global $CFG, $DB;
 
         $config = get_config('block_use_stats');

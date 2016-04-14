@@ -34,7 +34,7 @@ function block_use_stats_setup_theme_requires() {
 function block_use_stats_setup_theme_notification() {
     global $CFG, $USER, $COURSE, $DB, $PAGE;
 
-    if (!isloggedin() || isguestuser()) {
+    if (!isloggedin()) {
         return;
     }
 
