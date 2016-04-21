@@ -266,6 +266,17 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
                     $continue = true;
                 }
 
+                // Resolve the "graded" bias
+                if ($reader instanceof \logstore_standard\log\store) {
+                    if ($log->action == "graded" && $log->target == 'user') {
+                        $memlap = $memlap + $lap;
+                        if ($automatondebug) {
+                            mtrace("out 3g ");
+                        }
+                        $continue = true;
+                    }
+                }
+
                 if ($continue) {
                     if ('login' == @$lognext->action) {
                         // We are the last action before a new login 
@@ -301,7 +312,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
 
             if ($automatondebug) {
                 echo "$i<br/>";
-                echo "current is $log->action<br/>";
+                echo "current is $log->action at level $log->contextlevel ID:$log->id<br/>";
             }
             // Next visible log is a login. So current session ends
             @$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course; // this will collect all visited course ids during this session
