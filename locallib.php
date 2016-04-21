@@ -268,7 +268,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0) {
 
                 // Resolve the "graded" bias
                 if ($reader instanceof \logstore_standard\log\store) {
-                    if ($log->action == "graded" && $log->target == 'user') {
+                    if (($log->action == "graded") && ($log->target == 'user')) {
                         $memlap = $memlap + $lap;
                         if ($automatondebug) {
                             mtrace("out 3g ");
