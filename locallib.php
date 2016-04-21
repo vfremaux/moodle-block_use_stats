@@ -112,6 +112,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
              id,
              courseid as course,
              action,
+             target,
              timecreated as time,
              userid,
              contextid,
