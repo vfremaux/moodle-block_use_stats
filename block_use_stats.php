@@ -17,8 +17,8 @@
 /**
  * Master block ckass for use_stats compiler
  *
- * @package    blocks
- * @subpackage use_stats
+ * @package    block_use_stats
+ * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
