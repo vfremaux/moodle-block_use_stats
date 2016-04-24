@@ -32,6 +32,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
                        get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
+    $settings->add(new admin_setting_configtext('block_use_stats/filterdisplayunder', get_string('configfilterdisplayunder', 'block_use_stats'),
+                       get_string('configfilterdisplayunder_desc', 'block_use_stats'), 60));
+
     $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
                        get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 

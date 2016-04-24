@@ -8,13 +8,51 @@
 # type: block
 # whouses: teachers, eventually students
 # developer: Valery Fremaux (valery.Fremaux@club-internet.fr)
-# date: 2016/01/21
+# date: 2016/02/23
 # Version : Moodle 2
 
 ## 20160121
 
 Adding cleanup task to track log cleanups
 Adding indexes on mdl_block_use_stats_log
+
+Install the new keepalive hook in your theme :
+
+Basic snippet of code to inject the keep_alive use_stats events
+is : 
+
+    // use_stats notification plug / VF Consulting 2015-12-19
+    if (file_exists($CFG->dirroot.'/blocks/use_stats/lib.php')) {
+        include_once $CFG->dirroot.'/blocks/use_stats/lib.php';
+        $str .= block_use_stats_setup_theme_notification();
+    }
+
+You may implement it in several ways in Moodle : 
+
+1. Overriding a core renderer (in a theme_yourtheme_core_renderer class):
+
+The following function will override the native one from Moodle and inject
+the keep_alive pattern at bottom of every moodle page.
+
+    function standard_end_of_body_html() {
+        global $CFG;
+
+        $str = '';
+
+        // use_stats notification plug / VF Consulting 2015-12-19
+        if (file_exists($CFG->dirroot.'/blocks/use_stats/lib.php')) {
+            include_once $CFG->dirroot.'/blocks/use_stats/lib.php';
+            $str .= block_use_stats_setup_theme_notification();
+        }
+        $str .= parent::standard_end_of_body_html();
+        return $str;
+    }
+
+2. Directly in layouts : 
+
+If you have in your layout a footer sequence, then add the given php
+snippet in the top of the footer HTML code.
+
 
 ##
 
