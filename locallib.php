@@ -210,6 +210,10 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     $aggregate = array();
     $aggregate['sessions'] = array();
 
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $reader = reset($readers);
+
     if (!empty($logs)) {
         $logs = array_values($logs);
 
@@ -228,11 +232,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 $lap = $config->lastpingcredit * MINSECS;
             }
 
-            // Adjust "module" for new logstore
-            $logmanager = get_log_manager();
-            $readers = $logmanager->get_readers('\core\log\sql_select_reader');
-            $reader = reset($readers);
-
+            // Adjust "module" for new logstore if using the standard log
             if ($reader instanceof \logstore_standard\log\store) {
                 use_stats_add_module_from_context($log);
             }
@@ -248,7 +248,12 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             // discard unsignificant cases
             if ($log->action == 'loggedout') {
+                @$aggregate['sessions'][$sessionid]->elapsed += $memlap;
+                @$aggregate['sessions'][$sessionid]->sessionend = $log->time;
                 $memlap = 0;
+                if ($automatondebug) {
+                    mtrace("<span style=\"background-color:#FCB127\">Closing session</span> $sessionid on clean loggedout (memlap $memlap : time ".block_use_stats_format_time($aggregate['sessions'][$sessionid]->elapsed).') ');
+                }
                 continue;
             }
             if ($log->$dimension == 'system' and $log->action == 'failed') continue;
@@ -592,8 +597,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 if ($aggregate['scorm'][$cmid]->elapsed < $realtotaltime) {
                     $diff = $realtotaltime - $aggregate['scorm'][$cmid]->elapsed;
                     $aggregate['scorm'][$cmid]->elapsed += $diff;
-                    $aggregate['coursetotal'][$log->course] += $diff;
-                    $aggregate['activities'][$log->course] += $diff;
+                    $aggregate['coursetotal'][$cm->course]->elapsed += $diff;
+                    $aggregate['activities'][$cm->course]->elapsed += $diff;
                 }
             }
         }

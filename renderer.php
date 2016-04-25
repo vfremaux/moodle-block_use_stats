@@ -52,6 +52,13 @@ class block_use_stats_renderer extends plugin_renderer_base {
                 $course->fullname = get_string('other', 'block_use_stats');
                 $course->idnumber = '';
             }
+
+            if (empty($config->displayothertime)) {
+                if (!$courseid) {
+                    continue;
+                }
+            }
+
             if ($course) {
                 // Count total even if not shown (D NOT loose time)
                 $fulltotal += @$aggregate['coursetotal'][$courseid]->elapsed;
