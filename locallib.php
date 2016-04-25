@@ -497,6 +497,15 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
     }
 
+    // Explicit session dates
+    if (!empty($aggregate['sessions'])) {
+        foreach($aggregate['sessions'] as $sessid => $session) {
+            $aggregate['sessions'][$sessid]->start = date('Y-m-d H:i:s', 0 + @$session->sessionstart);
+            $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
+            $aggregate['sessions'][$sessid]->duration = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
+        }
+    }
+
     // This is our last change to guess a user when no logs available.
     if (empty($currentuser)) {
         $currentuser = optional_param('userid', $USER->id, PARAM_INT);
