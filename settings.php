@@ -29,20 +29,40 @@ require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
 use \block\use_stats\admin_setting_configdatetime;
 
 if ($ADMIN->fulltree) {
+
+    $settings->add(new admin_setting_heading('blockdisplay', get_string('blockdisplay', 'block_use_stats'), ''));
+
     $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
                        get_string('configfromwhen_desc', 'block_use_stats'), 90));
 
+    $settings->add(new admin_setting_configtext('block_use_stats/filterdisplayunder', get_string('configfilterdisplayunder', 'block_use_stats'),
+                       get_string('configfilterdisplayunder_desc', 'block_use_stats'), 60));
+
+    $settings->add(new admin_setting_configcheckbox('block_use_stats/displayothertime', get_string('configdisplayothertime', 'block_use_stats'),
+                       get_string('configdisplayothertime_desc', 'block_use_stats'), 1));
+
+    $displayopts = array(DISPLAY_FULL_COURSE => get_string('displaycoursetime', 'block_use_stats'), DISPLAY_TIME_ACTIVITIES => get_string('displayactivitiestime', 'block_use_stats'));
+
+    $settings->add(new admin_setting_configselect('block_use_stats/displayactivitytimeonly', get_string('configdisplayactivitytimeonly', 'block_use_stats'),
+                       get_string('configdisplayactivitytimeonly_desc', 'block_use_stats'), 0, $displayopts));
+
+    $settings->add(new admin_setting_heading('loganalysisparams', get_string('loganalysisparams', 'block_use_stats'), ''));
+
+    /*
     $settings->add(new admin_setting_configtext('block_use_stats/capturemodules', get_string('configcapturemodules', 'block_use_stats'),
                        get_string('configcapturemodules_desc', 'block_use_stats'), ''));
 
     $settings->add(new admin_setting_configtext('block_use_stats/ignoremodules', get_string('configignoremodules', 'block_use_stats'),
                        get_string('configignoremodules_desc', 'block_use_stats'), ''));
+    */
 
     $settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
                        get_string('configthreshold_desc', 'block_use_stats'), 60));
 
     $settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
                        get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
+
+    $settings->add(new admin_setting_heading('datacubing', get_string('datacubing', 'block_use_stats'), ''));
 
     $settings->add(new admin_setting_configcheckbox('block_use_stats/enablecompilecube', get_string('configenablecompilecube', 'block_use_stats'),
                        get_string('configenablecompilecube_desc', 'block_use_stats'), ''));
