@@ -61,17 +61,22 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
             if ($course) {
                 // Count total even if not shown (D NOT loose time)
-                $fulltotal += @$aggregate['coursetotal'][$courseid]->elapsed;
+                if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
+                    $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                } else {
+                    $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
+                }
+                $fulltotal += $reftime;
 
                 if (!empty($config->filterdisplayunder)) {
-                    if ((0 + @$aggregate['coursetotal'][$courseid]->elapsed) < $config->filterdisplayunder) {
+                    if ($reftime < $config->filterdisplayunder) {
                         continue;
                     }
                 }
 
                 $courseshort[$courseid] = $course->shortname;
                 $coursefull[$courseid] = $course->fullname;
-                $courseelapsed[$courseid] = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                $courseelapsed[$courseid] = $reftime;
             }
         }
 
@@ -92,6 +97,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $str .= '<div class="pull-left smalltext"><a href="'.$currentnameurl.'">'.get_string('byname', 'block_use_stats').'</a></div>';
         $str .= '<div class="pull-right smalltext"><a href="'.$currenttimeurl.'">'.get_string('bytimedesc', 'block_use_stats').'</a></div>';
         $str .= '</div>';
+
         $str .= '<table width="100%">';
         foreach (array_keys($displaycourses) as $courseid) {
             $str .= '<tr>';
@@ -105,7 +111,12 @@ class block_use_stats_renderer extends plugin_renderer_base {
         }
 
         if (!empty($config->filterdisplayunder)) {
-            $str .= '<tr><td colspan="2" class="teacherstatsbycourse" title="'.htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder)).'"><img src="'.$OUTPUT->pix_url('i/warning').'"></td></tr>';
+            $str .= '<tr><td class="teacherstatsbycourse" title="'.htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder)).'"><img src="'.$OUTPUT->pix_url('i/warning').'"></td>';
+            $str .= '<td align="right" class="teacherstatsbycourse">';
+            if (@$config->displayactivitytimeonly != DISPLAY_FULL_COURSE) {
+                $str .= '('.get_string('activities', 'block_use_stats').')';
+            }
+            $str .= '</td></tr>';
         }
 
         $str .= '</table>';
@@ -120,11 +131,11 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $str .= '<input type="hidden" name="id" value="'.$id.'" />';
 
-        if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)) {
+        if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
             $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id,'.get_all_user_name_fields(true, ''));
         } elseif (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
-            $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id,'.get_all_user_name_fields(true, 'u'));
+            $users = get_enrolled_users($coursecontext);
         } elseif (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
             $mygroupings = groups_get_user_groups($COURSE->id);
 
