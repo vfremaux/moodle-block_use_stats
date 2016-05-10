@@ -32,8 +32,17 @@ if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_heading('blockdisplay', get_string('blockdisplay', 'block_use_stats'), ''));
 
-    $settings->add(new admin_setting_configtext('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
-                       get_string('configfromwhen_desc', 'block_use_stats'), 90));
+    $daystr = get_string('days');
+    $fromwhenoptions = array('5' => '5 '.$daystr,
+                             '15' => '15 '.$daystr,
+                             '30' => '30 '.$daystr,
+                             '60' => '60 '.$daystr,
+                             '90' => '90 '.$daystr,
+                             '180' => '180 '.$daystr,
+                             '365' => '365 '.$daystr,
+                             );
+    $settings->add(new admin_setting_configselect('block_use_stats/fromwhen', get_string('configfromwhen', 'block_use_stats'),
+                       get_string('configfromwhen_desc', 'block_use_stats'), 60, $fromwhenoptions));
 
     $settings->add(new admin_setting_configtext('block_use_stats/filterdisplayunder', get_string('configfilterdisplayunder', 'block_use_stats'),
                        get_string('configfilterdisplayunder_desc', 'block_use_stats'), 60));

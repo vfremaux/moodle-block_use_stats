@@ -164,7 +164,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $str .= get_string('from', 'block_use_stats');
         $str .= ' <select name="ts_from" onChange="document.ts_changeParms.submit();">';
 
-        foreach (array(5,15,30,60,90,365) as $interval) {
+        foreach (array(5,15,30,60,90,180,365) as $interval) {
             $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
             $str .= '<option value="'.$interval.'" '.$selected.' >'.$interval.' '.get_string('days').'</option>';
         }

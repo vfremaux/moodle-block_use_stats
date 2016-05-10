@@ -100,10 +100,11 @@ class block_use_stats extends block_base {
         }
 
         $id = optional_param('id', 0, PARAM_INT);
-        $fromwhen = 30;
-        if (!empty($config->fromwhen)) {
-            $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
+        if (empty($config->fromwhen)) {
+            $config->fromwhen = 60;
+            set_config('fromwhen', 60, 'block_use_stats');
         }
+        $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
 
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
