@@ -65,9 +65,11 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     function get_content() {
-        global $USER, $CFG, $COURSE, $DB;
+        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT;
 
         $config = get_config('block_use_stats');
+
+        $renderer = $PAGE->get_renderer('block_use_stats');
 
         if ($this->content !== null) {
             return $this->content;
@@ -98,10 +100,11 @@ class block_use_stats extends block_base {
         }
 
         $id = optional_param('id', 0, PARAM_INT);
-        $fromwhen = 30;
-        if (!empty($config->fromwhen)) {
-            $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
+        if (empty($config->fromwhen)) {
+            $config->fromwhen = 60;
+            set_config('fromwhen', 60, 'block_use_stats');
         }
+        $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
 
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
@@ -113,97 +116,21 @@ class block_use_stats extends block_base {
         }
 
         $logs = use_stats_extract_logs($timefrom, time(), $userid);
-        $lasttime = $timefrom;
-        $totalTime = 0;
-        $totalTimeCourse = array();
-        $totalTimeModule = array();
         if ($logs) {
-            foreach ($logs as $aLog) {
-
-                if ($reader instanceof \logstore_standard\log\store) {
-                    // Get module from context
-                    use_stats_add_module_from_context($aLog);
-                }
-
-                $delta = $aLog->time - $lasttime;
-                if ($delta < @$config->threshold * MINSECS) {
-                    $totalTime = $totalTime + $delta;
-
-                    if (!array_key_exists($aLog->course, $totalTimeCourse)) {
-                        $totalTimeCourse[$aLog->course] = 0;
-                    } else {
-                        $totalTimeCourse[$aLog->course] = $totalTimeCourse[$aLog->course] + $delta;
-                    }
-                    if (empty($aLog->module)) $aLog->module = 'system';
-                    if (!array_key_exists($aLog->course, $totalTimeModule)) {
-                        $totalTimeModule[$aLog->course][$aLog->module] = 0;
-                    } elseif (!array_key_exists($aLog->module, $totalTimeModule[$aLog->course])) {
-                        $totalTimeModule[$aLog->course][$aLog->module] = 0;
-                    } else {
-                        $totalTimeModule[$aLog->course][$aLog->module] = $totalTimeModule[$aLog->course][$aLog->module] + $delta;
-                    }
-                }
-                $lasttime = $aLog->time;
-            }
-
-            $hours = floor($totalTime/HOURSECS);
-            $remainder = $totalTime - $hours * HOURSECS;
-            $min = floor($remainder/MINSECS);
+            $aggregate = use_stats_aggregate_logs($logs, 'module');
 
             $this->content->text .= '<div class="message">';
-            $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
-            $this->content->text .= '<input type="hidden" name="id" value="'.$id.'" />';
-            if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)) {
-                $users = $DB->get_records('user', array('deleted' => 0), 'lastname', 'id,'.get_all_user_name_fields(true, ''));
-            } elseif (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
-                $coursecontext = context_course::instance($COURSE->id);
-                $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id,'.get_all_user_name_fields(true, 'u'));
-            } elseif (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
-                $mygroups = groups_get_user_groups($COURSE->id);
-                $users = array();
-                // Get all users in my groups.
-                foreach ($mygroupids as $mygroupid) {
-                    $users = $users + groups_get_members($groupid, 'u.id,'.get_all_user_name_fields(true, 'u'));
-                }
-            }
 
-            if (!empty($users)) {
-                $usermenu = array();
-                foreach ($users as $user) {
-                    $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
-                }
-                $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
-            }
+            $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
 
-            $this->content->text .= get_string('from', 'block_use_stats');
-            $this->content->text .= '<select name="ts_from" onChange="document.ts_changeParms.submit();">';
-            foreach (array(5,15,30,60,90,365) as $interval) {
-                $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '';
-                $this->content->text .= '<option value="'.$interval.'" '.$selected.' >'.$interval.' '.get_string('days').'</option>';
-            }
-            $this->content->text .= '</select>';
-            $this->content->text .= '</form><br/>';
+            $strbuffer = $renderer->per_course($aggregate, $fulltotal);
+
             $this->content->text .= get_string('youspent', 'block_use_stats');
-            $this->content->text .= $hours.' '.get_string('hours').' '.$min.' '.get_string('mins');
+            $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
             $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
             $this->content->text .= userdate($timefrom);
-            if (count(array_keys($totalTimeCourse))) {
-                $this->content->text .= '<table width="100%">';
-                foreach (array_keys($totalTimeCourse) as $aCourseId) {
-                    $aCourse = $DB->get_record('course', array('id' => $aCourseId));
-                    if ($totalTimeCourse[$aCourseId] < 60) {
-                        continue;
-                    }
-                    if ($aCourse) {
-                        $hours = floor($totalTimeCourse[$aCourseId] / HOURSECS);
-                        $remainder = $totalTimeCourse[$aCourseId] - $hours * HOURSECS;
-                        $min = floor($remainder/MINSECS);
-                        $courseelapsed = $hours.' '.get_string('hours').' '.$min.' '.get_string('mins');
-                        $this->content->text .= '<tr><td class="teacherstatsbycourse" align="left" title="'.htmlspecialchars(format_string($aCourse->fullname)).'">'.$aCourse->shortname.'</td><td class="teacherstatsbycourse" align="right">'.$courseelapsed.'</td></tr>';
-                    }
-                }
-                $this->content->text .= '</table>';
-            }
+            $this->content->text .= $strbuffer;
+
             $this->content->text .= '</div>';
 
             if (has_any_capability(array('block/use_stats:seeowndetails', 'block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context, $USER->id)) {
@@ -217,47 +144,9 @@ class block_use_stats extends block_base {
             }
         } else {
             $this->content->text = '<div class="message">';
-            $this->content->text .= get_string('noavailablelogs', 'block_use_stats');
+            $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
             $this->content->text .= '<br/>';
-            $this->content->text .= ' <form style="display:inline" name="ts_changeParms" method="post" action="#">';
-            $this->content->text .= '<input type="hidden" name="id" value="'.$id.'" />';
-            if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)) {
-                $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id,'.get_all_user_name_fields(true, ''));
-            } elseif (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
-                $coursecontext = context_course::instance($COURSE->id);
-                $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id,'.get_all_user_name_fields(true, 'u'));
-            } elseif (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
-                $mygroupings = groups_get_user_groups($COURSE->id);
-
-                $mygroups = array();
-                foreach ($mygroupings as $grouping) {
-                    $mygroups = $mygroups + $grouping;
-                }
-
-                $users = array();
-                // get all users in my groups
-                foreach ($mygroups as $mygroupid) {
-                    $members = groups_get_members($mygroupid, 'u.id,'.get_all_user_name_fields(true, 'u'));
-                    if ($members) {
-                        $users = $users + $members;
-                    }
-                }
-            }
-            if (!empty($users)) {
-                $usermenu = array();
-                foreach ($users as $user) {
-                    $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
-                }
-                $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
-            }
-            $this->content->text .= get_string('from', 'block_use_stats');
-            $this->content->text .= '<select name="ts_from" onChange="document.ts_changeParms.submit();">';
-            foreach (array(5,15,30,60,90,365) as $interval) {
-                $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
-                $this->content->text .= '<option value="'.$interval.'" '.$selected.' >'.$interval.' '.get_string('days').'</option>';
-            }
-            $this->content->text .= "</select>";
-            $this->content->text .= "</form><br/>";
+            $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
             $this->content->text .= "</div>";
         }
 
