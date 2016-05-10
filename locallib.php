@@ -234,15 +234,17 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
         $memlap = 0; // will store the accumulated time for in the way but out of scope laps.
 
-        for ($i = 0 ; $i < count($logs) ; $i++) {
+        for ($i = 0 ; $i < count($logs) ; $i = $nexti) {
             $log = $logs[$i];
             // We "guess" here the real identity of the log's owner.
             $currentuser = $log->userid;
 
             // Let's get lap time to next log in track
+            $nexti = $i + 1;
             if (isset($logs[$i + 1])) {
-                $lognext = $logs[$i + 1];
-                $lap = $lognext->time - $log->time;
+                // Fetch ahead possible jumps over some non significant logs
+                // that will be counted within the current log context.
+                list($lognext, $lap, $nexti) = use_stats_fetch_ahead($logs, $i, $reader);
             } else {
                 $lap = $lastpingcredit;
             }
@@ -278,6 +280,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             }
 
             if ($log->$dimension == 'system' and $log->action == 'failed') {
+                $memlap = 0;
                 if ($automatondebug || $backdebug) {
                     $logbuffer .= "\n";
                 }
@@ -303,17 +306,6 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                         $logbuffer .= " ... (I) Ignored, time lapped \n";
                     }
                     $continue = true;
-                }
-
-                // Resolve the "graded" bias
-                if ($reader instanceof \logstore_standard\log\store) {
-                    if (($log->action == 'graded') && ($log->target == 'user')) {
-                        $memlap = $memlap + $lap;
-                        if ($automatondebug || $backdebug) {
-                            $logbuffer .= " ... (I) Ignored as graded bias, time lapped \n";
-                        }
-                        $continue = true;
-                    }
                 }
 
                 if ($continue) {
@@ -666,6 +658,33 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     }
 
     return $aggregate;
+}
+
+/**
+ * fetch ahead the next valid log to be considered
+ * @param arrayref $logs the logs track array
+ * @param int $i the current log track index
+ * @param object $reader the actual valid log reader
+ * @return an array containing the next log record, the cumulated lap time for the current 
+ * processed record and the next log index
+ */
+function use_stats_fetch_ahead(&$logs, $i, $reader) {
+
+    $log = $logs[$i];
+    $lastlog = $logs[$i + 1];
+    $lognext = @$logs[$i + 2];
+    $j = $i + 1;
+
+    // Resolve the "graded" bias
+    if ($reader instanceof \logstore_standard\log\store) {
+        while (isset($lognext) && ($lastlog->action == 'graded') && ($lastlog->target == 'user')) {
+            $j++;
+            $lastlog = $logs[$j];
+            $lognext = @$logs[$j + 1];
+        }
+    }
+    $lap = $lastlog->time - $log->time;
+    return array($lastlog, $lap, $j);
 }
 
 /**
