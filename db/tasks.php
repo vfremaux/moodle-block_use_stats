@@ -44,5 +44,15 @@ $tasks = array(
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*'
+    ),
+    
+    array(
+        'classname' => 'block_use_stats\task\cache_ttl_task',
+        'blocking' => 0,
+        'minute' => '*/10',
+        'hour' => '*',
+        'day' => '*',
+        'month' => '*',
+        'dayofweek' => '*'
     )
 );

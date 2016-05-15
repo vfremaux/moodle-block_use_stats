@@ -81,8 +81,11 @@ $string['youspent'] = 'You spent ';
 $string['credittime'] = 'Credit time';
 $string['task_compile'] = 'Time gaps compilation';
 $string['task_cleanup'] = 'Time gaps cleanup';
+$string['task_cache_ttl'] = 'Aggregate Cache TTL';
 $string['eventusestatskeepalive'] = 'Session keep alive';
 $string['keepuseralive'] = 'User {$a} is still in session';
 $string['othershort'] = 'OTHER';
 $string['other'] = 'Other out of course presence';
+$string['printpdf'] = 'Print PDF';
+
 
