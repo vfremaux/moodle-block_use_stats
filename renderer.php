@@ -34,60 +34,11 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $config = get_config('block_use_stats');
 
         $fulltotal = 0;
+        $eventsunused = 0;
 
         $usestatsorder = optional_param('usestatsorder', 'name', PARAM_TEXT);
 
-        $courseelapsed = array();
-        $courseshort = array();
-        $coursefull = array();
-
-        // Prepare per course table
-        foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
-
-            if ($courseid) {
-                $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
-            } else {
-                $course = new StdClass();
-                $course->shortname = get_string('othershort', 'block_use_stats');
-                $course->fullname = get_string('other', 'block_use_stats');
-                $course->idnumber = '';
-            }
-
-            if (empty($config->displayothertime)) {
-                if (!$courseid) {
-                    continue;
-                }
-            }
-
-            if ($course) {
-                // Count total even if not shown (D NOT loose time)
-                if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
-                    $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
-                } else {
-                    $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
-                }
-                $fulltotal += $reftime;
-
-                if (!empty($config->filterdisplayunder)) {
-                    if ($reftime < $config->filterdisplayunder) {
-                        continue;
-                    }
-                }
-
-                $courseshort[$courseid] = $course->shortname;
-                $coursefull[$courseid] = $course->fullname;
-                $courseelapsed[$courseid] = $reftime;
-            }
-        }
-
-        if ($usestatsorder == 'name') {
-            $displaycourses = $courseshort;
-            asort($displaycourses);
-        } else {
-            $displaycourses = $courseelapsed;
-            asort($displaycourses);
-            $displaycourses = array_reverse($displaycourses, true);
-        }
+        list($displaycourses, $courseshort, $coursefull, $courseelapsed) = block_use_stats::prepare_coursetable($aggregate, $fulltotal, $eventsunused, $usestatsorder);
 
         $str = '<div class="usestats-coursetable">';
         $currentnameurl = new moodle_url(me());
@@ -171,6 +122,38 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $str .= "</select>";
         $str .= "</form><br/>";
+
+        return $str;
+    }
+
+    function button_pdf($userid, $from, $to, $context) {
+        global $OUTPUT, $COURSE, $USER;
+
+        // XSS security.
+        if (!has_any_capability(array('block/use_stats:seegroupdetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seesitedetails'), $context)) {
+            // Force report about yourself.
+            $userid = $USER->id;
+        }
+
+        $config = get_config('block_use_stats');
+
+        $now = time();
+        $filename = 'report_user_'.$userid.'_'.date('Ymd_His', $now).'.pdf';
+
+        $reportscope = (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) ? 'fullcourse' : 'activities';
+        $params = array(
+            'id' => $COURSE->id,
+            'from' => $from,
+            'to' => $to,
+            'userid' => $userid,
+            'scope' => $reportscope,
+            'timesession' => $now,
+            'outputname' => $filename);
+
+        $url = new moodle_url('/report/trainingsessions/userpdfreportallcourses_batch_task.php', $params);
+
+        $str = '';
+        $str .= $OUTPUT->single_button($url, get_string('printpdf', 'block_use_stats'));
 
         return $str;
     }

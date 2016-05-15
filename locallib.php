@@ -1018,3 +1018,55 @@ function block_use_stats_is_login_event($action) {
 function block_use_stats_is_logout_event($action) {
     return (($action == 'logout') || ($action == 'loggedout'));
 }
+
+/**
+ * Gets the significant log range for this user
+ * @param int $userid
+ * @param int $from Unix timestamp
+ * @param int $to Unix timestamp
+ * @return an object with min and max fields. 
+ */
+function block_use_stats_get_log_range($userid, $from, $to) {
+    global $DB;
+
+    if (!$params = block_use_stats_get_sql_params()) {
+        return false;
+    }
+
+    $logrange =new StdClass;
+    $logrange->min = $DB->get_field_select($params->tablename, 'MIN('.$params->timeparam.')', ' userid = ? AND '.$params->timeparam.' > ?', array($userid, $from));
+    $logrange->max = $DB->get_field_select($params->tablename, 'MAX('.$params->timeparam.')', ' userid = ? AND '.$params->timeparam.' < ?', array($userid, $to));
+
+    return $logrange;
+}
+
+/**
+ * Get adequate SQL elements depending on the active log reader.
+ */
+function block_use_stats_get_sql_params() {
+
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+    $reader = reset($readers);
+
+    if (empty($reader)) {
+        return false; // No log reader found.
+    }
+
+    if ($reader instanceof \logstore_standard\log\store) {
+        $params = new StdClass;
+        $params->courseparam = 'courseid';
+        $params->timeparam = 'timecreated';
+        $params->tablename = 'logstore_standard_log';
+    } elseif($reader instanceof \logstore_legacy\log\store) {
+        $params = new StdClass;
+        $params->courseparam = 'course';
+        $params->timeparam = 'time';
+        $params->tablename = 'log';
+    } else {
+        // Unsupported logstore
+        return false;
+    }
+
+    return $params;
+}
