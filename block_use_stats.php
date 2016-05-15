@@ -115,11 +115,44 @@ class block_use_stats extends block_base {
             $userid = $USER->id;
         }
 
-        $logs = use_stats_extract_logs($timefrom, time(), $userid);
-        if ($logs) {
-            $aggregate = use_stats_aggregate_logs($logs, 'module');
+        $cache = cache::make('block_use_stats', 'aggregate');
 
-            $this->content->text .= '<div class="message">';
+        // We want to know the effective logrange against required period to
+        // query the cache
+        $now = time();
+        $logrange = block_use_stats_get_log_range($userid, $timefrom, $now);
+
+        $cachekey = $userid.'_'.$logrange->min.'_'.$logrange->max;
+        $userkeys = unserialize($cache->get('user'.$userid));
+
+        $cachestate = '';
+        if (!$aggregate = unserialize($cache->get($cachekey))) {
+            if (debugging()) {
+                $cachestate = 'missed';
+            }
+            $logs = use_stats_extract_logs($timefrom, $now, $userid);
+            if ($logs) {
+                $aggregate = use_stats_aggregate_logs($logs, 'module');
+            }
+            $cache->set($cachekey, serialize($aggregate));
+
+            // Update keys for this user.
+            if (empty($userkeys)) {
+                $userkeys = array();
+            }
+            if (!in_array($cachekey, $userkeys)) {
+                $userkeys[] = $cachekey;
+                $cache->set('user'.$userid, serialize($userkeys));
+            }
+        } else {
+            if (debugging()) {
+                $cachestate = 'hit';
+            }
+        }
+
+        if ($aggregate) {
+
+            $this->content->text .= '<div class="usestats-message '.$cachestate.'">';
 
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
 
@@ -141,6 +174,10 @@ class block_use_stats extends block_base {
                 }
                 $viewurl = new moodle_url('/blocks/use_stats/detail.php', $params);
                 $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
+            }
+
+            if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
+                $this->content->text .= '<div class="usestats-pdf">'.$renderer->button_pdf($userid, $timefrom, time(), $context).'</div>';
             }
         } else {
             $this->content->text = '<div class="message">';
@@ -282,6 +319,38 @@ class block_use_stats extends block_base {
     }
 
     /**
+     * Purges selectively caches of online users every x minutes
+     */
+    static function cache_ttl_task() {
+        global $DB;
+
+        $timeminusthirty = time() - 30 * MINSECS;
+
+        $cache = cache::make('block_use_stats', 'aggregate');
+
+        $sql = "
+            SELECT
+                id,
+                id
+            FROM
+                {user}
+            WHERE
+                lastaccess < ?
+        ";
+
+        $onlineusers = $DB->get_records_sql($sql, array($timeminusthirty));
+
+        foreach ($onlineusers as $userid => $uid) {
+            $userkeys = unserialize($cache->get('user'.$userid));
+            if (!empty($userkeys)) {
+                foreach($userkeys as $cachekey) {
+                    $cache->delete($cachekey);
+                }
+            }
+        }
+    }
+
+    /**
      * to cleanup some logs to delete.
      */
     static function cleanup_task() {
@@ -314,6 +383,74 @@ class block_use_stats extends block_base {
         }
 
         $DB->execute($sql);
+    }
+
+    static function prepare_coursetable(&$aggregate, &$fulltotal, &$fullevents, $order = 'name') {
+        global $DB;
+
+        $config = get_config('bock_use_stats');
+
+        $courseelapsed = array();
+        $courseshort = array();
+        $coursefull = array();
+        $courseevents = array();
+
+        $fulltotal = 0;
+        $fullevents = 0;
+
+        // Prepare per course table
+        foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
+
+            if ($courseid) {
+                $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
+            } else {
+                $course = new StdClass();
+                $course->shortname = get_string('othershort', 'block_use_stats');
+                $course->fullname = get_string('other', 'block_use_stats');
+                $course->idnumber = '';
+            }
+
+            if (empty($config->displayothertime)) {
+                if (!$courseid) {
+                    continue;
+                }
+            }
+
+            if ($course) {
+                // Count total even if not shown (D NOT loose time)
+                if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
+                    $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                } else {
+                    $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
+                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                }
+                $fulltotal += $reftime;
+                $fullevents += $refevents;
+
+                if (!empty($config->filterdisplayunder)) {
+                    if ($reftime < $config->filterdisplayunder) {
+                        continue;
+                    }
+                }
+
+                $courseshort[$courseid] = $course->shortname;
+                $coursefull[$courseid] = $course->fullname;
+                $courseelapsed[$courseid] = $reftime;
+                $courseevents[$courseid] = $refevents;
+            }
+        }
+
+        if ($order == 'name') {
+            $displaycourses = $courseshort;
+            asort($displaycourses);
+        } else {
+            $displaycourses = $courseelapsed;
+            asort($displaycourses);
+            $displaycourses = array_reverse($displaycourses, true);
+        }
+
+        return array($displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents);
     }
 }
 
