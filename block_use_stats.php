@@ -65,7 +65,7 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     function get_content() {
-        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT;
+        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT, $SESSION;
 
         $config = get_config('block_use_stats');
 
@@ -104,7 +104,12 @@ class block_use_stats extends block_base {
             $config->fromwhen = 60;
             set_config('fromwhen', 60, 'block_use_stats');
         }
-        $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
+
+        if (!isset($SESSION->usestatsfromwhen)) {
+            $SESSION->usestatsfromwhen = $config->fromwhen;
+        }
+
+        $fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT);
 
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;

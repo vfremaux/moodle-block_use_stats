@@ -51,6 +51,11 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $str .= '<table width="100%">';
         foreach (array_keys($displaycourses) as $courseid) {
+            if (!empty($config->filterdisplayunder)) {
+                if ($courseelapsed[$courseid] < $config->filterdisplayunder) {
+                    continue;
+                }
+            }
             $str .= '<tr>';
             $str .= '<td class="teacherstatsbycourse" align="left" title="'.htmlspecialchars(format_string($coursefull[$courseid])).'">';
             $str .= $courseshort[$courseid];
@@ -150,7 +155,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
             'timesession' => $now,
             'outputname' => $filename);
 
-        $url = new moodle_url('/report/trainingsessions/userpdfreportallcourses_batch_task.php', $params);
+        $url = new moodle_url('/report/trainingsessions/tasks/userpdfreportallcourses_batch_task.php', $params);
 
         $str = '';
         $str .= $OUTPUT->single_button($url, get_string('printpdf', 'block_use_stats'));
