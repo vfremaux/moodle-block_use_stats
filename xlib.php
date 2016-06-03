@@ -15,18 +15,15 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
- *
  * @package    block_use_stats
  * @category   blocks
- * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot.'/blocks/use_stats/block_use_stats.php');
 
-$plugin->version   = 2016051700;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2015111100;        // Requires this Moodle version
-$plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
-$plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
-$plugin->release = '3.0.0 (build 2016051700)'; // Full name of the plugin (used for diagnostics)
+function block_use_stats_get_coursetable(&$aggregate, &$fulltotal, &$fullevents) {
+    return block_use_stats::prepare_coursetable($aggregate, $fulltotal, $fullevents);
+}

@@ -118,7 +118,7 @@ $logs = use_stats_extract_logs($timefrom, $towhen, $userid);
 
 // Log aggregation function.
 
-$aggregate = use_stats_aggregate_logs($logs, 'module');
+$aggregate = use_stats_aggregate_logs($logs, 'module', 0, $fromwhen, $towhen);
 
 $dimensionitemstr = get_string('dimensionitem', 'block_use_stats');
 $timestr = get_string('timeelapsed', 'block_use_stats');
@@ -143,10 +143,10 @@ foreach ($aggregate as $module => $moduleset) {
         if ($cm) {
             $module = $DB->get_record('modules', array('id' => $cm->module));
             if ($modrec = $DB->get_record($module->name, array('id' => $cm->instance))) {
-                $table->data[] = array($modrec->name, format_time($value->elapsed), 0 + @$value->events);
+                $table->data[] = array($modrec->name, block_use_stats_format_time($value->elapsed, 'html'), 0 + @$value->events);
             }
         } else {
-            $table->data[] = array('', format_time($value->elapsed));
+            $table->data[] = array('', block_use_stats_format_time(0 + @$value->elapsed, 'html'));
         }
     }
 }
