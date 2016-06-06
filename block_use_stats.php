@@ -404,45 +404,47 @@ class block_use_stats extends block_base {
         $fullevents = 0;
 
         // Prepare per course table
-        foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
-
-            if ($courseid) {
-                $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
-            } else {
-                $course = new StdClass();
-                $course->shortname = get_string('othershort', 'block_use_stats');
-                $course->fullname = get_string('other', 'block_use_stats');
-                $course->idnumber = '';
-            }
-
-            if (empty($config->displayothertime)) {
-                if (!$courseid) {
-                    continue;
-                }
-            }
-
-            if ($course) {
-                // Count total even if not shown (D NOT loose time)
-                if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
-                    $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
-                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+        if (!empty($aggregate['coursetotal'])) {
+            foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
+    
+                if ($courseid) {
+                    $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
                 } else {
-                    $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
-                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    $course = new StdClass();
+                    $course->shortname = get_string('othershort', 'block_use_stats');
+                    $course->fullname = get_string('other', 'block_use_stats');
+                    $course->idnumber = '';
                 }
-                $fulltotal += $reftime;
-                $fullevents += $refevents;
-
-                if (!empty($config->filterdisplayunder)) {
-                    if ($reftime < $config->filterdisplayunder) {
+    
+                if (empty($config->displayothertime)) {
+                    if (!$courseid) {
                         continue;
                     }
                 }
-
-                $courseshort[$courseid] = $course->shortname;
-                $coursefull[$courseid] = $course->fullname;
-                $courseelapsed[$courseid] = $reftime;
-                $courseevents[$courseid] = $refevents;
+    
+                if ($course) {
+                    // Count total even if not shown (D NOT loose time)
+                    if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
+                        $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    } else {
+                        $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    }
+                    $fulltotal += $reftime;
+                    $fullevents += $refevents;
+    
+                    if (!empty($config->filterdisplayunder)) {
+                        if ($reftime < $config->filterdisplayunder) {
+                            continue;
+                        }
+                    }
+    
+                    $courseshort[$courseid] = $course->shortname;
+                    $coursefull[$courseid] = $course->fullname;
+                    $courseelapsed[$courseid] = $reftime;
+                    $courseevents[$courseid] = $refevents;
+                }
             }
         }
 

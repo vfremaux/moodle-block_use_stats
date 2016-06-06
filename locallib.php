@@ -228,6 +228,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     $reader = reset($readers);
 
     $logbuffer = '';
+    $lastcourseid  = 0;
 
     if (!empty($logs)) {
         $logs = array_values($logs);
@@ -344,7 +345,9 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             }
 
             // Next visible log is a login. So current session ends
-            @$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course; // this will collect all visited course ids during this session
+                @$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course; // this will collect all visited course ids during this session.
+                // If "one session per course" option is on, then there should be only one item here.
+
             if (!block_use_stats_is_login_event($log->action) && block_use_stats_is_login_event(@$lognext->action)) {
                 // We are the last action before a new login 
                 @$aggregate['sessions'][$sessionid]->elapsed += $lap;
@@ -377,7 +380,16 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                         continue;
                    }
                 } else {
-                    // all other cases
+                    // All other cases.
+
+                    // Adding Sadge's proposal of per course punching.
+                    // Check "one session per course" option and punch if changing course
+                    if (!empty($config->onesessionpercourse)) {
+                        if ($lastcourseid && ($lastcourseid != $log->course)) {
+                            $sessionpunch = true;
+                        }
+                    }
+
                     if ($automatondebug || $backdebug) {
                         if ($sessionpunch) {
                             $logbuffer .= " ... (P) session punch in : {$lognext->action} ";
@@ -481,6 +493,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 @$aggregate['coursetotal'][$log->course]->lastaccess = $log->time;
             }
             $origintime = $log->time;
+            $lastcourseid = $log->course;
         }
     }
 
