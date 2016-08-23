@@ -34,7 +34,9 @@ function block_use_stats_setup_theme_requires() {
 function block_use_stats_setup_theme_notification() {
     global $CFG, $USER, $COURSE, $DB, $PAGE;
 
-    if (!isloggedin()) {
+    $context = context_course::instance($COURSE->id);
+
+    if (!isloggedin() || is_guest($context)) {
         return;
     }
 

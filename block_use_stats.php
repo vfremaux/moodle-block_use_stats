@@ -71,6 +71,14 @@ class block_use_stats extends block_base {
 
         $renderer = $PAGE->get_renderer('block_use_stats');
 
+        if (!isset($this->config->studentscansee)) {
+            if (!isset($this->config)) {
+                $this->config = new StdClass;
+            }
+            $this->config->studentscansee = 1;
+            $this->instance_config_save($this->config);
+        }
+
         if ($this->content !== null) {
             return $this->content;
         }
@@ -95,8 +103,17 @@ class block_use_stats extends block_base {
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
+
+        // Check global per role config
         if (!has_capability('block/use_stats:view', $context)) {
             return $this->content;
+        }
+
+        // Check student access on instance.
+        if (!$this->_seeother()) {
+            if (empty($this->config->studentscansee)) {
+                return $this->content;
+            }
         }
 
         $id = optional_param('id', 0, PARAM_INT);
@@ -157,7 +174,9 @@ class block_use_stats extends block_base {
 
         if ($aggregate) {
 
-            $this->content->text .= '<div class="usestats-message '.$cachestate.'">';
+            $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow' ;
+
+            $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
 
@@ -189,7 +208,7 @@ class block_use_stats extends block_base {
             $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
             $this->content->text .= '<br/>';
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
-            $this->content->text .= "</div>";
+            $this->content->text .= '</div>';
         }
 
         return $this->content;
@@ -458,6 +477,11 @@ class block_use_stats extends block_base {
         }
 
         return array($displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents);
+    }
+
+    private function _seeother() {
+        $context = context_block::instance($this->instance->id);
+        return has_any_capability(array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context);
     }
 }
 
