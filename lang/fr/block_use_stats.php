@@ -17,6 +17,7 @@ $string['blockdisplay'] = 'Réglages de l\'affichage du bloc';
 $string['blockname'] = 'Mesure d\'activité';
 $string['byname'] = 'Par nom';
 $string['bytimedesc'] = 'Par temps de présence';
+$string['cachedef_aggregate'] = 'Cache d\'aggregats';
 $string['capabilitycontrol'] = 'Sur capacité';
 $string['configcapturemodules'] = 'Modules à capturer';
 $string['configcapturemodules_desc'] = 'Liste des modules qui sont pris en compte dans l\'analyse de détail';

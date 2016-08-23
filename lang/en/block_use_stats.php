@@ -17,6 +17,7 @@ $string['blockdisplay'] = 'Block display tuning';
 $string['blockname'] = 'Use Stats';
 $string['byname'] = 'By name';
 $string['bytimedesc'] = 'By time';
+$string['cachedef_aggregate'] = 'Aggregates';
 $string['capabilitycontrol'] = 'Capability';
 $string['configcapturemodules'] = 'Capture modules list';
 $string['configcapturemodules_desc'] = 'Modules that are considered in the detail analysis';
