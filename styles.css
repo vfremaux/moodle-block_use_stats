@@ -20,3 +20,8 @@ usestats-coursetable {
 .usestats-message.missed{
     background-color:#e0ffe0;
 }
+
+.usestats-shadow {
+    opacity:0.6;
+    -moz-opacity:0.6;
+}

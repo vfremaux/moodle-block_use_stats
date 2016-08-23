@@ -59,7 +59,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         $courseparm = 'courseid';
     } elseif($reader instanceof \logstore_legacy\log\store) {
         $courseparm = 'course';
-    } else{
+    } else {
         return;
     }
 

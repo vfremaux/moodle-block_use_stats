@@ -3,6 +3,14 @@ moodle-block_use_stats
 
 Time based use stats block
 
+Version 2016051700
+=======================
+Adds per instance visibility control to students.
+Adds a "onesessionpercourse" global option. forcing working sessions to be splitted when course
+context changes in log track.
+Unifies time formatting with central block_usestats_format_time function @see mod_learningtimecheck and
+report_trainingsessions
+
 Version 2015121900
 =======================
 Adding keepalive event handling
