@@ -91,4 +91,3 @@ $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage';
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques';
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage';
 $string['youspent'] = 'Cumul : ';
-$string['cachedef_aggregate'] = 'Aggrégats de temps';
