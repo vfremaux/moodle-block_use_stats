@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 class block_use_stats_renderer extends plugin_renderer_base {
 
     function per_course(&$aggregate, &$fulltotal) {
-        global $DB, $OUTPUT;
+        global $OUTPUT;
 
         $config = get_config('block_use_stats');
 
@@ -39,12 +39,16 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $usestatsorder = optional_param('usestatsorder', 'name', PARAM_TEXT);
 
         list($displaycourses, $courseshort, $coursefull, $courseelapsed) = block_use_stats::prepare_coursetable($aggregate, $fulltotal, $eventsunused, $usestatsorder);
+        
+        $url = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+
+        $currentnameurl = new moodle_url($url);
+        $currentnameurl->params(array('usestatsorder' => 'name'));
+
+        $currenttimeurl = new moodle_url($url);
+        $currenttimeurl->params(array('usestatsorder' => 'time'));
 
         $str = '<div class="usestats-coursetable">';
-        $currentnameurl = new moodle_url(me());
-        $currentnameurl->params(array('usestatsorder' => 'name'));
-        $currenttimeurl = new moodle_url(me());
-        $currenttimeurl->params(array('usestatsorder' => 'time'));
         $str .= '<div class="pull-left smalltext"><a href="'.$currentnameurl.'">'.get_string('byname', 'block_use_stats').'</a></div>';
         $str .= '<div class="pull-right smalltext"><a href="'.$currenttimeurl.'">'.get_string('bytimedesc', 'block_use_stats').'</a></div>';
         $str .= '</div>';
@@ -80,6 +84,17 @@ class block_use_stats_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * 
+     * @global type $USER
+     * @global type $DB
+     * @global type $COURSE
+     * @param type $context
+     * @param type $id
+     * @param type $fromwhen
+     * @param type $userid
+     * @return string
+     */
     function change_params_form($context, $id, $fromwhen, $userid) {
         global $USER, $DB, $COURSE;
 
@@ -131,6 +146,17 @@ class block_use_stats_renderer extends plugin_renderer_base {
         return $str;
     }
 
+    /**
+     * 
+     * @global type $OUTPUT
+     * @global type $COURSE
+     * @global type $USER
+     * @param type $userid
+     * @param type $from
+     * @param type $to
+     * @param type $context
+     * @return type
+     */
     function button_pdf($userid, $from, $to, $context) {
         global $OUTPUT, $COURSE, $USER;
 
