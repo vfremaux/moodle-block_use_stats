@@ -309,8 +309,14 @@ class block_use_stats extends block_base {
                 }
                 // Is there a last log found before actual compilation session ?
                 if (!array_key_exists($log->userid, $previouslog)) {
-                    $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
-                    $previouslog[$log->userid] = $DB->get_record('log', array('time' => $maxlasttime));
+                    if ($reader instanceof \logstore_standard\log\store) {
+                        $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', ' timecreated < ? ', array($config->lastcompiled));
+                        $lastlog = $DB->get_records('logstore_standard_log', array('timecreated' => $maxlasttime), 'id DESC', '*', 0, 1);
+                    } elseif ($reader instanceof \logstore_legacy\log\store) {
+                        $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
+                        $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
+                    }
+                    $previouslog[$log->userid] = array_shift(array_values($lastlog));
                 }
                 $DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
                 $previouslog[$log->userid] = $log;
