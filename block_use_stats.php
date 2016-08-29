@@ -186,7 +186,9 @@ class block_use_stats extends block_base {
             $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
             $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
             $this->content->text .= userdate($timefrom);
-            $this->content->text .= $strbuffer;
+            if (!empty($this->config->hidecourselist)) {
+                $this->content->text .= $strbuffer;
+            }
 
             $this->content->text .= '</div>';
 

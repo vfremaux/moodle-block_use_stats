@@ -79,8 +79,8 @@ if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
 
     // Final resolution.
 } else {
-    if (!has_capability('block/use_stats:seeowndetails', $blockcontext)) {
-        $cansee = false;
+    if (has_capability('block/use_stats:seeowndetails', $blockcontext)) {
+        $cansee = true;
     }
 }
 

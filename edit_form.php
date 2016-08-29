@@ -46,5 +46,9 @@ class block_use_stats_edit_form extends block_edit_form {
         $options = array(0 => get_string('no'), 1 => get_string('yes'));
         $mform->addElement('select', 'config_studentscansee', get_string('studentscansee', 'block_use_stats'), $options);
         $mform->setType('config_studentscansee', PARAM_BOOL);
+
+        $options = array(0 => get_string('no'), 1 => get_string('yes'));
+        $mform->addElement('select', 'config_hidecourselist', get_string('hidecourselist', 'block_use_stats'), $options);
+        $mform->setType('config_hidecourselist', PARAM_BOOL);
     }
 }
