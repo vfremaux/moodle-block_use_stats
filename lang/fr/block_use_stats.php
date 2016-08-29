@@ -55,6 +55,7 @@ $string['configstudentscanuse'] = 'Les étudiants peuvent voir ce bloc (pour leu
 $string['configstudentscanuseglobal_desc'] = 'Autoriser les étudiants à voir les blocs de statistiques dans les espaces globaux (MyMoodle, hors cours)';
 $string['configthreshold'] = 'Seuil';
 $string['configthreshold_desc'] = 'Seuil de détection (en minutes). Au dessus de ce délai entre deux traces successives, l\'analyseur conclut à une déconnexion de l\'utilisateur et attribue le temps forfaitaire.';
+$string['confighidecourselist'] = 'Cacher les temps des cours';
 $string['credittime'] = 'Crédit temps';
 $string['datacubing'] = 'Données multidimensionnelles';
 $string['declaredtime'] = 'Temps déclaré';
