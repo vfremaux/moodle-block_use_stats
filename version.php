@@ -30,3 +30,8 @@ $plugin->requires  = 2015111100;        // Requires this Moodle version
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
 $plugin->release = '3.0.0 (build 2016051700)'; // Full name of the plugin (used for diagnostics)
+
+// Non Moodle fields
+// This fields will help overmanagement code builders without forcing upgrade to play
+$plugin->codeversion = 2016082900.00;
+$plugin->codeincrement = 0;
