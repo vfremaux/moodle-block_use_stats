@@ -38,5 +38,17 @@ class block_use_stats_edit_form extends block_edit_form {
 
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
+
+        // Note about this setting : 
+        /* The same feature could have been obtained using local role derogation on block/use_stats:view capability. 
+         * But this is is NOT a straight away practice of the teachers.
+         */
+        $options = array(0 => get_string('no'), 1 => get_string('yes'));
+        $mform->addElement('select', 'config_studentscansee', get_string('studentscansee', 'block_use_stats'), $options);
+        $mform->setType('config_studentscansee', PARAM_BOOL);
+
+        $options = array(0 => get_string('no'), 1 => get_string('yes'));
+        $mform->addElement('select', 'config_hidecourselist', get_string('hidecourselist', 'block_use_stats'), $options);
+        $mform->setType('config_hidecourselist', PARAM_BOOL);
     }
 }
