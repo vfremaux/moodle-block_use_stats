@@ -65,11 +65,19 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     function get_content() {
-        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT;
+        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT, $SESSION;
 
         $config = get_config('block_use_stats');
 
         $renderer = $PAGE->get_renderer('block_use_stats');
+
+        if (!isset($this->config->studentscansee)) {
+            if (!isset($this->config)) {
+                $this->config = new StdClass;
+            }
+            $this->config->studentscansee = 1;
+            $this->instance_config_save($this->config);
+        }
 
         if ($this->content !== null) {
             return $this->content;
@@ -95,8 +103,17 @@ class block_use_stats extends block_base {
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
+
+        // Check global per role config
         if (!has_capability('block/use_stats:view', $context)) {
             return $this->content;
+        }
+
+        // Check student access on instance.
+        if (!$this->_seeother()) {
+            if (empty($this->config->studentscansee)) {
+                return $this->content;
+            }
         }
 
         $id = optional_param('id', 0, PARAM_INT);
@@ -104,7 +121,12 @@ class block_use_stats extends block_base {
             $config->fromwhen = 60;
             set_config('fromwhen', 60, 'block_use_stats');
         }
-        $fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
+
+        if (!isset($SESSION->usestatsfromwhen)) {
+            $SESSION->usestatsfromwhen = $config->fromwhen;
+        }
+
+        $fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT);
 
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
@@ -152,7 +174,9 @@ class block_use_stats extends block_base {
 
         if ($aggregate) {
 
-            $this->content->text .= '<div class="usestats-message '.$cachestate.'">';
+            $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow' ;
+
+            $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
 
@@ -162,7 +186,9 @@ class block_use_stats extends block_base {
             $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
             $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
             $this->content->text .= userdate($timefrom);
-            $this->content->text .= $strbuffer;
+            if (empty($this->config->hidecourselist)) {
+                $this->content->text .= $strbuffer;
+            }
 
             $this->content->text .= '</div>';
 
@@ -184,7 +210,7 @@ class block_use_stats extends block_base {
             $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
             $this->content->text .= '<br/>';
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
-            $this->content->text .= "</div>";
+            $this->content->text .= '</div>';
         }
 
         return $this->content;
@@ -285,8 +311,14 @@ class block_use_stats extends block_base {
                 }
                 // Is there a last log found before actual compilation session ?
                 if (!array_key_exists($log->userid, $previouslog)) {
-                    $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
-                    $previouslog[$log->userid] = $DB->get_record('log', array('time' => $maxlasttime));
+                    if ($reader instanceof \logstore_standard\log\store) {
+                        $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', ' timecreated < ? ', array($config->lastcompiled));
+                        $lastlog = $DB->get_records('logstore_standard_log', array('timecreated' => $maxlasttime), 'id DESC', '*', 0, 1);
+                    } elseif ($reader instanceof \logstore_legacy\log\store) {
+                        $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
+                        $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
+                    }
+                    $previouslog[$log->userid] = array_shift(array_values($lastlog));
                 }
                 $DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
                 $previouslog[$log->userid] = $log;
@@ -399,45 +431,47 @@ class block_use_stats extends block_base {
         $fullevents = 0;
 
         // Prepare per course table
-        foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
-
-            if ($courseid) {
-                $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
-            } else {
-                $course = new StdClass();
-                $course->shortname = get_string('othershort', 'block_use_stats');
-                $course->fullname = get_string('other', 'block_use_stats');
-                $course->idnumber = '';
-            }
-
-            if (empty($config->displayothertime)) {
-                if (!$courseid) {
-                    continue;
-                }
-            }
-
-            if ($course) {
-                // Count total even if not shown (D NOT loose time)
-                if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
-                    $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
-                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+        if (!empty($aggregate['coursetotal'])) {
+            foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
+    
+                if ($courseid) {
+                    $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
                 } else {
-                    $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
-                    $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    $course = new StdClass();
+                    $course->shortname = get_string('othershort', 'block_use_stats');
+                    $course->fullname = get_string('other', 'block_use_stats');
+                    $course->idnumber = '';
                 }
-                $fulltotal += $reftime;
-                $fullevents += $refevents;
-
-                if (!empty($config->filterdisplayunder)) {
-                    if ($reftime < $config->filterdisplayunder) {
+    
+                if (empty($config->displayothertime)) {
+                    if (!$courseid) {
                         continue;
                     }
                 }
-
-                $courseshort[$courseid] = $course->shortname;
-                $coursefull[$courseid] = $course->fullname;
-                $courseelapsed[$courseid] = $reftime;
-                $courseevents[$courseid] = $refevents;
+    
+                if ($course) {
+                    // Count total even if not shown (D NOT loose time)
+                    if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
+                        $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    } else {
+                        $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    }
+                    $fulltotal += $reftime;
+                    $fullevents += $refevents;
+    
+                    if (!empty($config->filterdisplayunder)) {
+                        if ($reftime < $config->filterdisplayunder) {
+                            continue;
+                        }
+                    }
+    
+                    $courseshort[$courseid] = $course->shortname;
+                    $coursefull[$courseid] = $course->fullname;
+                    $courseelapsed[$courseid] = $reftime;
+                    $courseevents[$courseid] = $refevents;
+                }
             }
         }
 
@@ -451,6 +485,11 @@ class block_use_stats extends block_base {
         }
 
         return array($displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents);
+    }
+
+    private function _seeother() {
+        $context = context_block::instance($this->instance->id);
+        return has_any_capability(array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context);
     }
 }
 

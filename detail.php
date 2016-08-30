@@ -26,7 +26,7 @@ require('../../config.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/user/profile/lib.php');
 
-$config = get_config('use_stats');
+$config = get_config('block_use_stats');
 
 $courseid = required_param('course', PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
@@ -79,8 +79,8 @@ if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
 
     // Final resolution.
 } else {
-    if (!has_capability('block/use_stats:seeowndetails', $blockcontext)) {
-        $cansee = false;
+    if (has_capability('block/use_stats:seeowndetails', $blockcontext)) {
+        $cansee = true;
     }
 }
 
