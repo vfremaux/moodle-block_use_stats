@@ -43,6 +43,10 @@ function block_use_stats_setup_theme_notification() {
     $cm = $PAGE->cm;
     $config = get_config('block_use_stats');
 
+    if (empty($config->keepalive_delay)) {
+        return;
+    }
+
     // Control for adding the code to the footer. This saves performance with non concerned users.
     if (!empty($config->keepalive_rule)) {
         $notallowed = false;
