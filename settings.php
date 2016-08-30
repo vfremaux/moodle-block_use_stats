@@ -68,6 +68,9 @@ if ($ADMIN->fulltree) {
     $settings->add(new admin_setting_configtext('block_use_stats/threshold', get_string('configthreshold', 'block_use_stats'),
                        get_string('configthreshold_desc', 'block_use_stats'), 60));
 
+    $settings->add(new admin_setting_configcheckbox('block_use_stats/onesessionpercourse', get_string('configonesessionpercourse', 'block_use_stats'),
+                       get_string('configonesessionpercourse_desc', 'block_use_stats'), 0));
+
     $settings->add(new admin_setting_configtext('block_use_stats/lastpingcredit', get_string('configlastpingcredit', 'block_use_stats'),
                        get_string('configlastpingcredit_desc', 'block_use_stats'), 15));
 

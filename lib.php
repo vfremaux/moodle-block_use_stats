@@ -34,12 +34,18 @@ function block_use_stats_setup_theme_requires() {
 function block_use_stats_setup_theme_notification() {
     global $CFG, $USER, $COURSE, $DB, $PAGE;
 
-    if (!isloggedin()) {
+    $context = context_course::instance($COURSE->id);
+
+    if (!isloggedin() || is_guest($context)) {
         return;
     }
 
     $cm = $PAGE->cm;
     $config = get_config('block_use_stats');
+
+    if (empty($config->keepalive_delay)) {
+        return;
+    }
 
     // Control for adding the code to the footer. This saves performance with non concerned users.
     if (!empty($config->keepalive_rule)) {
