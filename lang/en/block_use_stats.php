@@ -8,6 +8,7 @@ $string['use_stats:seegroupdetails'] = 'Can see detail of all users from his gro
 $string['use_stats:seeowndetails'] = 'Can see his own detail';
 $string['use_stats:seesitedetails'] = 'Can see detail of all users';
 $string['use_stats:view'] = 'Can see stats';
+$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)';
 
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
@@ -53,7 +54,7 @@ $string['configonesessionpercourse'] = 'One session per course';
 $string['configonesessionpercourse_desc'] = 'When enabled, use stat will split sessions each time the track changes the currrent course. If disabled, a session represents a working sequence that may use several courses.';
 $string['configstudentscanuse_desc'] = 'Students can see the block (for their own)';
 $string['configstudentscanuseglobal_desc'] = 'Allow students see the use stat block in global spaces (MyMoodle, out of course, for their own)';
-$string['confighidecourselist'] = 'Hide course times';
+$string['hidecourselist'] = 'Hide course times';
 $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
 $string['credittime'] = 'Credit time';

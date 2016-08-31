@@ -202,8 +202,10 @@ class block_use_stats extends block_base {
                 $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
             }
 
-            if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
-                $this->content->text .= '<div class="usestats-pdf">'.$renderer->button_pdf($userid, $timefrom, time(), $context).'</div>';
+            if (has_capability('block/use_stats:export', $context)) {
+                if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
+                    $this->content->text .= '<div class="usestats-pdf">'.$renderer->button_pdf($userid, $timefrom, time(), $context).'</div>';
+                }
             }
         } else {
             $this->content->text = '<div class="message">';
