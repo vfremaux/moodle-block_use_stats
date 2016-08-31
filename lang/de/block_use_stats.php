@@ -8,6 +8,7 @@ $string['use_stats:seegroupdetails'] = 'Can see detail of all users from his gro
 $string['use_stats:seeowndetails'] = 'Can see his own detail';
 $string['use_stats:seesitedetails'] = 'Can see detail of all users';
 $string['use_stats:view'] = 'Can see stats';
+$string['use_stats:export'] = 'Can export to pdf (needs trainingsessions)';
 
 $string['blockname'] = 'Use Stats';
 $string['configcapturemodules'] = 'Capture modules list';

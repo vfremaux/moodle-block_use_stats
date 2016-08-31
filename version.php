@@ -25,13 +25,13 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016051700;        // The current plugin version (Date: YYYYMMDDXX)
+$plugin->version   = 2016083100;        // The current plugin version (Date: YYYYMMDDXX)
 $plugin->requires  = 2015050500;        // Requires this Moodle version
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
 $plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
-$plugin->release = '2.9.0 (build 2016051700)'; // Full name of the plugin (used for diagnostics)
+$plugin->release = '2.9.0 (build 2016083100)'; // Full name of the plugin (used for diagnostics)
 
 // Non Moodle fields
 // This fields will help overmanagement code builders without forcing upgrade to play
-$plugin->codeversion = 2016083000.02;
-$plugin->codeincrement = 2;
+$plugin->codeversion = 2016083100.03;
+$plugin->codeincrement = 3;
