@@ -155,7 +155,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013060900, 'use_stats');
-     }
+    }
 
     // Moodle 2.7.
     if ($result && $oldversion < 2015062500) {

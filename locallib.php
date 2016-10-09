@@ -55,7 +55,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
 
     if ($reader instanceof \logstore_standard\log\store) {
         $courseparm = 'courseid';
-    } else if($reader instanceof \logstore_legacy\log\store) {
+    } else if ($reader instanceof \logstore_legacy\log\store) {
         $courseparm = 'course';
     } else {
         return;
@@ -376,12 +376,12 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                         if ($automatondebug || $backdebug) {
                             $logbuffer .= " ... (O) login. Next : {$lognext->action}. Start session\n";
                         }
-                   } else {
-                       if ($automatondebug || $backdebug) {
+                    } else {
+                        if ($automatondebug || $backdebug) {
                             $logbuffer .= " ... (O) not true session next : {$lognext->action}. ignoring\n";
-                       }
+                        }
                         continue;
-                   }
+                    }
                 } else {
                     // All other cases.
 
@@ -407,7 +407,9 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                         if ($automatondebug || $backdebug) {
                             $logbuffer .= " ... before a login, finish session ";
                         }
-                        if ($sessionpunch && (!block_use_stats_is_login_event(@$lognext->action) && (@$lognext->action != 'failed'))) {
+                        if ($sessionpunch &&
+                                (!block_use_stats_is_login_event(@$lognext->action) &&
+                                        (@$lognext->action != 'failed'))) {
                             $sessionid++;
                             @$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
                             @$aggregate['sessions'][$sessionid]->elapsed = 0;
@@ -439,7 +441,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             // Standard global lap aggregation.
             if ($log->$dimension == 'course') {
-                if (array_key_exists(''.$log->$dimension, $aggregate) && array_key_exists($log->course, $aggregate[$log->$dimension])) {
+                if (array_key_exists(''.$log->$dimension, $aggregate) &&
+                        array_key_exists($log->course, $aggregate[$log->$dimension])) {
                     @$aggregate['course'][$log->course]->elapsed += $lap;
                     @$aggregate['course'][$log->course]->events += 1;
                     @$aggregate['course'][$log->course]->lastaccess = $log->time;
@@ -450,7 +453,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     @$aggregate['course'][$log->course]->lastaccess = $log->time;
                 }
             } else {
-                if (array_key_exists(''.$log->$dimension, $aggregate) && array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
+                if (array_key_exists(''.$log->$dimension, $aggregate) &&
+                        array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events += 1;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
@@ -536,15 +540,15 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     // Check assertions.
     if (!empty($aggregate['coursetotal'])) {
         foreach (array_keys($aggregate['coursetotal']) as $courseid) {
-            if ($aggregate['coursetotal'][$courseid]->events !=
-                        @$aggregate['course'][$courseid]->events +
-                        @$aggregate['activities'][$courseid]->events +
+            if ($aggregate['coursetotal'][$courseid]->events != 
+                        @$aggregate['course'][$courseid]->events + 
+                        @$aggregate['activities'][$courseid]->events + 
                         @$aggregate['other'][$courseid]->events) {
                 echo "Bad sumcheck on events for course $courseid <br/>";
             }
-            if ($aggregate['coursetotal'][$courseid]->elapsed !=
-                        @$aggregate['course'][$courseid]->elapsed +
-                        @$aggregate['activities'][$courseid]->elapsed +
+            if ($aggregate['coursetotal'][$courseid]->elapsed != 
+                        @$aggregate['course'][$courseid]->elapsed + 
+                        @$aggregate['activities'][$courseid]->elapsed + 
                         @$aggregate['other'][$courseid]->elapsed) {
                 echo "Bad sumcheck on time for course $courseid <br/>";
             }
@@ -561,7 +565,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         foreach ($aggregate['sessions'] as $sessid => $session) {
             $aggregate['sessions'][$sessid]->start = date('Y-m-d H:i:s', 0 + @$session->sessionstart);
             $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
-            $aggregate['sessions'][$sessid]->duration = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
+            $dt = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
+            $aggregate['sessions'][$sessid]->duration = $dt;
         }
     }
 
@@ -691,7 +696,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
  * @param arrayref $logs the logs track array
  * @param int $i the current log track index
  * @param object $reader the actual valid log reader
- * @return an array containing the next log record, the cumulated lap time for the current 
+ * @return an array containing the next log record, the cumulated lap time for the current
  * processed record and the next log index
  */
 function use_stats_fetch_ahead(&$logs, $i, $reader) {
@@ -846,7 +851,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
             if (!isset($result->all->firsthit)) {
                 $result->all->firsthit = $gap->time;
             }
-            $result->all->lasthit = $gap->time; 
+            $result->all->lasthit = $gap->time;
 
             // Course detail.
             if ($courseresult) {
@@ -855,14 +860,16 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
                 if (!isset($result->course[$gap->course]->firsthit)) {
                     $result->all->firsthit = $gap->time;
                 }
-                $result->course[$gap->course]->lasthit = $gap->time; 
+                $result->course[$gap->course]->lasthit = $gap->time;
             }
 
             // User detail.
             if ($userresult) {
                 @$result->user[$gap->userid]->events += 1;
                 @$result->user[$gap->userid]->elapsed += $gap->gap;
-                if (!isset($result->user[$gap->userid]->firsthit)) $result->user[$gap->userid]->firsthit = $gap->time;
+                if (!isset($result->user[$gap->userid]->firsthit)) {
+                    $result->user[$gap->userid]->firsthit = $gap->time;
+                }
                 $result->user[$gap->userid]->lasthit = $gap->time;
             }
 
@@ -938,7 +945,7 @@ function use_stats_add_module_from_context(&$log) {
 }
 
 /**
- * special time formating, 
+ * special time formating,
  * @see report/trainingsessions/locallib.php§report_trainingsessions_format_time();
  */
 function block_use_stats_format_time($timevalue) {
@@ -1096,7 +1103,7 @@ function block_use_stats_get_sql_params() {
         $params->courseparam = 'courseid';
         $params->timeparam = 'timecreated';
         $params->tablename = 'logstore_standard_log';
-    } elseif($reader instanceof \logstore_legacy\log\store) {
+    } else if ($reader instanceof \logstore_legacy\log\store) {
         $params = new StdClass;
         $params->courseparam = 'course';
         $params->timeparam = 'time';

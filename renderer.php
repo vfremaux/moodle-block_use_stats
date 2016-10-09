@@ -133,7 +133,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
             foreach ($users as $user) {
                 $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
             }
-            $str .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
+            $attrs = array('onchange' => 'document.ts_changeParms.submit();');
+            $str .= html_writer::select($usermenu, 'uid', $userid, 'choose', $attrs);
         }
         $str .= ' ';
         $str .= get_string('from', 'block_use_stats');
