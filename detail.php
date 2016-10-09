@@ -105,7 +105,7 @@ $daystocompilelogs = $fromwhen * DAYSECS;
 $timefrom = $towhen - $daystocompilelogs;
 
 echo '<table class="list" summary=""><tr><td>';
-echo $OUTPUT->user_picture($user, array('size'=> 100));
+echo $OUTPUT->user_picture($user, array('size' => 100));
 echo '</td><td>';
 $userurl = new moodle_url('/user/view.php', array('id' => $user->id));
 echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', $coursecontext)).'</a></h2>';
@@ -156,7 +156,7 @@ foreach ($aggregate as $module => $moduleset) {
 if (!empty($table->data)) {
     echo html_writer::table($table);
 } else {
-    echo $OUPTUT->notification(get_string('errornorecords', 'block_use_stats'), $returnurl);
+    echo $OUTPUT->notification(get_string('errornorecords', 'block_use_stats'), $returnurl);
 }
 
 echo $OUTPUT->continue_button($returnurl);

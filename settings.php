@@ -23,7 +23,7 @@
  */
 defined('MOODLE_INTERNAL') || die;
 
-require_once $CFG->dirroot.'/blocks/use_stats/adminlib.php';
+require_once($CFG->dirroot.'/blocks/use_stats/adminlib.php');
 
 use \block\use_stats\admin_setting_configdatetime;
 

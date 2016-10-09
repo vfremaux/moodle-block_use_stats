@@ -68,7 +68,6 @@ class block_use_stats_keepalive extends \core\event\base {
         $data['relateduserid'] = $USER->id;
         $data['context'] = $context;
 
-        /* @var keepalive $event */
         $event = self::create($data);
         if (!is_null($cm)) {
             $event->add_record_snapshot('course_modules', $cm);
@@ -119,7 +118,7 @@ class block_use_stats_keepalive extends \core\event\base {
      * @param array $legacylogdata
      * @return void
      */
-    public function set_legacy_logdata($legacylogdata) {
+    public function set_legacy_logdata($legacylogdata, $msg) {
     }
 
     /**

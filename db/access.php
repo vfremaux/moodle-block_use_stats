@@ -17,7 +17,7 @@
 /**
  * @package   block_use_stats
  * @category  blocks
- * @copyright 2012 Valery Fremaux
+ * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();

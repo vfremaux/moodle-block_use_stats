@@ -36,7 +36,7 @@ require_login($course);
 $config = get_config('block_use_stats');
 
 if (empty($config->keepalive_delay)) {
-    set_config('keepalive_delay', 600, 'block_use_stats'); // in seconds
+    set_config('keepalive_delay', 600, 'block_use_stats'); // In seconds.
     $config->keepalive_delay = 600;
 }
 

@@ -37,8 +37,9 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $usestatsorder = optional_param('usestatsorder', 'name', PARAM_TEXT);
 
-        list($displaycourses, $courseshort, $coursefull, $courseelapsed) = block_use_stats::prepare_coursetable($aggregate, $fulltotal, $eventsunused, $usestatsorder);
-        
+        $tbl = block_use_stats::prepare_coursetable($aggregate, $fulltotal, $eventsunused, $usestatsorder);
+        list($displaycourses, $courseshort, $coursefull, $courseelapsed) = $tbl;
+
         $url = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         $currentnameurl = new moodle_url($url);
@@ -48,8 +49,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $currenttimeurl->params(array('usestatsorder' => 'time'));
 
         $str = '<div class="usestats-coursetable">';
-        $str .= '<div class="pull-left smalltext"><a href="'.$currentnameurl.'">'.get_string('byname', 'block_use_stats').'</a></div>';
-        $str .= '<div class="pull-right smalltext"><a href="'.$currenttimeurl.'">'.get_string('bytimedesc', 'block_use_stats').'</a></div>';
+        $label = get_string('byname', 'block_use_stats');
+        $str .= '<div class="pull-left smalltext"><a href="'.$currentnameurl.'">'.$label.'</a></div>';
+        $label = get_string('bytimedesc', 'block_use_stats');
+        $str .= '<div class="pull-right smalltext"><a href="'.$currenttimeurl.'">'.$label.'</a></div>';
         $str .= '</div>';
 
         $str .= '<table width="100%">';
@@ -60,7 +63,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
                 }
             }
             $str .= '<tr>';
-            $str .= '<td class="teacherstatsbycourse" align="left" title="'.htmlspecialchars(format_string($coursefull[$courseid])).'">';
+            $title = htmlspecialchars(format_string($coursefull[$courseid]));
+            $str .= '<td class="teacherstatsbycourse" align="left" title="'.$title.'">';
             $str .= $courseshort[$courseid];
             $str .= '</td>';
             $str .= '<td class="teacherstatsbycourse" align="right">';
@@ -70,7 +74,9 @@ class block_use_stats_renderer extends plugin_renderer_base {
         }
 
         if (!empty($config->filterdisplayunder)) {
-            $str .= '<tr><td class="teacherstatsbycourse" title="'.htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder)).'"><img src="'.$OUTPUT->pix_url('i/warning').'"></td>';
+            $title = htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder));
+            $pix = <img src="'.$OUTPUT->pix_url('i/warning').'">;
+            $str .= '<tr><td class="teacherstatsbycourse" title="'.$title.'">'.$pix.'</td>';
             $str .= '<td align="right" class="teacherstatsbycourse">';
             if (@$config->displayactivitytimeonly != DISPLAY_FULL_COURSE) {
                 $str .= '('.get_string('activities', 'block_use_stats').')';
@@ -84,7 +90,6 @@ class block_use_stats_renderer extends plugin_renderer_base {
     }
 
     /**
-     * 
      * @global type $USER
      * @global type $DB
      * @global type $COURSE
@@ -103,10 +108,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
             $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id,'.get_all_user_name_fields(true, ''));
-        } elseif (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
+        } else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
             $users = get_enrolled_users($coursecontext);
-        } elseif (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
+        } else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
             $mygroupings = groups_get_user_groups($COURSE->id);
 
             $mygroups = array();
@@ -115,7 +120,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
             }
 
             $users = array();
-            // get all users in my groups
+            // Get all users in my groups.
             foreach ($mygroups as $mygroupid) {
                 $members = groups_get_members($mygroupid, 'u.id,'.get_all_user_name_fields(true, 'u'));
                 if ($members) {
@@ -134,8 +139,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $str .= get_string('from', 'block_use_stats');
         $str .= ' <select name="ts_from" onChange="document.ts_changeParms.submit();">';
 
-        foreach (array(5,15,30,60,90,180,365) as $interval) {
-            $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
+        foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
+            $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '';
             $str .= '<option value="'.$interval.'" '.$selected.' >'.$interval.' '.get_string('days').'</option>';
         }
 
@@ -146,7 +151,6 @@ class block_use_stats_renderer extends plugin_renderer_base {
     }
 
     /**
-     * 
      * @global type $OUTPUT
      * @global type $COURSE
      * @global type $USER
@@ -160,7 +164,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
         global $OUTPUT, $COURSE, $USER;
 
         // XSS security.
-        if (!has_any_capability(array('block/use_stats:seegroupdetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seesitedetails'), $context)) {
+        $capabilities = array('block/use_stats:seegroupdetails',
+                              'block/use_stats:seecoursedetails',
+                              'block/use_stats:seesitedetails');
+        if (!has_any_capability($capabilities, $context)) {
             // Force report about yourself.
             $userid = $USER->id;
         }

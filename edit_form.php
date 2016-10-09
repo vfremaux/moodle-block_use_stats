@@ -33,14 +33,13 @@ defined('MOODLE_INTERNAL') || die();
  */
 class block_use_stats_edit_form extends block_edit_form {
     protected function specific_definition($mform) {
-        global $DB;
 
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
 
         /*
          * Note about this setting :
-         * The same feature could have been obtained using local role derogation on block/use_stats:view capability. 
+         * The same feature could have been obtained using local role derogation on block/use_stats:view capability.
          * But this is is NOT a straight away practice of the teachers.
          */
         $options = array(0 => get_string('no'), 1 => get_string('yes'));

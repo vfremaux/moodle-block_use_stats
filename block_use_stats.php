@@ -29,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/lib/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
-require_once $CFG->dirroot.'/blocks/use_stats/lib.php';
+require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
 
 class block_use_stats extends block_base {
 
@@ -65,7 +65,7 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     public function get_content() {
-        global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT, $SESSION;
+        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION;
 
         $config = get_config('block_use_stats');
 
@@ -95,14 +95,13 @@ class block_use_stats extends block_base {
         $logmanager = get_log_manager();
         $readers = $logmanager->get_readers('\core\log\sql_select_reader');
         $reader = reset($readers);
-    
+
         if (empty($reader)) {
             return $this->content; // No log reader found.
         }
 
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
-        $systemcontext = context_system::instance();
 
         // Check global per role config.
         if (!has_capability('block/use_stats:view', $context)) {
@@ -179,7 +178,7 @@ class block_use_stats extends block_base {
 
         if ($aggregate) {
 
-            $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow' ;
+            $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow';
 
             $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
@@ -232,7 +231,7 @@ class block_use_stats extends block_base {
      * Used by the component associated task.
      */
     public static function cron_task() {
-        global $CFG, $DB;
+        global $DB;
 
         $config = get_config('block_use_stats');
 
@@ -247,7 +246,7 @@ class block_use_stats extends block_base {
 
         if ($reader instanceof \logstore_standard\log\store) {
             $courseparm = 'courseid';
-        } elseif($reader instanceof \logstore_legacy\log\store) {
+        } else if ($reader instanceof \logstore_legacy\log\store) {
             $courseparm = 'course';
         } else {
             mtrace('Unsupported log reader.');
@@ -281,7 +280,7 @@ class block_use_stats extends block_base {
                     timecreated
             ";
             $rs = $DB->get_recordset_sql($sql, array($config->lastcompiled));
-        } elseif ($reader instanceof \logstore_legacy\log\store) {
+        } else if ($reader instanceof \logstore_legacy\log\store) {
             $params = array($config->lastcompiled);
             $fields = 'id,time,userid,course,cmid';
             $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
@@ -331,7 +330,7 @@ class block_use_stats extends block_base {
                         $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', $select, $params);
                         $params = array('timecreated' => $maxlasttime);
                         $lastlog = $DB->get_records('logstore_standard_log', $params, 'id DESC', '*', 0, 1);
-                    } elseif ($reader instanceof \logstore_legacy\log\store) {
+                    } else if ($reader instanceof \logstore_legacy\log\store) {
                         $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
                         $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
                     }
@@ -343,14 +342,14 @@ class block_use_stats extends block_base {
                 $lasttime = $log->time;
                 $r++;
 
-                if ($r %10 == 0) {
+                if ($r % 10 == 0) {
                     echo '.';
                     $processtime = time();
                     if (($processtime > $starttime + 60 * 15) || ($r > 100000)) {
                         break; // Do not process more than 15 minutes.
                     }
                 }
-                if ($r %1000 == 0) {
+                if ($r % 1000 == 0) {
                     // Store intermediary track points.
                     if (!empty($lasttime)) {
                         set_config('lastcompiled', $lasttime, 'block_use_stats');
@@ -390,10 +389,10 @@ class block_use_stats extends block_base {
 
         $onlineusers = $DB->get_records_sql($sql, array($timeminusthirty));
 
-        foreach ($onlineusers as $userid => $uid) {
+        foreach (array_keys($onlineusers) as $userid) {
             $userkeys = unserialize($cache->get('user'.$userid));
             if (!empty($userkeys)) {
-                foreach($userkeys as $cachekey) {
+                foreach ($userkeys as $cachekey) {
                     $cache->delete($cachekey);
                 }
             }
@@ -404,7 +403,7 @@ class block_use_stats extends block_base {
      * to cleanup some logs to delete.
      */
     public static function cleanup_task() {
-        global $CFG, $DB;
+        global $DB;
 
         $logmanager = get_log_manager();
         $readers = $logmanager->get_readers('\core\log\sql_select_reader');
@@ -477,7 +476,7 @@ class block_use_stats extends block_base {
                         continue;
                     }
                 }
-    
+
                 if ($course) {
                     // Count total even if not shown (D NOT loose time).
                     if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {

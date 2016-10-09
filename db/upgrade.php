@@ -1,20 +1,18 @@
 <?php
-// This file keeps track of upgrades to 
-// the online_users block
+// This file is part of Moodle - http://moodle.org/
 //
-// Sometimes, changes between versions involve
-// alterations to database structures and other
-// major things that may break installations.
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// The upgrade function in this file will attempt
-// to perform all the necessary actions to upgrade
-// your older installtion to the current version.
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// If there's something it cannot do itself, it
-// will tell you what you need to do.
-//
-// The commands in here will all be database-neutral,
-// using the functions defined in lib/ddllib.php
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @package   block_use_stats
@@ -58,7 +56,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
             // Define table use_stats_log to be created.
             $table = new xmldb_table('block_use_stats_log');
-    
+
             if (!$dbman->table_exists($table)) {
                 // Adding fields to table use_stats.
                 $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
@@ -105,7 +103,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                     // Beware : at this epoch, the configuration is still centric.
                     if (!empty($CFG->block_use_stats_enablecompilecube)) {
                         $customselectkey = "block_use_stats_customtag{$ci}select";
-                        if (!empty($CFG->$customselectkey)){
+                        if (!empty($CFG->$customselectkey)) {
                             $customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($CFG->$customselectkey));
                             $customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
                             $customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
@@ -120,12 +118,13 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                     $DB->insert_record('block_use_stats_log', $gaprec);
                 }
                 if (array_key_exists($log->userid, $previouslog)) {
-                    $DB->set_field('block_use_stats_log', 'gap', $log->time - $previouslog[$log->userid]->time, array('logid' => $previouslog[$log->userid]->id));
+                    $value = $log->time - $previouslog[$log->userid]->time;
+                    $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => $previouslog[$log->userid]->id));
                 }
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
                 $r++;
-                if ($r %10 == 0) {
+                if ($r % 10 == 0) {
                     $processtime = time();
                     if (($processtime > $starttime + HOURSECS) || $r > 100000) {
                         break; // If compilation is too long, let cron continue processing untill all done.
@@ -143,9 +142,9 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013040900, 'use_stats');
-     }
+    }
 
-     // Moodle 2.
+    // Moodle 2.
 
     if ($result && $oldversion < 2013060900) {
 
@@ -172,7 +171,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2015062500, 'use_stats');
-     }
+    }
 
     if ($oldversion < 2016012100) {
 

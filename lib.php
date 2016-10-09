@@ -23,13 +23,13 @@
 defined('MOODLE_INTERNAL') || die();
 
 function block_use_stats_setup_theme_requires() {
-    global $PAGE, $CFG;
+    global $PAGE;
 
     $PAGE->requires->jquery();
 }
 
 function block_use_stats_setup_theme_notification() {
-    global $CFG, $USER, $COURSE, $DB, $PAGE;
+    global $USER, $COURSE, $DB, $PAGE;
 
     $context = context_course::instance($COURSE->id);
 
