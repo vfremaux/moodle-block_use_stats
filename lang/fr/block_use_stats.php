@@ -1,13 +1,28 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Capabilities
+// Capabilities.
 $string['use_stats:addinstance'] = 'Peut ajouter une instance';
 $string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée';
 $string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours';
 $string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes';
 $string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage';
 $string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilisateurs';
-$string['use_stats:view'] = 'Voir les statistiques';
+$string['use_stats:view'] = 'Peut voir les statistiques';
+$string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)';
 
 $string['activetrackingparams'] = 'Réglage du tracking actif';
 $string['activities'] = 'Activités';
@@ -55,7 +70,7 @@ $string['configstudentscanuse'] = 'Les étudiants peuvent voir ce bloc (pour leu
 $string['configstudentscanuseglobal_desc'] = 'Autoriser les étudiants à voir les blocs de statistiques dans les espaces globaux (MyMoodle, hors cours)';
 $string['configthreshold'] = 'Seuil';
 $string['configthreshold_desc'] = 'Seuil de détection (en minutes). Au dessus de ce délai entre deux traces successives, l\'analyseur conclut à une déconnexion de l\'utilisateur et attribue le temps forfaitaire.';
-$string['confighidecourselist'] = 'Cacher les temps des cours';
+$string['hidecourselist'] = 'Cacher les temps des cours';
 $string['credittime'] = 'Crédit temps';
 $string['datacubing'] = 'Données multidimensionnelles';
 $string['declaredtime'] = 'Temps déclaré';

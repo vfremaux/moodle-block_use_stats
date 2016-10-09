@@ -33,7 +33,7 @@ require_once $CFG->dirroot.'/blocks/use_stats/lib.php';
 
 class block_use_stats extends block_base {
 
-    function init() {
+    public function init() {
         $this->title = get_string('blockname', 'block_use_stats');
         $this->content_type = BLOCK_TYPE_TEXT;
     }
@@ -41,14 +41,14 @@ class block_use_stats extends block_base {
     /**
      * is the bloc configurable ?
      */
-    function has_config() {
+    public function has_config() {
         return true;
     }
 
     /**
      * do we have local config
      */
-    function instance_allow_config() {
+    public function instance_allow_config() {
         global $COURSE;
 
         return false;
@@ -57,14 +57,14 @@ class block_use_stats extends block_base {
     /**
      * In which course format can we see and add the block.
      */
-    function applicable_formats() {
+    public function applicable_formats() {
         return array('all' => true);
     }
 
     /**
      * Produce content for the bloc
      */
-    function get_content() {
+    public function get_content() {
         global $USER, $CFG, $COURSE, $DB, $PAGE, $OUTPUT, $SESSION;
 
         $config = get_config('block_use_stats');
@@ -104,7 +104,7 @@ class block_use_stats extends block_base {
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
 
-        // Check global per role config
+        // Check global per role config.
         if (!has_capability('block/use_stats:view', $context)) {
             return $this->content;
         }
@@ -131,7 +131,10 @@ class block_use_stats extends block_base {
         $daystocompilelogs = $fromwhen * DAYSECS;
         $timefrom = time() - $daystocompilelogs;
 
-        if (has_any_capability(array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context, $USER->id)) {
+        $capabilities = array('block/use_stats:seesitedetails',
+                              'block/use_stats:seecoursedetails',
+                              'block/use_stats:seegroupdetails');
+        if (has_any_capability($capabilities, $context, $USER->id)) {
             $userid = optional_param('uid', $USER->id, PARAM_INT);
         } else {
             $userid = $USER->id;
@@ -139,8 +142,10 @@ class block_use_stats extends block_base {
 
         $cache = cache::make('block_use_stats', 'aggregate');
 
-        // We want to know the effective logrange against required period to
-        // query the cache
+        /*
+         * We want to know the effective logrange against required period to
+         * query the cache
+         */
         $now = time();
         $logrange = block_use_stats_get_log_range($userid, $timefrom, $now);
 
@@ -192,7 +197,11 @@ class block_use_stats extends block_base {
 
             $this->content->text .= '</div>';
 
-            if (has_any_capability(array('block/use_stats:seeowndetails', 'block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context, $USER->id)) {
+            $capabilities = array('block/use_stats:seeowndetails',
+                                  'block/use_stats:seesitedetails',
+                                  'block/use_stats:seecoursedetails',
+                                  'block/use_stats:seegroupdetails');
+            if (has_any_capability($capabilities, $context, $USER->id)) {
                 $showdetailstr = get_string('showdetails', 'block_use_stats');
                 $params = array('id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id);
                 if (!empty($fromwhen)) {
@@ -202,8 +211,11 @@ class block_use_stats extends block_base {
                 $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
             }
 
-            if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
-                $this->content->text .= '<div class="usestats-pdf">'.$renderer->button_pdf($userid, $timefrom, time(), $context).'</div>';
+            if (has_capability('block/use_stats:export', $context)) {
+                if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
+                    $button = $renderer->button_pdf($userid, $timefrom, time(), $context);
+                    $this->content->text .= '<div class="usestats-pdf">'.$button.'</div>';
+                }
             }
         } else {
             $this->content->text = '<div class="message">';
@@ -219,7 +231,7 @@ class block_use_stats extends block_base {
     /**
      * Used by the component associated task.
      */
-    static function cron_task() {
+    public static function cron_task() {
         global $CFG, $DB;
 
         $config = get_config('block_use_stats');
@@ -253,24 +265,26 @@ class block_use_stats extends block_base {
         $previouslog = array();
         if ($reader instanceof \logstore_standard\log\store) {
             $sql = "
-               SELECT
-                 id,
-                 courseid as course,
-                 action,
-                 timecreated as time,
-                 target as module,
-                 userid,
-                 objectid as cmid
-               FROM
-                 {logstore_standard_log}
-               WHERE
-                 timecreated > ?
-               ORDER BY
-                 timecreated
+                SELECT
+                    id,
+                    courseid as course,
+                    action,
+                    timecreated as time,
+                    target as module,
+                    userid,
+                    objectid as cmid
+                FROM
+                    {logstore_standard_log}
+                WHERE
+                    timecreated > ?
+                ORDER BY
+                    timecreated
             ";
             $rs = $DB->get_recordset_sql($sql, array($config->lastcompiled));
         } elseif ($reader instanceof \logstore_legacy\log\store) {
-            $rs = $DB->get_recordset_select('log', " time > ? ", array($config->lastcompiled), 'time', 'id,time,userid,course,cmid');
+            $params = array($config->lastcompiled);
+            $fields = 'id,time,userid,course,cmid';
+            $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
         } else {
             mtrace("this logstore is not supported");
             return;
@@ -290,7 +304,7 @@ class block_use_stats extends block_base {
                 $gaprec->time = $log->time;
                 $gaprec->course = $log->course;
 
-                for ($ci = 1 ; $ci <= 6; $ci++) {
+                for ($ci = 1; $ci <= 6; $ci++) {
                     $key = 'customtag'.$ci;
                     $gaprec->$key = '';
                     if (!empty($config->enablecompilecube)) {
@@ -312,15 +326,19 @@ class block_use_stats extends block_base {
                 // Is there a last log found before actual compilation session ?
                 if (!array_key_exists($log->userid, $previouslog)) {
                     if ($reader instanceof \logstore_standard\log\store) {
-                        $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', ' timecreated < ? ', array($config->lastcompiled));
-                        $lastlog = $DB->get_records('logstore_standard_log', array('timecreated' => $maxlasttime), 'id DESC', '*', 0, 1);
+                        $select = ' timecreated < ? ';
+                        $params = array($config->lastcompiled);
+                        $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', $select, $params);
+                        $params = array('timecreated' => $maxlasttime);
+                        $lastlog = $DB->get_records('logstore_standard_log', $params, 'id DESC', '*', 0, 1);
                     } elseif ($reader instanceof \logstore_legacy\log\store) {
                         $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
                         $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
                     }
                     $previouslog[$log->userid] = array_shift(array_values($lastlog));
                 }
-                $DB->set_field('block_use_stats_log', 'gap', $log->time - (0 + @$previouslog[$log->userid]->time), array('logid' => @$previouslog[$log->userid]->id));
+                $value = $log->time - (0 + @$previouslog[$log->userid]->time);
+                $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => @$previouslog[$log->userid]->id));
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
                 $r++;
@@ -353,7 +371,7 @@ class block_use_stats extends block_base {
     /**
      * Purges selectively caches of online users every x minutes
      */
-    static function cache_ttl_task() {
+    public static function cache_ttl_task() {
         global $DB;
 
         $timeminusthirty = time() - 30 * MINSECS;
@@ -385,7 +403,7 @@ class block_use_stats extends block_base {
     /**
      * to cleanup some logs to delete.
      */
-    static function cleanup_task() {
+    public static function cleanup_task() {
         global $CFG, $DB;
 
         $logmanager = get_log_manager();
@@ -398,16 +416,26 @@ class block_use_stats extends block_base {
         }
 
         if ($reader instanceof \logstore_standard\log\store) {
-            $sql = "DELETE FROM
-                        {block_use_stats_log}
-                    WHERE
-                        logid NOT IN(SELECT id FROM {log})
+            $sql = "
+                DELETE FROM
+                    {block_use_stats_log}
+                WHERE
+                    logid NOT IN(
+                        SELECT
+                            id
+                        FROM
+                            {log})
             ";
-        } elseif ($reader instanceof \logstore_legacy\log\store) {
-            $sql = "DELETE FROM
-                        {block_use_stats_log}
-                    WHERE
-                        logid NOT IN(SELECT id FROM {logstore_standard_log})
+        } else if ($reader instanceof \logstore_legacy\log\store) {
+            $sql = "
+                DELETE FROM
+                    {block_use_stats_log}
+                WHERE
+                    logid NOT IN(
+                        SELECT
+                            id
+                        FROM
+                            {logstore_standard_log})
             ";
         } else {
             mtrace('Unsupported log reader.');
@@ -417,7 +445,7 @@ class block_use_stats extends block_base {
         $DB->execute($sql);
     }
 
-    static function prepare_coursetable(&$aggregate, &$fulltotal, &$fullevents, $order = 'name') {
+    public static function prepare_coursetable(&$aggregate, &$fulltotal, &$fullevents, $order = 'name') {
         global $DB;
 
         $config = get_config('bock_use_stats');
@@ -430,19 +458,20 @@ class block_use_stats extends block_base {
         $fulltotal = 0;
         $fullevents = 0;
 
-        // Prepare per course table
+        // Prepare per course table.
         if (!empty($aggregate['coursetotal'])) {
             foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
-    
+
                 if ($courseid) {
-                    $course = $DB->get_record('course', array('id' => $courseid), 'id,shortname,idnumber,fullname');
+                    $fields = 'id,shortname,idnumber,fullname';
+                    $course = $DB->get_record('course', array('id' => $courseid), $fields);
                 } else {
                     $course = new StdClass();
                     $course->shortname = get_string('othershort', 'block_use_stats');
                     $course->fullname = get_string('other', 'block_use_stats');
                     $course->idnumber = '';
                 }
-    
+
                 if (empty($config->displayothertime)) {
                     if (!$courseid) {
                         continue;
@@ -450,7 +479,7 @@ class block_use_stats extends block_base {
                 }
     
                 if ($course) {
-                    // Count total even if not shown (D NOT loose time)
+                    // Count total even if not shown (D NOT loose time).
                     if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
                         $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
                         $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
@@ -460,13 +489,13 @@ class block_use_stats extends block_base {
                     }
                     $fulltotal += $reftime;
                     $fullevents += $refevents;
-    
+
                     if (!empty($config->filterdisplayunder)) {
                         if ($reftime < $config->filterdisplayunder) {
                             continue;
                         }
                     }
-    
+
                     $courseshort[$courseid] = $course->shortname;
                     $coursefull[$courseid] = $course->fullname;
                     $courseelapsed[$courseid] = $reftime;
@@ -489,11 +518,15 @@ class block_use_stats extends block_base {
 
     private function _seeother() {
         $context = context_block::instance($this->instance->id);
-        return has_any_capability(array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context);
+        $capabilities = array('block/use_stats:seesitedetails',
+                              'block/use_stats:seecoursedetails',
+                              'block/use_stats:seegroupdetails');
+        return has_any_capability($capabilities, $context);
     }
 }
 
 global $PAGE;
+
 if ($PAGE->state < moodle_page::STATE_PRINTING_HEADER) {
     block_use_stats_setup_theme_requires();
 }

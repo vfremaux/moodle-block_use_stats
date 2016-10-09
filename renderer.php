@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Master block ckass for use_stats compiler
  *
@@ -25,10 +23,11 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 class block_use_stats_renderer extends plugin_renderer_base {
 
-    function per_course(&$aggregate, &$fulltotal) {
+    public function per_course(&$aggregate, &$fulltotal) {
         global $OUTPUT;
 
         $config = get_config('block_use_stats');
@@ -95,7 +94,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @param type $userid
      * @return string
      */
-    function change_params_form($context, $id, $fromwhen, $userid) {
+    public function change_params_form($context, $id, $fromwhen, $userid) {
         global $USER, $DB, $COURSE;
 
         $str = ' <form style="display:inline" name="ts_changeParms" method="post" action="#">';
@@ -157,7 +156,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @param type $context
      * @return type
      */
-    function button_pdf($userid, $from, $to, $context) {
+    public function button_pdf($userid, $from, $to, $context) {
         global $OUTPUT, $COURSE, $USER;
 
         // XSS security.

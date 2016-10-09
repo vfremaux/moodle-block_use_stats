@@ -1,6 +1,20 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Capabilities
+// Capabilities.
 $string['use_stats:addinstance'] = 'Can add an instance';
 $string['use_stats:myaddinstance'] = 'Can add an instance to My Page';
 $string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course';
@@ -8,6 +22,7 @@ $string['use_stats:seegroupdetails'] = 'Can see detail of all users from his gro
 $string['use_stats:seeowndetails'] = 'Can see his own detail';
 $string['use_stats:seesitedetails'] = 'Can see detail of all users';
 $string['use_stats:view'] = 'Can see stats';
+$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)';
 
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
@@ -53,7 +68,7 @@ $string['configonesessionpercourse'] = 'One session per course';
 $string['configonesessionpercourse_desc'] = 'When enabled, use stat will split sessions each time the track changes the currrent course. If disabled, a session represents a working sequence that may use several courses.';
 $string['configstudentscanuse_desc'] = 'Students can see the block (for their own)';
 $string['configstudentscanuseglobal_desc'] = 'Allow students see the use stat block in global spaces (MyMoodle, out of course, for their own)';
-$string['confighidecourselist'] = 'Hide course times';
+$string['hidecourselist'] = 'Hide course times';
 $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
 $string['credittime'] = 'Credit time';

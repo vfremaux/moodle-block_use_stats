@@ -15,11 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /*
- * @package    block_use_stats
- * @category   blocks
- * @author     Valery Fremaux <valery.fremaux@gmail.com>
- * @copyright  Valery Fremaux <valery.fremaux@gmail.com>
- * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL
+ * @package     block_use_stats
+ * @category    blocks
+ * @author      Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright   Valery Fremaux <valery.fremaux@gmail.com>
+ * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL
  */
 
 require('../../config.php');
@@ -30,8 +30,8 @@ $config = get_config('block_use_stats');
 
 $courseid = required_param('course', PARAM_INT);
 $userid = required_param('userid', PARAM_INT);
-$id = required_param('id', PARAM_INT); // ID of the calling use_stat block
-$fromwhen = optional_param('ts_from', $config->fromwhen, PARAM_INT);
+$id = required_param('id', PARAM_INT); // ID of the calling use_stat block.
+$fromwhen = optional_param('ts_from', @$config->fromwhen, PARAM_INT);
 $towhen = optional_param('ts_to', time(), PARAM_INT);
 $onlycourse = optional_param('restrict', false, PARAM_BOOL);
 
@@ -52,7 +52,7 @@ $coursecontext = context_course::instance($COURSE->id);
 $cansee = false;
 if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
     $cansee = true;
-} elseif ($USER->id != $userid) {
+} else if ($USER->id != $userid) {
     if (has_capability('block/use_stats:seegroupdetails', $blockcontext)) {
         // If not in a group of mine, is an error.
         $mygroups = groups_get_user_groups($COURSE->id);
@@ -71,7 +71,7 @@ if (has_capability('block/use_stats:seesitedetails', $blockcontext)) {
     }
 
     if (has_capability('block/use_stats:seecoursedetails', $blockcontext)) {
-        // if not user in current course of mine, is an error.
+        // If not user in current course of mine, is an error.
         if (has_capability('moodle/course:view', $coursecontext, $userid)) {
             $cansee = true;
         }
@@ -108,7 +108,7 @@ echo '<table class="list" summary=""><tr><td>';
 echo $OUTPUT->user_picture($user, array('size'=> 100));
 echo '</td><td>';
 $userurl = new moodle_url('/user/view.php', array('id' => $user->id));
-echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())).'</a></h2>';
+echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', $coursecontext)).'</a></h2>';
 echo '<table class="list" summary="" width="100%">';
 profile_display_fields($user->id);
 echo '</table>';
@@ -131,9 +131,11 @@ $table->size = array('70%', '30%');
 $table->align = array('left', 'left');
 
 foreach ($aggregate as $module => $moduleset) {
+
     if (preg_match('/label$/', $module)) {
         continue;
     }
+
     $table->data[] = array("<b>$module</b>", '');
     foreach ($moduleset as $key => $value) {
         if (!is_object($value)) {

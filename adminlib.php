@@ -96,7 +96,7 @@ class admin_setting_configdatetime extends \admin_setting {
         if (is_array($default)) {
             $defaultinfo = $default['y'].'-'.$default['M'].'-'.$default['d'].' '.$default['h'].':'.$default['m'];
         } else {
-            $defaultinfo = NULL;
+            $defaultinfo = null;
         }
 
         $return = '<div class="form-datetime defaultsnext">';

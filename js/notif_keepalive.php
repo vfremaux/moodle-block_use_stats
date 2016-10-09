@@ -24,8 +24,8 @@
 require_once('../../../config.php');
 header("Content-type: text/javascript; charset=utf-8");
 
-$id = optional_param('id', SITEID, PARAM_INT); // course id
-$cmid = optional_param('cmid', 0, PARAM_INT); // course id
+$id = optional_param('id', SITEID, PARAM_INT); // Course id.
+$cmid = optional_param('cmid', 0, PARAM_INT); // Course module id.
 
 if (!$course = $DB->get_record('course', array('id' => "$id"))) {
     print_error('invalidcourseid');
@@ -41,8 +41,8 @@ if (empty($config->keepalive_delay)) {
 }
 
 if (is_siteadmin()) {
-    // Do not install tracking for administrators
-    // exit;
+    // Do not install tracking for administrators.
+    return;
 }
 
 ?>
@@ -50,19 +50,19 @@ if (is_siteadmin()) {
 $(document).ready(function() {
     $([window, document]).focusin(function() {
         }).focusout(function(){
-        //Your logic when the page gets inactive
+        // Your logic when the page gets inactive.
     });
 
-    // Periodic update
+    // Periodic update.
 
     function send_keepalive() {
-        url = '<?php echo $CFG->wwwroot; ?>/blocks/use_stats/ajax/services.php?course=<?php echo $id ?>&cmid=<?php echo $cmid ?>';
+        url = '<?php echo $CFG->wwwroot; ?>/blocks/use_stats/ajax/services.php?course=<?php echo $id; ?>&cmid=<?php echo $cmid; ?>';
         $.post(url, function(data) {
             // Just send, do anything else.
             return;
         });
     }
 
-    setInterval(send_keepalive, <?php echo $config->keepalive_delay * 1000 ?>);
+    setInterval(send_keepalive, <?php echo $config->keepalive_delay * 1000; ?>);
 
 });

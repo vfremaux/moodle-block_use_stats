@@ -1,6 +1,20 @@
 <?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Capabilities
+// Capabilities.
 $string['use_stats:addinstance'] = 'Can add an instance';
 $string['use_stats:myaddinstance'] = 'Can add an instance to My Page';
 $string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course';
@@ -8,6 +22,7 @@ $string['use_stats:seegroupdetails'] = 'Can see detail of all users from his gro
 $string['use_stats:seeowndetails'] = 'Can see his own detail';
 $string['use_stats:seesitedetails'] = 'Can see detail of all users';
 $string['use_stats:view'] = 'Can see stats';
+$string['use_stats:export'] = 'Can export to pdf (needs trainingsessions)';
 
 $string['blockname'] = 'Use Stats';
 $string['configcapturemodules'] = 'Capture modules list';

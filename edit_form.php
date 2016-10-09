@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for editing HTML block instances.
  *
@@ -25,6 +23,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Form for editing Random glossary entry block instances.
@@ -39,8 +38,9 @@ class block_use_stats_edit_form extends block_edit_form {
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
 
-        // Note about this setting : 
-        /* The same feature could have been obtained using local role derogation on block/use_stats:view capability. 
+        /*
+         * Note about this setting :
+         * The same feature could have been obtained using local role derogation on block/use_stats:view capability. 
          * But this is is NOT a straight away practice of the teachers.
          */
         $options = array(0 => get_string('no'), 1 => get_string('yes'));

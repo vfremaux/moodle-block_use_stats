@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
-if (!function_exists('debug_trace')) {
-    // Protect foreign implementations of missing tracing tools.
-    function debug_trace() {
-    }
-}
-
 /**
  * Master block class for use_stats compiler
  *
@@ -31,7 +23,13 @@ if (!function_exists('debug_trace')) {
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
+if (!function_exists('debug_trace')) {
+    // Protect foreign implementations of missing tracing tools.
+    function debug_trace() {
+    }
+}
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
 
@@ -139,7 +137,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
              origin != 'cli' AND
              timecreated > ? AND
              timecreated < ? AND
-             ((courseid = 0 AND action = 'loggedin') OR 
+             ((courseid = 0 AND action = 'loggedin') OR
              (courseid = 0 AND action = 'loggedout') OR
               (1
               $courseclause))
@@ -147,7 +145,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
            ORDER BY
              timecreated
         ";
-    } elseif ($reader instanceof \logstore_legacy\log\store) {
+    } else if ($reader instanceof \logstore_legacy\log\store) {
         $sql = "
            SELECT
              id,
@@ -171,7 +169,8 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
              time
         ";
     } else {
-        // External DB logs is NOT supported
+        assert(false);
+        // External DB logs is NOT supported.
     }
 
     if ($rs = $DB->get_recordset_sql($sql, array($from, $to))) {
@@ -201,7 +200,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         $ltcconfig = get_config('mod_learningtimecheck');
     }
 
-    // will record session aggregation state as current session ordinal
+    // Will record session aggregation state as current session ordinal.
     $sessionid = 0;
 
     if (!empty($config->capturemodules)) {
@@ -233,24 +232,26 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     if (!empty($logs)) {
         $logs = array_values($logs);
 
-        $memlap = 0; // will store the accumulated time for in the way but out of scope laps.
+        $memlap = 0; // Will store the accumulated time for in the way but out of scope laps.
 
         for ($i = 0 ; $i < count($logs) ; $i = $nexti) {
             $log = $logs[$i];
             // We "guess" here the real identity of the log's owner.
             $currentuser = $log->userid;
 
-            // Let's get lap time to next log in track
+            // Let's get lap time to next log in track.
             $nexti = $i + 1;
             if (isset($logs[$i + 1])) {
-                // Fetch ahead possible jumps over some non significant logs
-                // that will be counted within the current log context.
+                /*
+                 * Fetch ahead possible jumps over some non significant logs
+                 * that will be counted within the current log context.
+                 */
                 list($lognext, $lap, $nexti) = use_stats_fetch_ahead($logs, $i, $reader);
             } else {
                 $lap = $lastpingcredit;
             }
 
-            // Adjust "module" for new logstore if using the standard log
+            // Adjust "module" for new logstore if using the standard log.
             if ($reader instanceof \logstore_standard\log\store) {
                 use_stats_add_module_from_context($log);
             }
@@ -266,10 +267,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             }
 
             if ($automatondebug || $backdebug) {
-                $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:{$log->action}] (".date('Y-m-d h:i:s', $log->time)." | $lap) ";
+                $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
+                $logbuffer .= "{$log->action}] (".date('Y-m-d H:i:s', $log->time)." | $lap) ";
             }
 
-            // discard unsignificant cases
+            // Discard unsignificant cases.
             if (block_use_stats_is_logout_event($log->action)) {
                 @$aggregate['sessions'][$sessionid]->elapsed += $memlap;
                 @$aggregate['sessions'][$sessionid]->sessionend = $log->time;

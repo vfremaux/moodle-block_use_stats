@@ -16,14 +16,14 @@
 // The commands in here will all be database-neutral,
 // using the functions defined in lib/ddllib.php
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * @package   block_use_stats
  * @category  blocks
- * @copyright 2012 Valery Fremaux
+ * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard uprade callback.
@@ -31,18 +31,17 @@ defined('MOODLE_INTERNAL') || die();
  * older versions to match current functionality
  */
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
-
     global $CFG, $DB;
 
     $result = true;
 
     $dbman = $DB->get_manager();
 
-    if ($result && $oldversion < 2013040900) { //New version in version.php
+    if ($result && $oldversion < 2013040900) { // New version in version.php.
 
         $lasttime = 0;
 
-    // Pre Moodle 2
+        // Pre Moodle 2.
 
         $table = new xmldb_table('use_stats_log');
         if ($dbman->table_exists($table)) {
@@ -57,11 +56,11 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
             }
         } else {
 
-            // Define table use_stats_log to be created
+            // Define table use_stats_log to be created.
             $table = new xmldb_table('block_use_stats_log');
     
             if (!$dbman->table_exists($table)) {
-                // Adding fields to table use_stats
+                // Adding fields to table use_stats.
                 $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
                 $table->add_field('logid', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
                 $table->add_field('gap', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
@@ -75,16 +74,16 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 $table->add_field('customtag5', XMLDB_TYPE_CHAR, '30', null, null, null, null, null, '');
                 $table->add_field('customtag6', XMLDB_TYPE_CHAR, '30', null, null, null, null, null, '');
 
-                // Adding keys to table use_stats
+                // Adding keys to table use_stats.
                 $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
                 $table->add_key('ix_logid_unique', XMLDB_KEY_UNIQUE, array('logid'));
 
-                // Launch create table for use_stats
+                // Launch create table for use_stats.
                 $dbman->create_table($table);
             }
         }
 
-        // feed the table with log gaps
+        // Feed the table with log gaps.
         $previouslog = array();
         $rs = $DB->get_recordset('log', array(), 'time', 'id,time,userid,course');
         if ($rs) {
@@ -100,7 +99,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 $gaprec->time = $log->time;
                 $gaprec->course = $log->course;
 
-                for ($ci = 1 ; $ci <= 6; $ci++) {
+                for ($ci = 1; $ci <= 6; $ci++) {
                     $key = "customtag".$ci;
                     $gaprec->$key = '';
                     // Beware : at this epoch, the configuration is still centric.
@@ -129,37 +128,37 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 if ($r %10 == 0) {
                     $processtime = time();
                     if (($processtime > $starttime + HOURSECS) || $r > 100000) {
-                        break; // if compilation is too long, let cron continue processing untill all done
+                        break; // If compilation is too long, let cron continue processing untill all done.
                     }
                 }
                 $rs->next();
             }
             $rs->close();
 
-            // register las logtime for cron further updates
+            // Register las logtime for cron further updates.
             mtrace("$r logs gapped");
             // Beware : at this epoch, the configuration is still centric.
             $CFG->use_stats_last_log = $lasttime;
         }
 
-        // use_stats savepoint reached
+        // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013040900, 'use_stats');
      }
 
-     // Moodle 2
+     // Moodle 2.
 
     if ($result && $oldversion < 2013060900) {
 
-        // transfer the last compile time in new config variable
+        // Transfer the last compile time in new config variable.
         // Beware : at this epoch, the configuration is still centric.
         set_config('block_use_stats_lastcompiled', $CFG->use_stats_last_log);
-        set_config('use_stats_last_log', NULL);
+        set_config('use_stats_last_log', null);
 
-        // use_stats savepoint reached
+        // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013060900, 'use_stats');
      }
 
-    // Moodle 2.7
+    // Moodle 2.7.
     if ($result && $oldversion < 2015062500) {
 
         // Transfer old settings values to component scope.

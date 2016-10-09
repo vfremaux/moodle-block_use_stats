@@ -1,4 +1,7 @@
-.teacherstatsbycourse { font-size : 9px ; background-color : #E0E0E0 }
+.teacherstatsbycourse {
+    background-color : #E0E0E0
+    font-size : 9px ;
+}
 
 .block_use_stats select#menuuid {
     max-width:175px;
@@ -22,6 +25,6 @@ usestats-coursetable {
 }
 
 .usestats-shadow {
-    opacity:0.6;
     -moz-opacity:0.6;
+    opacity:0.6;
 }
