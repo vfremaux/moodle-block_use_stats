@@ -14,16 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * This file contains the mnet services for the user_mnet_host plugin
- *
  * @package   block_use_stats
  * @category  blocks
- * @copyright 2012 Valery Fremaux
+ * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 $publishes = array(
     'use_stats' => array(
