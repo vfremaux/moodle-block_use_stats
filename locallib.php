@@ -30,6 +30,7 @@ if (!function_exists('debug_trace')) {
     function debug_trace() {
     }
 }
+
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
 
@@ -190,7 +191,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * @param array $logs
  * @param string $dimension
  */
-function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0) {
+function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0, $progress = '') {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
 
     $backdebug = 0;
@@ -234,7 +235,14 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
         $memlap = 0; // Will store the accumulated time for in the way but out of scope laps.
 
-        for ($i = 0; $i < count($logs); $i = $nexti) {
+        $logsize = count($logs);
+
+        for ($i = 0; $i < $logsize; $i = $nexti) {
+
+            if ($progress) {
+                echo "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
+            }
+
             $log = $logs[$i];
             // We "guess" here the real identity of the log's owner.
             $currentuser = $log->userid;
@@ -328,7 +336,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             $lap = $lap + $memlap;
             $memlap = 0;
 
-            if (!isset($log->$dimension)) {
+            if (!empty($dimension) && !isset($log->$dimension)) {
                 echo $OUTPUT->notification('unknown dimension');
             }
 
@@ -436,6 +444,8 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                             }
                         }
                     }
+                    // Register course in sesssion. This will serve when registering session in DB cache.
+                    @$aggregate['sessions'][$sessionid]->courses[$log->course] = 1;
                 }
             }
 
@@ -567,6 +577,28 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
             $dt = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
             $aggregate['sessions'][$sessid]->duration = $dt;
+        }
+
+        // Store sessions in base.
+        foreach ($aggregate['sessions'] as $session) {
+            if (empty($session->sessionstart)) {
+                continue;
+            }
+
+            $params = array('userid' => $currentuser, 'sessionstart' => $session->sessionstart);
+            if (!$oldrec = $DB->get_record('block_use_stats_session', $params)) {
+                $rec = new StdClass;
+                $rec->userid = $currentuser;
+                $rec->sessionstart = $session->sessionstart;
+                $rec->sessionend = @$session->sessionend;
+                $rec->courses = implode(',', array_keys($session->courses));
+                $DB->insert_record('block_use_stats_session', $rec);
+            } else {
+                if (!$oldrec->sessionend && !empty($session->sessionend)) {
+                    $oldrec->sessionend = $session->sessionend;
+                    $DB->update_record('block_use_stats_session', $oldrec);
+                }
+            }
         }
     }
 
@@ -893,7 +925,9 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 }
 
 /**
- * for debuggin purpose only
+ * for debugging purpose only. May not be used in
+ * stable code.
+ * @param array $sessions
  */
 function use_stats_render($sessions) {
     if ($sessions) {
@@ -966,6 +1000,10 @@ function block_use_stats_format_time($timevalue) {
     return '0s';
 }
 
+/**
+ * Obsolete: unused function
+ * @todo Remove this function.
+ */
 function block_use_stats_render_aggregate(&$aggregate) {
     global $DB;
 

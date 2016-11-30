@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Master block ckass for use_stats compiler
+ * Master block class for use_stats compiler
  *
  * @package    block_use_stats
  * @category   blocks
@@ -102,6 +102,7 @@ class block_use_stats extends block_base {
 
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
+        $systemcontext = context_system::instance();
 
         // Check global per role config.
         if (!has_capability('block/use_stats:view', $context)) {
