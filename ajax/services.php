@@ -30,13 +30,13 @@ require('../../../config.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 
 $courseid = required_param('course', PARAM_INT);
-$cmid = optional_param('cmid', 0, PARAM_INT); // ID of course module if in course module context
+$cmid = optional_param('cmid', 0, PARAM_INT); // ID of course module if in course module context.
 
 // Security.
 
 require_login($courseid, false, null, false, true); // Prevent redirect to avoid prelogin_catch_url effect.
 
-// fakes a log track in the relevant context (site course or course module)
+// Fakes a log track in the relevant context (site course or course module).
 
 if ($cmid) {
     $cm = $DB->get_record('course_modules', array('id' => $cmid));

@@ -14,25 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * Library for theme notifications.
- *
  * @package   block_use_stats
  * @category  blocks
  * @copyright 2012 Wafa Adham,, Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 function block_use_stats_setup_theme_requires() {
-    global $PAGE, $CFG;
+    global $PAGE;
 
     $PAGE->requires->jquery();
 }
 
 function block_use_stats_setup_theme_notification() {
-    global $CFG, $USER, $COURSE, $DB, $PAGE;
+    global $USER, $COURSE, $DB, $PAGE;
 
     $context = context_course::instance($COURSE->id);
 
@@ -60,7 +57,7 @@ function block_use_stats_setup_theme_notification() {
                     $notallowed = true;
                 }
             }
-        } elseif (@$config->keepalive_control == 'profilefield') {
+        } else if (@$config->keepalive_control == 'profilefield') {
             $profilefield = $DB->get_record('user_info_field', array('shortname' => @$config->keepalive_control_value));
             $profilevalue = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => @$profilefield->id));
             if ($profilevalue && empty($profilevalue->data)) {
@@ -80,8 +77,10 @@ function block_use_stats_setup_theme_notification() {
     }
 
     if (!is_null($cm)) {
-        return "<script src=\"{$CFG->wwwroot}/blocks/use_stats/js/notif_keepalive.php?id={$COURSE->id}&cmid={$cm->id}\"></script>"; 
+        $scripturl = new moodle_url('/blocks/use_stats/js/notif_keepalive.php', array('id' => $COURSE->id, 'cmid' => $cm->id));
+        return '<script src="'.$scripturl.'"></script>';
     } else {
-        return "<script src=\"{$CFG->wwwroot}/blocks/use_stats/js/notif_keepalive.php?id={$COURSE->id}\"></script>"; 
+        $scripturl = new moodle_url('/blocks/use_stats/js/notif_keepalive.php', array('id' => $COURSE->id));
+        return '<script src="'.$scripturl.'"></script>';
     }
 }
