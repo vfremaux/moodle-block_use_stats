@@ -32,9 +32,7 @@ defined('MOODLE_INTERNAL') || die();
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_use_stats_edit_form extends block_edit_form {
-
     protected function specific_definition($mform) {
-        global $DB;
 
         // Fields for editing HTML block title and contents.
         $mform->addElement('header', 'configheader', get_string('blocksettings', 'block'));
