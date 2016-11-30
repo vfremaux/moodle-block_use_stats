@@ -93,7 +93,7 @@ class block_use_stats extends block_base {
 
         // Know which reader we are working with.
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers('\core\log\sql_reader');
         $reader = reset($readers);
 
         if (empty($reader)) {
@@ -236,7 +236,7 @@ class block_use_stats extends block_base {
         $config = get_config('block_use_stats');
 
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers('\core\log\sql_reader');
         $reader = reset($readers);
 
         if (empty($reader)) {
@@ -406,7 +406,7 @@ class block_use_stats extends block_base {
         global $DB;
 
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers('\core\log\sql_reader');
         $reader = reset($readers);
 
         if (empty($reader)) {
