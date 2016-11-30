@@ -30,7 +30,6 @@ if (!function_exists('debug_trace')) {
     function debug_trace() {
     }
 }
-
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
 
@@ -925,9 +924,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 }
 
 /**
- * for debugging purpose only. May not be used in
- * stable code.
- * @param array $sessions
+ * for debuggin purpose only
  */
 function use_stats_render($sessions) {
     if ($sessions) {
@@ -1000,10 +997,6 @@ function block_use_stats_format_time($timevalue) {
     return '0s';
 }
 
-/**
- * Obsolete: unused function
- * @todo Remove this function.
- */
 function block_use_stats_render_aggregate(&$aggregate) {
     global $DB;
 
