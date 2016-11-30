@@ -37,18 +37,6 @@ defined('MOODLE_INTERNAL') || die;
 class admin_setting_configdatetime extends \admin_setting {
 
     /**
-     * Constructor
-     * @param string $hoursname setting for hours
-     * @param string $minutesname setting for hours
-     * @param string $visiblename localised
-     * @param string $description long localised info
-     * @param array $defaultsetting array representing default time 'h'=>hours, 'm'=>minutes
-     */
-    public function __construct($datename, $visiblename, $description, $defaultsetting) {
-        parent::__construct($datename, $visiblename, $description, $defaultsetting);
-    }
-
-    /**
      * Get the selected time
      *
      * @return mixed An array containing 'h'=>xx, 'm'=>xx, or null if not set
@@ -96,7 +84,7 @@ class admin_setting_configdatetime extends \admin_setting {
         if (is_array($default)) {
             $defaultinfo = $default['y'].'-'.$default['M'].'-'.$default['d'].' '.$default['h'].':'.$default['m'];
         } else {
-            $defaultinfo = NULL;
+            $defaultinfo = null;
         }
 
         $return = '<div class="form-datetime defaultsnext">';
@@ -107,22 +95,26 @@ class admin_setting_configdatetime extends \admin_setting {
 
         $return .= '</select><select id="'.$this->get_id().'M" name="'.$this->get_full_name().'[M]">';
         for ($i = 1; $i < 12; $i++) {
-            $return .= '<option value="'.$i.'"'.($i == $data['M'] ? ' selected="selected"' : '').'>'.sprintf('%02d', $i).'</option>';
+            $sel = ($i == $data['M'] ? ' selected="selected"' : '');
+            $return .= '<option value="'.$i.'"'.$sel.'>'.sprintf('%02d', $i).'</option>';
         }
 
         $return .= '</select><select id="'.$this->get_id().'d" name="'.$this->get_full_name().'[d]">';
         for ($i = 1; $i < 31; $i++) {
-            $return .= '<option value="'.$i.'"'.($i == $data['d'] ? ' selected="selected"' : '').'>'.sprintf('%02d', $i).'</option>';
+            $sel = ($i == $data['d'] ? ' selected="selected"' : '');
+            $return .= '<option value="'.$i.'"'.$sel.'>'.sprintf('%02d', $i).'</option>';
         }
 
         $return .= '</select><select id="'.$this->get_id().'h" name="'.$this->get_full_name().'[h]">';
         for ($i = 0; $i < 24; $i++) {
-            $return .= '<option value="'.$i.'"'.($i == $data['h'] ? ' selected="selected"' : '').'>'.$i.'</option>';
+            $sel = ($i == $data['h'] ? ' selected="selected"' : '');
+            $return .= '<option value="'.$i.'"'.$sel.'>'.$i.'</option>';
         }
 
         $return .= '</select>:<select id="'.$this->get_id().'m" name="'.$this->get_full_name().'[m]">';
         for ($i = 0; $i < 60; $i += 5) {
-            $return .= '<option value="'.$i.'"'.($i == $data['m'] ? ' selected="selected"' : '').'>'.$i.'</option>';
+            $sel = ($i == $data['m'] ? ' selected="selected"' : '');
+            $return .= '<option value="'.$i.'"'.$sel.'>'.$i.'</option>';
         }
 
         $return .= '</select></div>';

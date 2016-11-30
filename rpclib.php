@@ -14,8 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Form for editing HTML block instances.
  *
@@ -25,6 +23,7 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+defined('MOODLE_INTERNAL') || die();
 
 define('USE_STATS_SITE_SCOPE', 1);
 define('USE_STATS_COURSE_SCOPE', 2);
@@ -33,7 +32,7 @@ define('USE_STATS_MODULE_SCOPE', 3);
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/mnet/xmlrpc/client.php');
 
-/**
+/*
  * Constants.
  */
 if (!defined('RPC_SUCCESS')) {
@@ -56,15 +55,16 @@ if (!defined('RPC_SUCCESS')) {
  * @param object $context The capability's context (optional / CONTEXT_SYSTEM by default).
  */
 function use_stats_invoke_local_user($user, $capability, $context = null) {
-    global $CFG, $USER, $DB;
+    global $USER, $DB;
 
-    // Creating response
+    // Creating response.
     $response = new stdclass;
     $response->status = RPC_SUCCESS;
 
-    // Checking user
-    // debug_trace(json_encode($user));
-    if (!array_key_exists('username', $user) || !array_key_exists('remoteuserhostroot', $user) || !array_key_exists('remotehostroot', $user)) {
+    // Checking user.
+    if (!array_key_exists('username', $user) ||
+            !array_key_exists('remoteuserhostroot', $user) ||
+                    !array_key_exists('remotehostroot', $user)) {
         $response->status = RPC_FAILURE_USER;
         $response->errors[] = 'Bad client user format.';
         return(json_encode($response));
@@ -76,8 +76,8 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
         return(json_encode($response));
     }
 
-    // Get local identity
-    if (!$remotehost = $DB->get_record('mnet_host', array('wwwroot' => $user['remotehostroot']))){
+    // Get local identity.
+    if (!$remotehost = $DB->get_record('mnet_host', array('wwwroot' => $user['remotehostroot']))) {
         $response->status = RPC_FAILURE;
         $response->errors[] = 'Calling host is not registered. Check MNET configuration';
         return(json_encode($response));
@@ -94,12 +94,13 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
 
     $USER = $localuser;
 
-    // Checking capabilities
+    // Checking capabilities.
     if (is_null($context)) {
         $context = context_system::instance();
     }
 
-    if ((is_string($capability) && !has_capability($capability, $context)) || (is_string($capability) && !has_one_capability($capability, $context))) {
+    if ((is_string($capability) && !has_capability($capability, $context)) ||
+            (is_string($capability) && !has_one_capability($capability, $context))) {
         $response->status = RPC_FAILURE_CAPABILITY;
         $response->errors[] = 'Local user\'s identity has no capability to run';
         return(json_encode($response));
@@ -112,13 +113,12 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
  * get a complete report of user stats for a single user.
  *
  * @param array $callinguser
- * @param string $targetuser 
+ * @param string $targetuser
  * @param string $wherefrom
- * // @param string $courseidfield 
- * // @param string $courseidentifier 
- * @param string $statsscope 
+ * @param string $statsscope
  */
-function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $courseidfield, $courseidentifier, */ $statsscope = USE_STATS_SITE_SCOPE, $timefrom = 0, $json_response = true) {
+function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot,
+                                 $statsscope = USE_STATS_SITE_SCOPE, $timefrom = 0, $jsonresponse = true) {
     global $CFG, $USER, $DB;
 
     $extresponse = new stdclass;
@@ -126,45 +126,20 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
     $extresponse->errors[] = array();
 
     // Invoke local user and check his rights.
-    // debug_trace("checking calling user ".json_encode($callinguser));
-    if ($auth_response = use_stats_invoke_local_user((array)$callinguser, array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails'))) {
-        if ($json_response) {
-            return $auth_response;
+    $capabilities = array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails');
+    if ($authresponse = use_stats_invoke_local_user((array)$callinguser, $capabilities)) {
+        if ($jsonresponse) {
+            return $authresponse;
         } else {
-            return json_decode($auth_response);
+            return json_decode($authresponse);
         }
     }
 
     if (empty($whereroot) || $whereroot == $CFG->wwwroot) {
-        // debug_trace("local get stats values for $targetuser in $wherewwwroot scoping $statsscope from ".userdate($timefrom));
-        // Getting remote_course definition
-        /*
-        switch($courseidfield){
-            case 'id':
-                $course = $DB->get_record('course', array('id' => $courseidentifier));
-                break;
-            case 'shortname':
-                $course = $DB->get_record('course', array('shortname' => $courseidentifier));
-                break;
-            case 'idnumber':
-                $course = $DB->get_record('course', array('idnumber' => $courseidentifier));
-                break;        
-        }
-        
-        if (!$course){
-            $extresponse->status = RPC_FAILURE_RECORD;
-            $extresponse->errors[] = 'Unkown course.';
-            if ($json_response){
-                return json_encode($extresponse);
-            } else {
-                return $extresponse;
-            }
-        }
-        */
         if (!$targetuser = $DB->get_record('user', array('username' => $targetuser))) {
             $extresponse->status = RPC_FAILURE_RECORD;
             $extresponse->errors[] = 'Target user does not exist.';
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -179,40 +154,39 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
 
         $logs = use_stats_extract_logs($timefrom, time(), $targetuser->id);
         $lasttime = $timefrom;
-        $totalTime = 0;
-        $totalTimeCourse = array();
-        $totalTimeModule = array();
-
-        // debug_trace('processing '.count($logs).' log entries');
+        $totaltime = 0;
+        $totaltimecourse = array();
+        $totaltimemodule = array();
 
         if ($logs) {
-            foreach ($logs as $aLog) {
-                $delta = $aLog->time - $lasttime;
+            foreach ($logs as $alog) {
+                $delta = $alog->time - $lasttime;
                 if ($delta < $config->threshold * MINSECS) {
-                    $totalTime = $totalTime + $delta;
+                    $totaltime = $totaltime + $delta;
 
                     if ($statsscope >= USE_STATS_COURSE_SCOPE) {
-                        if (!array_key_exists($aLog->course, $totalTimeCourse)) {
-                            $totalTimeCourse[$aLog->course] = 0;
+                        if (!array_key_exists($alog->course, $totaltimecourse)) {
+                            $totaltimecourse[$alog->course] = 0;
                         } else {
-                            $totalTimeCourse[$aLog->course] = $totalTimeCourse[$aLog->course] + $delta;
+                            $totaltimecourse[$alog->course] = $totaltimecourse[$alog->course] + $delta;
                         }
                     }
 
                     if ($statsscope >= USE_STATS_MODULE_SCOPE) {
-                        if (!array_key_exists($aLog->course, $totalTimeModule)) {
-                            $totalTimeModule[$aLog->course][$aLog->module] = 0;
-                        } elseif (!array_key_exists($aLog->module, $totalTimeModule[$aLog->course])) {
-                            $totalTimeModule[$aLog->course][$aLog->module] = 0;
+                        if (!array_key_exists($alog->course, $totaltimemodule)) {
+                            $totaltimemodule[$alog->course][$alog->module] = 0;
+                        } else if (!array_key_exists($alog->module, $totaltimemodule[$alog->course])) {
+                            $totaltimemodule[$alog->course][$alog->module] = 0;
                         } else {
-                            $totalTimeModule[$aLog->course][$aLog->module] = $totalTimeModule[$aLog->course][$aLog->module] + $delta;
+                            $t = $totaltimemodule[$alog->course][$alog->module] + $delta;
+                            $totaltimemodule[$alog->course][$alog->module] = $t;
                         }
                     }
                 }
-                $lasttime = $aLog->time;
+                $lasttime = $alog->time;
             }
 
-            $elapsed = floor($totalTime/MINSECS);
+            $elapsed = floor($totaltime / MINSECS);
 
             $data .= "\t<USERNAME>{$targetuser->username}</USERNAME>\n";
             $data .= "\t<FIRSTNAME>{$targetuser->firstname}</FIRSTNAME>\n";
@@ -223,11 +197,11 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
 
             if ($statsscope >= USE_STATS_COURSE_SCOPE) {
                 $sitedata = '';
-                foreach ($totalTimeCourse as $courseid => $statvalue) {
+                foreach ($totaltimecourse as $courseid => $statvalue) {
                     $courseinfo = $DB->get_record('course', array('id' => $courseid));
                     $elapsed = floor($statvalue / MINSECS);
                     if ($elapsed < 5) {
-                        // cleaning output from unsignificant values.
+                        // Cleaning output from unsignificant values.
                         continue;
                     }
                     $coursedata = "\t<NAME>{$courseinfo->fullname}</NAME>\n";
@@ -236,10 +210,10 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
                     $coursedata .= "\t<ELAPSED>{$elapsed}</ELAPSED>\n";
                     if ($statsscope >= USE_STATS_MODULE_SCOPE) {
                         $moddata = '';
-                        foreach ($totalTimeModule as $cmid => $statvalue) {
+                        foreach ($totaltimemodule as $cmid => $statvalue) {
                             $elapsed = floor($statvalue / MINSECS);
                             if ($elapsed < 2) {
-                                // cleaning output from unsignificant values.
+                                // Cleaning output from unsignificant values.
                                 continue;
                             }
                             $cm = $DB->get_record('course_modules', array('id' => $cmid));
@@ -270,38 +244,33 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
         }
         $extresponse->status = RPC_SUCCESS;
 
-        // debug_trace('output built '.$extresponse->message);
-                
-        if ($json_response) {
+        if ($jsonresponse) {
             return json_encode($extresponse);
         } else {
             return $extresponse;
         }
     } else {
-        // debug_trace("remote source process : $wherewwwroot <> $CFG->wwwroot");    
-        // Make remote call
-        $userhostroot = $DB->get_field('mnet_host', 'wwwroot', array('id' => $USER->mnethostid)); 
+        // Make remote call.
+        $userhostroot = $DB->get_field('mnet_host', 'wwwroot', array('id' => $USER->mnethostid));
 
         $rpcclient = new mnet_xmlrpc_client();
         $rpcclient->set_method('blocks/use_stats/rpclib.php/use_stats_rpc_get_stats');
         $caller->username = $USER->username;
         $caller->remoteuserhostroot = $userhostroot;
         $caller->remotehostroot = $CFG->wwwroot;
-        $rpcclient->add_param($caller, 'struct'); // caller user
+        $rpcclient->add_param($caller, 'struct'); // Caller user.
         $rpcclient->add_param($targetuser, 'string');
         $rpcclient->add_param($wherewwwroot, 'string');
-        // $rpcclient->add_param($courseidfield, 'string');
-        // $rpcclient->add_param($courseidentifier, 'string');
         $rpcclient->add_param($statsscope, 'string');
         $rpcclient->add_param($timefrom, 'int');
-    
-        $mnet_host = new mnet_peer();
-        $mnet_host->set_wwwroot($whereroot);
-        if (!$rpcclient->send($mnet_host)) {
+
+        $mnethost = new mnet_peer();
+        $mnethost->set_wwwroot($whereroot);
+        if (!$rpcclient->send($mnethost)) {
             $extresponse->status = RPC_FAILURE;
             $extresponse->errors[] = 'REMOTE : '.implode("<br/>\n", $rpcclient->errors);
             $extresponse->errors[] = json_encode($rpcclient);
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -309,11 +278,10 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
         }
 
         $response = json_decode($rpcclient->response);
-        // debug_trace($rpcclient->response);
 
         if ($response->status == 100) {
             $extresponse->message = "Remote Test Point : ".$response->teststatus;
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -321,7 +289,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
         }
         if ($response->status == 200) {
             $extresponse->message = $response->message;
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -330,7 +298,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
             $extresponse->status = RPC_FAILURE;
             $extresponse->errors[] = 'Remote application error : ';
             $extresponse->errors[] = $response->errors;
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -340,41 +308,41 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot, /* $cour
 }
 
 function use_stats_rpc_get_stats_wrapped($wrap) {
-    // debug_trace("WRAP : ".json_encode($wrap));
-    return use_stats_rpc_get_stats(@$wrap['callinguser'], @$wrap['targetuser'], @$wrap['whereroot'], @$wrap['statsscope'], @$wrap['timefrom'], @$wrap['json_response']);
+    return use_stats_rpc_get_stats(@$wrap['callinguser'], @$wrap['targetuser'], @$wrap['whereroot'], @$wrap['statsscope'],
+                                   @$wrap['timefrom'], @$wrap['json_response']);
 }
 
 /**
  * get a complete report of user scoring for a single user.
  *
  * @param array $callinguser
- * @param string $targetuser 
+ * @param string $targetuser
  * @param string $wherefrom
- * // @param string $courseidfield 
- * // @param string $courseidentifier 
- * @param string $statsscope 
+ * // @param string $courseidfield
+ * // @param string $courseidentifier
+ * @param string $statsscope
  */
-function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scorescope = 'notes/global', $courseidfield, $courseidentifier, $json_response = true) {
+function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scorescope = 'notes/global', $courseidfield,
+                                  $courseidentifier, $jsonresponse = true) {
     global $CFG, $USER, $DB;
 
     $extresponse = new stdclass;
     $extresponse->status = RPC_SUCCESS;
     $extresponse->errors[] = array();
 
-    // Invoke local user and check his rights
-    // debug_trace("checking calling user");
-    if ($auth_response = use_stats_invoke_local_user((array)$callinguser, array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails'))) {
-        if ($json_response) {
-            return $auth_response;
+    // Invoke local user and check his rights.
+
+    $capabilities = array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails');
+    if ($authresponse = use_stats_invoke_local_user((array)$callinguser, $capabilities)) {
+        if ($jsonresponse) {
+            return $authresponse;
         } else {
-            return json_decode($auth_response);
+            return json_decode($authresponse);
         }
     }
 
     if (empty($whereroot) || $whereroot == $CFG->wwwroot) {
-        // debug_trace("local get scores values for $targetuser in $wherewwwroot scoping $scorescope ");
-
-        // Getting remote_course definition
+        // Getting remote_course definition.
         switch ($courseidfield) {
             case 'id':
                 $course = $DB->get_record('course', array('id' => $courseidentifier));
@@ -393,7 +361,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
             $extresponse->status = RPC_FAILURE_RECORD;
             $extresponse->errors[] = 'Unkown course.';
 
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -403,7 +371,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
         if (!$targetuser = $DB->get_record('user', array('username' => $targetuser))) {
             $extresponse->status = RPC_FAILURE_RECORD;
             $extresponse->errors[] = 'Target user does not exist.';
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -426,37 +394,34 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
 
         $extresponse->status = RPC_SUCCESS;
 
-        // debug_trace('output built '.$extresponse->message);
-
-        if ($json_response) {
+        if ($jsonresponse) {
             return json_encode($extresponse);
         } else {
             return $extresponse;
         }
     } else {
-        // debug_trace("remote source process : $wherewwwroot <> $CFG->wwwroot");    
-        // Make remote call
-        $userhostroot = $DB->get_field('mnet_host', 'wwwroot', array('id' => $USER->mnethostid)); 
+        // Make remote call.
+        $userhostroot = $DB->get_field('mnet_host', 'wwwroot', array('id' => $USER->mnethostid));
 
         $rpcclient = new mnet_xmlrpc_client();
         $rpcclient->set_method('blocks/use_stats/rpclib.php/use_stats_rpc_get_scores');
         $caller->username = $USER->username;
         $caller->remoteuserhostroot = $userhostroot;
         $caller->remotehostroot = $CFG->wwwroot;
-        $rpcclient->add_param($caller, 'struct'); // caller user
+        $rpcclient->add_param($caller, 'struct'); // Caller user.
         $rpcclient->add_param($targetuser, 'string');
         $rpcclient->add_param($whereroot, 'string');
         $rpcclient->add_param($statsscope, 'string');
         $rpcclient->add_param($courseidfield, 'string');
         $rpcclient->add_param($courseidentifier, 'string');
 
-        $mnet_host = new mnet_peer();
-        $mnet_host->set_wwwroot($whereroot);
-        if (!$rpcclient->send($mnet_host)) {
+        $mnethost = new mnet_peer();
+        $mnethost->set_wwwroot($whereroot);
+        if (!$rpcclient->send($mnethost)) {
             $extresponse->status = RPC_FAILURE;
-            $extresponse->errors[] = 'REMOTE : '.implode("<br/>\n", $rpcclient->errors);        
+            $extresponse->errors[] = 'REMOTE : '.implode("<br/>\n", $rpcclient->errors);
             $extresponse->errors[] = json_encode($rpcclient);
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -467,7 +432,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
 
         if ($response->status == 200) {
             $extresponse->message = $response->message;
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -476,7 +441,7 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
             $extresponse->status = RPC_FAILURE;
             $extresponse->errors[] = 'Remote application error : ';
             $extresponse->errors[] = $response->errors;
-            if ($json_response) {
+            if ($jsonresponse) {
                 return json_encode($extresponse);
             } else {
                 return $extresponse;
@@ -486,6 +451,6 @@ function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scores
 }
 
 function use_stats_rpc_get_scores_wrapped($wrap) {
-    // debug_trace("WRAP : ".json_encode($wrap));
-    return use_stats_rpc_get_scores(@$wrap['callinguser'], @$wrap['targetuser'], @$wrap['whereroot'], @$wrap['scorescope'], @$wrap['courseidfield'], @$wrap['courseidentifier'], @$wrap['json_response']);
+    return use_stats_rpc_get_scores(@$wrap['callinguser'], @$wrap['targetuser'], @$wrap['whereroot'], @$wrap['scorescope'],
+                                    @$wrap['courseidfield'], @$wrap['courseidentifier'], @$wrap['json_response']);
 }

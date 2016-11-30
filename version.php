@@ -15,22 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Version details
+ * Version details.
  *
  * @package    block_use_stats
  * @category   blocks
- * @copyright  1999 onwards Martin Dougiamas (http://dougiamas.com)
+ * @copyright  2006 Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2016083101;        // The current plugin version (Date: YYYYMMDDXX)
-$plugin->requires  = 2016051900;        // Requires this Moodle version
-$plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics)
-$plugin->maturity = MATURITY_STABLE; // Full name of the plugin (used for diagnostics)
-$plugin->release = '3.1.0 (build 2016083101)'; // Full name of the plugin (used for diagnostics)
+$plugin->version   = 2016111100;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->requires  = 2016051900;        // Requires this Moodle version.
+$plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics).
+$plugin->maturity = MATURITY_STABLE;
+$plugin->release = '3.1.0 (build 2016111100)';
 
-// Non Moodle fields
-// This fields will help overmanagement code builders without forcing upgrade to play
+// Non moodle attributes.
 $plugin->codeincrement = '3.1.0003';
