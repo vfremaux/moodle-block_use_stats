@@ -1,29 +1,27 @@
 <?php
-// This file keeps track of upgrades to 
-// the online_users block
+// This file is part of Moodle - http://moodle.org/
 //
-// Sometimes, changes between versions involve
-// alterations to database structures and other
-// major things that may break installations.
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// The upgrade function in this file will attempt
-// to perform all the necessary actions to upgrade
-// your older installtion to the current version.
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
 //
-// If there's something it cannot do itself, it
-// will tell you what you need to do.
-//
-// The commands in here will all be database-neutral,
-// using the functions defined in lib/ddllib.php
-
-defined('MOODLE_INTERNAL') || die();
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * @package   block_use_stats
  * @category  blocks
- * @copyright 2012 Valery Fremaux
+ * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard uprade callback.
@@ -31,18 +29,17 @@ defined('MOODLE_INTERNAL') || die();
  * older versions to match current functionality
  */
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
-
     global $CFG, $DB;
 
     $result = true;
 
     $dbman = $DB->get_manager();
 
-    if ($result && $oldversion < 2013040900) { //New version in version.php
+    if ($result && $oldversion < 2013040900) { // New version in version.php.
 
         $lasttime = 0;
 
-    // Pre Moodle 2
+        // Pre Moodle 2.
 
         $table = new xmldb_table('use_stats_log');
         if ($dbman->table_exists($table)) {
@@ -57,11 +54,11 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
             }
         } else {
 
-            // Define table use_stats_log to be created
+            // Define table use_stats_log to be created.
             $table = new xmldb_table('block_use_stats_log');
-    
+
             if (!$dbman->table_exists($table)) {
-                // Adding fields to table use_stats
+                // Adding fields to table use_stats.
                 $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
                 $table->add_field('logid', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
                 $table->add_field('gap', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
@@ -75,16 +72,16 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 $table->add_field('customtag5', XMLDB_TYPE_CHAR, '30', null, null, null, null, null, '');
                 $table->add_field('customtag6', XMLDB_TYPE_CHAR, '30', null, null, null, null, null, '');
 
-                // Adding keys to table use_stats
+                // Adding keys to table use_stats.
                 $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
                 $table->add_key('ix_logid_unique', XMLDB_KEY_UNIQUE, array('logid'));
 
-                // Launch create table for use_stats
+                // Launch create table for use_stats.
                 $dbman->create_table($table);
             }
         }
 
-        // feed the table with log gaps
+        // Feed the table with log gaps.
         $previouslog = array();
         $rs = $DB->get_recordset('log', array(), 'time', 'id,time,userid,course');
         if ($rs) {
@@ -100,13 +97,13 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 $gaprec->time = $log->time;
                 $gaprec->course = $log->course;
 
-                for ($ci = 1 ; $ci <= 6; $ci++) {
+                for ($ci = 1; $ci <= 6; $ci++) {
                     $key = "customtag".$ci;
                     $gaprec->$key = '';
                     // Beware : at this epoch, the configuration is still centric.
                     if (!empty($CFG->block_use_stats_enablecompilecube)) {
                         $customselectkey = "block_use_stats_customtag{$ci}select";
-                        if (!empty($CFG->$customselectkey)){
+                        if (!empty($CFG->$customselectkey)) {
                             $customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($CFG->$customselectkey));
                             $customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
                             $customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
@@ -121,45 +118,46 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                     $DB->insert_record('block_use_stats_log', $gaprec);
                 }
                 if (array_key_exists($log->userid, $previouslog)) {
-                    $DB->set_field('block_use_stats_log', 'gap', $log->time - $previouslog[$log->userid]->time, array('logid' => $previouslog[$log->userid]->id));
+                    $value = $log->time - $previouslog[$log->userid]->time;
+                    $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => $previouslog[$log->userid]->id));
                 }
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
                 $r++;
-                if ($r %10 == 0) {
+                if ($r % 10 == 0) {
                     $processtime = time();
                     if (($processtime > $starttime + HOURSECS) || $r > 100000) {
-                        break; // if compilation is too long, let cron continue processing untill all done
+                        break; // If compilation is too long, let cron continue processing untill all done.
                     }
                 }
                 $rs->next();
             }
             $rs->close();
 
-            // register las logtime for cron further updates
+            // Register las logtime for cron further updates.
             mtrace("$r logs gapped");
             // Beware : at this epoch, the configuration is still centric.
             $CFG->use_stats_last_log = $lasttime;
         }
 
-        // use_stats savepoint reached
+        // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013040900, 'use_stats');
-     }
+    }
 
-     // Moodle 2
+    // Moodle 2.
 
     if ($result && $oldversion < 2013060900) {
 
-        // transfer the last compile time in new config variable
+        // Transfer the last compile time in new config variable.
         // Beware : at this epoch, the configuration is still centric.
         set_config('block_use_stats_lastcompiled', $CFG->use_stats_last_log);
-        set_config('use_stats_last_log', NULL);
+        set_config('use_stats_last_log', null);
 
-        // use_stats savepoint reached
+        // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2013060900, 'use_stats');
-     }
+    }
 
-    // Moodle 2.7
+    // Moodle 2.7.
     if ($result && $oldversion < 2015062500) {
 
         // Transfer old settings values to component scope.
@@ -173,7 +171,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Use_stats savepoint reached.
         upgrade_block_savepoint($result, 2015062500, 'use_stats');
-     }
+    }
 
     if ($oldversion < 2016012100) {
 
@@ -235,6 +233,29 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
         }
         // Use_stats savepoint reached.
         upgrade_block_savepoint(true, 2016020600, 'use_stats');
+    }
+
+    if ($oldversion < 2016111100) {
+        // Define table use_stats_session to be created.
+        $table = new xmldb_table('block_use_stats_session');
+
+        if (!$dbman->table_exists($table)) {
+            // Adding fields to table use_stats.
+            $table->add_field('id', XMLDB_TYPE_INTEGER, '10', XMLDB_UNSIGNED, XMLDB_NOTNULL, XMLDB_SEQUENCE, null, null, null);
+            $table->add_field('userid', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+            $table->add_field('sessionstart', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
+            $table->add_field('sessionend', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
+            $table->add_field('courses', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+
+            // Adding keys to table use_stats.
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+
+            // Launch create table for use_stats.
+            $dbman->create_table($table);
+        }
+
+        // Use_stats savepoint reached.
+        upgrade_block_savepoint(true, 2016111100, 'use_stats');
     }
 
     return $result;

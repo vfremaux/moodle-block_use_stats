@@ -14,10 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-namespace block_use_stats\event;
-
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * The mod_assign feedback viewed event.
  *
@@ -26,6 +22,9 @@ defined('MOODLE_INTERNAL') || die();
  * @copyright  2014 Mark Nelson <markn@moodle.com>
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace block_use_stats\event;
+
+defined('MOODLE_INTERNAL') || die();
 
 /**
  * The class for registering a keepalive event.
@@ -69,7 +68,6 @@ class block_use_stats_keepalive extends \core\event\base {
         $data['relateduserid'] = $USER->id;
         $data['context'] = $context;
 
-        /** @var keepalive $event */
         $event = self::create($data);
         if (!is_null($cm)) {
             $event->add_record_snapshot('course_modules', $cm);
@@ -120,7 +118,7 @@ class block_use_stats_keepalive extends \core\event\base {
      * @param array $legacylogdata
      * @return void
      */
-    public function set_legacy_logdata($legacylogdata) {
+    public function set_legacy_logdata($legacylogdata, $msg) {
     }
 
     /**
