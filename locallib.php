@@ -46,7 +46,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -223,7 +223,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     $aggregate['sessions'] = array();
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
 
     $logbuffer = '';
@@ -766,7 +766,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -1122,7 +1122,7 @@ function block_use_stats_get_log_range($userid, $from, $to) {
 function block_use_stats_get_sql_params() {
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers('\core\log\sql_select_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
