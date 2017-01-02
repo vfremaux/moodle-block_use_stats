@@ -102,6 +102,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
     public function change_params_form($context, $id, $fromwhen, $userid) {
         global $USER, $DB, $COURSE;
 
+        $config = get_config('block_use_stats');
+
         $str = ' <form style="display:inline" name="ts_changeParms" method="post" action="#">';
 
         $str .= '<input type="hidden" name="id" value="'.$id.'" />';
@@ -136,16 +138,44 @@ class block_use_stats_renderer extends plugin_renderer_base {
             $attrs = array('onchange' => 'document.ts_changeParms.submit();');
             $str .= html_writer::select($usermenu, 'uid', $userid, 'choose', $attrs);
         }
-        $str .= ' ';
-        $str .= get_string('from', 'block_use_stats');
-        $str .= ' <select name="ts_from" onChange="document.ts_changeParms.submit();">';
 
-        foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
-            $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '';
-            $str .= '<option value="'.$interval.'" '.$selected.' >'.$interval.' '.get_string('days').'</option>';
+        if (@$config->backtrackmode == 'sliding') {
+            if (@$config->backtracksource == 'studentchoice') {
+                $str .= ' ';
+                $str .= get_string('from', 'block_use_stats');
+                foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
+                    $timemenu[$interval] = $interval.' '.get_string('days');
+                }
+                $attrs = array('onchange' => 'document.ts_changeParms.submit();');
+                $str .= html_writer::select($timemenu, 'ts_from', $fromwhen, 'choose', $attrs);
+            }
+        } else {
+            if (@$config->backtracksource == 'studentchoice') {
+                $userpref = $DB->get_field('user_preferences', 'value', array('userid' => $USER->id, 'name' => 'use_stats_horizon'));
+                if (empty($userpref)) {
+                    if ($COURSE->id != SITEID) {
+                        $userpref = date('Y-m-d', $COURSE->startdate);
+                    } else {
+                        $userpref = date('Y-m-d', $USER->firstaccess);
+                    }
+                }
+                $str .= '<br/>'.get_string('from', 'block_use_stats');
+                $htmlkey = 'ts_horizon'.$context->id;
+                $str .= ': <input type="text"
+                                  size="10"
+                                  id="date-'.$htmlkey.'"
+                                  name="'.$htmlkey.'"
+                                  value="'.$userpref.'"
+                                  onchange="document.ts_changeParms.submit()" />';
+                $str .= '<script type="text/javascript">'."\n";
+                $str .= 'var '.$htmlkey.'Cal = new dhtmlXCalendarObject(["date-'.$htmlkey.'"]);'."\n";
+                $str .= $htmlkey.'Cal.loadUserLanguage(\''.current_language().'_utf8\');'."\n";
+                $str .= $htmlkey.'Cal.attachEvent("onChange", function() {
+                    document.ts_changeParms.submit();
+                });'."\n";
+                $str .= '</script>'."\n";
+            }
         }
-
-        $str .= "</select>";
         $str .= "</form><br/>";
 
         return $str;

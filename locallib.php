@@ -30,8 +30,13 @@ if (!function_exists('debug_trace')) {
     function debug_trace() {
     }
 }
+
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
+
+function use_stats_get_reader() {
+    return '\core\log\sql_reader';
+}
 
 /**
  * Extracts a log thread from the first accessible logstore
@@ -46,7 +51,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -223,7 +228,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     $aggregate['sessions'] = array();
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
     $logbuffer = '';
@@ -590,7 +595,9 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 $rec->userid = $currentuser;
                 $rec->sessionstart = $session->sessionstart;
                 $rec->sessionend = @$session->sessionend;
-                $rec->courses = implode(',', array_keys($session->courses));
+                if (!empty($session->courses)) {
+                    $rec->courses = implode(',', array_keys($session->courses));
+                }
                 $DB->insert_record('block_use_stats_session', $rec);
             } else {
                 if (!$oldrec->sessionend && !empty($session->sessionend)) {
@@ -766,7 +773,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
     if (empty($reader)) {
@@ -924,7 +931,9 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 }
 
 /**
- * for debuggin purpose only
+ * for debugging purpose only. May not be used in
+ * stable code.
+ * @param array $sessions
  */
 function use_stats_render($sessions) {
     if ($sessions) {
@@ -997,6 +1006,10 @@ function block_use_stats_format_time($timevalue) {
     return '0s';
 }
 
+/**
+ * Obsolete: unused function
+ * @todo Remove this function.
+ */
 function block_use_stats_render_aggregate(&$aggregate) {
     global $DB;
 
@@ -1122,7 +1135,7 @@ function block_use_stats_get_log_range($userid, $from, $to) {
 function block_use_stats_get_sql_params() {
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers('\core\log\sql_reader');
+    $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
     if (empty($reader)) {
