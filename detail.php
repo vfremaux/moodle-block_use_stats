@@ -47,6 +47,7 @@ if ($COURSE->id > SITEID) {
 
 $blockcontext = context_block::instance($id);
 $coursecontext = context_course::instance($COURSE->id);
+$systemcontext = context_system::instance();
 
 // Check for capability to view user details and resolve.
 $cansee = false;
@@ -88,14 +89,16 @@ if (!$cansee) {
     print_error('notallowed', 'block_use_stats');
 }
 
-$user = $DB->get_record('user', array('id' => $userid), 'id,'.get_all_user_name_fields(true, '').',picture,imagealt,email');
+$fields = 'id,'.get_all_user_name_fields(true, '').',picture,imagealt,email';
+$user = $DB->get_record('user', array('id' => $userid), $fields);
 
 $PAGE->set_title(get_string('modulename', 'block_use_stats'));
 $PAGE->set_heading('');
 $PAGE->set_focuscontrol('');
 $PAGE->set_cacheable(true);
 $PAGE->set_button('');
-$PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php', array('courseid' => $courseid, 'is' => $id, 'userid' => $userid)));
+$params = array('courseid' => $courseid, 'is' => $id, 'userid' => $userid);
+$PAGE->set_url(new moodle_url('/blocks/use_stats/detail.php', $params));
 $PAGE->set_headingmenu('');
 $PAGE->navbar->add(get_string('blockname', 'block_use_stats'));
 $PAGE->navbar->add(fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance())));
@@ -108,7 +111,7 @@ echo '<table class="list" summary=""><tr><td>';
 echo $OUTPUT->user_picture($user, array('size' => 100));
 echo '</td><td>';
 $userurl = new moodle_url('/user/view.php', array('id' => $user->id));
-echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', $coursecontext)).'</a></h2>';
+echo '<h2><a href="'.$userurl.'">'.fullname($user, has_capability('moodle/site:viewfullnames', $systemcontext)).'</a></h2>';
 echo '<table class="list" summary="" width="100%">';
 profile_display_fields($user->id);
 echo '</table>';
@@ -131,11 +134,9 @@ $table->size = array('70%', '30%');
 $table->align = array('left', 'left');
 
 foreach ($aggregate as $module => $moduleset) {
-
     if (preg_match('/label$/', $module)) {
         continue;
     }
-
     $table->data[] = array("<b>$module</b>", '');
     foreach ($moduleset as $key => $value) {
         if (!is_object($value)) {
