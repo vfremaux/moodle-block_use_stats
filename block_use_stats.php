@@ -93,7 +93,7 @@ class block_use_stats extends block_base {
 
         // Know which reader we are working with.
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers(use_stats_get_reader());
         $reader = reset($readers);
 
         if (empty($reader)) {
@@ -237,7 +237,7 @@ class block_use_stats extends block_base {
         $config = get_config('block_use_stats');
 
         $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $readers = $logmanager->get_readers(use_stats_get_reader());
         $reader = reset($readers);
 
         if (empty($reader)) {
@@ -335,7 +335,8 @@ class block_use_stats extends block_base {
                         $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
                         $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
                     }
-                    $previouslog[$log->userid] = array_shift(array_values($lastlog));
+                    $lastlogs = array_values($lastlog);
+                    $previouslog[$log->userid] = array_shift($lastlogs);
                 }
                 $value = $log->time - (0 + @$previouslog[$log->userid]->time);
                 $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => @$previouslog[$log->userid]->id));
@@ -522,6 +523,17 @@ class block_use_stats extends block_base {
                               'block/use_stats:seecoursedetails',
                               'block/use_stats:seegroupdetails');
         return has_any_capability($capabilities, $context);
+    }
+
+    public function get_required_javascript() {
+        global $CFG, $PAGE;
+
+        parent::get_required_javascript();
+
+        $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.js', true);
+        $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar_locales.js', true);
+        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
+        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_dhx_web.css', true);
     }
 }
 

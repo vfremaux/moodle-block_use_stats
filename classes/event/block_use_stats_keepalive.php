@@ -89,7 +89,7 @@ class block_use_stats_keepalive extends \core\event\base {
      * @return string
      */
     public static function get_name() {
-        return get_string('eventusestatskeepalive', 'block_use_stat');
+        return get_string('eventusestatskeepalive', 'block_use_stats');
     }
 
     /**
