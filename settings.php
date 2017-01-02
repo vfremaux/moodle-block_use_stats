@@ -46,6 +46,22 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configfromwhen_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 60, $fromwhenoptions));
 
+    $backtrackmodeoptions = array('sliding' => get_string('sliding', 'block_use_stats'),
+        'fixeddate' => get_string('fixeddate', 'block_use_stats')
+     );
+    $key = 'block_use_stats/backtrackmode';
+    $label = get_string('configbacktrackmode', 'block_use_stats');
+    $desc = get_string('configbacktrackmode_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 'sliding', $backtrackmodeoptions));
+
+    $backtracksourceoptions = array('studentchoice' => get_string('studentchoice', 'block_use_stats'),
+        'fixedchoice' => get_string('fixedchoice', 'block_use_stats')
+     );
+    $key = 'block_use_stats/backtracksource';
+    $label = get_string('configbacktracksource', 'block_use_stats');
+    $desc = get_string('configbacktracksource_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 'studentchoice', $backtracksourceoptions));
+
     $key = 'block_use_stats/filterdisplayunder';
     $label = get_string('configfilterdisplayunder', 'block_use_stats');
     $desc = get_string('configfilterdisplayunder_desc', 'block_use_stats');
