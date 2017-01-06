@@ -166,7 +166,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
                                   id="date-'.$htmlkey.'"
                                   name="'.$htmlkey.'"
                                   value="'.$userpref.'"
-                                  onchange="document.ts_changeParms.submit()" />';
+                                  />';
                 $str .= '<script type="text/javascript">'."\n";
                 $str .= 'var '.$htmlkey.'Cal = new dhtmlXCalendarObject(["date-'.$htmlkey.'"]);'."\n";
                 $str .= $htmlkey.'Cal.loadUserLanguage(\''.current_language().'_utf8\');'."\n";
