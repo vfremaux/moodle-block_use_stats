@@ -151,26 +151,18 @@ class block_use_stats_renderer extends plugin_renderer_base {
             }
         } else {
             if (@$config->backtracksource == 'studentchoice') {
-                $userpref = $DB->get_field('user_preferences', 'value', array('userid' => $USER->id, 'name' => 'use_stats_horizon'));
-                if (empty($userpref)) {
-                    if ($COURSE->id != SITEID) {
-                        $userpref = date('Y-m-d', $COURSE->startdate);
-                    } else {
-                        $userpref = date('Y-m-d', $USER->firstaccess);
-                    }
-                }
                 $str .= '<br/>'.get_string('from', 'block_use_stats');
                 $htmlkey = 'ts_horizon'.$context->id;
                 $str .= ': <input type="text"
                                   size="10"
                                   id="date-'.$htmlkey.'"
                                   name="'.$htmlkey.'"
-                                  value="'.$userpref.'"
+                                  value="'.$fromwhen.'"
                                   />';
                 $str .= '<script type="text/javascript">'."\n";
                 $str .= 'var '.$htmlkey.'Cal = new dhtmlXCalendarObject(["date-'.$htmlkey.'"]);'."\n";
                 $str .= $htmlkey.'Cal.loadUserLanguage(\''.current_language().'_utf8\');'."\n";
-                $str .= $htmlkey.'Cal.attachEvent("onChange", function() {
+                $str .= $htmlkey.'Cal.attachEvent("onClick", function() {
                     document.ts_changeParms.submit();
                 });'."\n";
                 $str .= '</script>'."\n";
