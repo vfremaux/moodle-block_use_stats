@@ -126,10 +126,26 @@ class block_use_stats extends block_base {
             $SESSION->usestatsfromwhen = $config->fromwhen;
         }
 
-        $fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT);
-
-        $daystocompilelogs = $fromwhen * DAYSECS;
-        $timefrom = time() - $daystocompilelogs;
+        $fromwhen = $config->fromwhen;
+        if ($config->backtrackmode == 'fixeddate') {
+            if ($COURSE->id == SITEID) {
+                $timefrom = $USER->firstaccess;
+            } else {
+                $timefrom = $COURSE->startdate;
+            }
+            if ($config->backtracksource == 'studentchoice') {
+                $htmlkey = 'ts_horizon'.$context->id;
+                if ($tshorizon = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    $fromwhen = $tshorizon;
+                    $timefrom = strtotime($tshorizon);
+                }
+            }
+        } else {
+            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
+                $daystocompilelogs = $fromwhen * DAYSECS;
+                $timefrom = time() - $daystocompilelogs;
+            }
+        }
 
         $capabilities = array('block/use_stats:seesitedetails',
                               'block/use_stats:seecoursedetails',
