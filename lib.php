@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Library for theme notifications.
+ *
  * @package   block_use_stats
  * @category  blocks
  * @copyright 2012 Wafa Adham,, Valery Fremaux
