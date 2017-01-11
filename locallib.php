@@ -109,7 +109,6 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     // We search first enrol time still active for this user.
     $sql = "
         SELECT
-            ue.id,
             MIN(timestart) as timestart
         FROM
             {enrol} e,
