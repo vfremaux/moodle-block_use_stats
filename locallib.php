@@ -51,7 +51,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $config = get_config('block_use_stats');
 
     $logmanager = get_log_manager();
-    $readers = $logmanager->get_readers(use_stats_get_reader());
+    $readers = $logmanager->get_readers('\core\log\sql_reader');
     $reader = reset($readers);
 
     if (empty($reader)) {
