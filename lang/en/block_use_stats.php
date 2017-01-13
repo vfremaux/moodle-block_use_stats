@@ -67,6 +67,7 @@ $string['configonesessionpercourse_desc'] = 'When enabled, use stat will split s
 $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
 $string['datacubing'] = 'Data cubing';
+$string['declaredtime'] = 'Declared time'; // @DYNAKEYS.
 $string['denyrule'] = 'Allow sending unless matching rule';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
