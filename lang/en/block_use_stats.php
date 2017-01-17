@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 // Capabilities.
-$string['use_stats:addinstance'] = 'Can add an instance';
-$string['use_stats:myaddinstance'] = 'Can add an instance to My Page';
-$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course';
-$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups';
-$string['use_stats:seeowndetails'] = 'Can see his own detail';
-$string['use_stats:seesitedetails'] = 'Can see detail of all users';
-$string['use_stats:view'] = 'Can see stats';
-$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)';
+$string['use_stats:addinstance'] = 'Can add an instance'; // @DYNAKEYS.
+$string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // @DYNAKEYS.
+$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course'; // @DYNAKEYS.
+$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups'; // @DYNAKEYS.
+$string['use_stats:seeowndetails'] = 'Can see his own detail'; // @DYNAKEYS.
+$string['use_stats:seesitedetails'] = 'Can see detail of all users'; // @DYNAKEYS.
+$string['use_stats:view'] = 'Can see stats'; // @DYNAKEYS.
+$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // @DYNAKEYS.
 
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
@@ -38,8 +38,6 @@ $string['configbacktrackmode'] = 'Back track mode';
 $string['configbacktrackmode_desc'] = 'Selects how the blocks chooses from when backtracking times.';
 $string['configbacktracksource'] = 'Back track source';
 $string['configbacktracksource_desc'] = 'Selects who tells the blocks the backtracking time reference.';
-$string['configcapturemodules'] = 'Capture modules list';
-$string['configcapturemodules_desc'] = 'Modules that are considered in the detail analysis';
 $string['configcustomtagselect'] = 'Select for custom tag';
 $string['configcustomtagselect_desc'] = 'This query needs returning one unique result per log row. this result will feed the customtag {$a} column.';
 $string['configdisplayactivitytimeonly'] = 'Choose what reference time to display';
@@ -48,14 +46,10 @@ $string['configdisplayothertime'] = 'Display "Out of course" time';
 $string['configdisplayothertime_desc'] = 'Is set, displays the "Out of course" time course line';
 $string['configenablecompilecube'] = 'Enable cube compilation';
 $string['configenablecompilecube_desc'] = 'When enabled, additional dimensions are calculated using defined selects';
-$string['configenablecompilelogs'] = 'Enable gaps compilation';
-$string['configenablecompilelogs_desc'] = 'When enabled, use stat compile logs and gaps on cron';
 $string['configfilterdisplayunder'] = 'Filter display under';
 $string['configfilterdisplayunder_desc'] = 'If not nul, only course times above the given limit (in seconds) will be displayed in the block';
 $string['configfromwhen'] = 'Since ';
 $string['configfromwhen_desc'] = 'Compilation period (in days till today) ';
-$string['configignoremodules'] = 'Ignore modules list';
-$string['configignoremodules_desc'] = 'Ignore times from this modules';
 $string['configkeepalivecontrol'] = 'Control method';
 $string['configkeepalivecontrol_desc'] = 'internal data used to control sending capability';
 $string['configkeepalivecontrolvalue'] = 'Control item name';
@@ -70,27 +64,26 @@ $string['configlastpingcredit'] = 'Extra time credit on last ping';
 $string['configlastpingcredit_desc'] = 'This amount of time (in minutes) will be systematically added to log track time count for each time a session closure or discontinuity is guessed';
 $string['configonesessionpercourse'] = 'One session per course';
 $string['configonesessionpercourse_desc'] = 'When enabled, use stat will split sessions each time the track changes the currrent course. If disabled, a session represents a working sequence that may use several courses.';
-$string['configstudentscanuse_desc'] = 'Students can see the block (for their own)';
-$string['configstudentscanuseglobal_desc'] = 'Allow students see the use stat block in global spaces (MyMoodle, out of course, for their own)';
-$string['hidecourselist'] = 'Hide course times';
 $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
-$string['credittime'] = 'Credit time';
 $string['datacubing'] = 'Data cubing';
-$string['declaredtime'] = 'Declared time';
+$string['declaredtime'] = 'Declared time'; // @DYNAKEYS.
 $string['denyrule'] = 'Allow sending unless matching rule';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
 $string['displaycoursetime'] = 'Course real time (all time spend in all contexts of the course)';
 $string['errornorecords'] = 'No tracking information';
-$string['errornotinitialized'] = 'The module is not initialized. Contact administrator.';
 $string['eventscount'] = 'Hits';
+$string['plugindist'] = 'Plugin distribution';
+$string['emulatecommunity'] = 'Emulate community version';
+$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version. This might loose features !';
 $string['eventusestatskeepalive'] = 'Session keep alive';
+$string['fixedchoice'] = 'Settings forced to course/account start date';
+$string['fixeddate'] = 'From a fixed date reference';
 $string['from'] = 'Since ';
-$string['ignored'] = 'Module/Activity ignored in tracking';
+$string['hidecourselist'] = 'Hide course times';
 $string['isfiltered'] = 'Only time above {$a} secs are displayed';
 $string['keepuseralive'] = 'User {$a} is still in session';
-$string['lastcompiled'] = 'Last compiled log record';
 $string['loganalysisparams'] = 'Log analysis parameters';
 $string['modulename'] = 'Activity tracking';
 $string['noavailablelogs'] = 'No logs available';
@@ -101,11 +94,9 @@ $string['pluginname'] = 'Use Stats';
 $string['printpdf'] = 'Print PDF';
 $string['profilefieldcontrol'] = 'Profile Field';
 $string['showdetails'] = 'Show details';
-$string['studentscansee'] = 'Students can see';
 $string['sliding'] = 'Sliding time window';
-$string['fixeddate'] = 'From a fixed date reference';
 $string['studentchoice'] = 'Students chooses';
-$string['fixedchoice'] = 'Settings forced to course/account start date';
+$string['studentscansee'] = 'Students can see';
 $string['task_cache_ttl'] = 'Aggregate Cache TTL';
 $string['task_cleanup'] = 'Time gaps cleanup';
 $string['task_compile'] = 'Time gaps compilation';
@@ -114,4 +105,11 @@ $string['use_stats_description'] = 'By publishing this service, you allow remote
 $string['use_stats_name'] = 'Remote access to statistics';
 $string['use_stats_rpc_service'] = 'Remote access to statistics';
 $string['use_stats_rpc_service_name'] = 'Remote access to statistics';
-$string['youspent'] = 'You spent ';
+$string['youspent'] = 'You spent&ensp;';
+
+$string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
+core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
+and improvement effort.</p>
+<p>Please contact one of our distributors to get "Pro" version support.</p>
+<ul><li><a href="http://service.activeprolearn.com/local/shop/front/view.php?id=1">ActiveProLearn SAS</a></li>
+<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
