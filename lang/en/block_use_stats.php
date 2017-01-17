@@ -74,6 +74,9 @@ $string['displayactivitiestime'] = 'Only time assigned to effective activities i
 $string['displaycoursetime'] = 'Course real time (all time spend in all contexts of the course)';
 $string['errornorecords'] = 'No tracking information';
 $string['eventscount'] = 'Hits';
+$string['plugindist'] = 'Plugin distribution';
+$string['emulatecommunity'] = 'Emulate community version';
+$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version. This might loose features !';
 $string['eventusestatskeepalive'] = 'Session keep alive';
 $string['fixedchoice'] = 'Settings forced to course/account start date';
 $string['fixeddate'] = 'From a fixed date reference';
@@ -102,4 +105,11 @@ $string['use_stats_description'] = 'By publishing this service, you allow remote
 $string['use_stats_name'] = 'Remote access to statistics';
 $string['use_stats_rpc_service'] = 'Remote access to statistics';
 $string['use_stats_rpc_service_name'] = 'Remote access to statistics';
-$string['youspent'] = 'You spent ';
+$string['youspent'] = 'You spent&ensp;';
+
+$string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
+core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
+and improvement effort.</p>
+<p>Please contact one of our distributors to get "Pro" version support.</p>
+<ul><li><a href="http://service.activeprolearn.com/local/shop/front/view.php?id=1">ActiveProLearn SAS</a></li>
+<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
