@@ -22,65 +22,60 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-function block_use_stats_setup_theme_requires() {
-    global $PAGE;
+/**
+ * This is part of the dual release distribution system.
+ * Tells wether a feature is supported or not. Gives back the 
+ * implementation path where to fetch resources.
+ * @param string $feature a feature key to be tested.
+ */
+function block_use_stats_supports_feature($feature) {
+    global $CFG;
+    static $supports;
 
-    $PAGE->requires->jquery();
+    if (!isset($supports)) {
+        $supports = array(
+            'pro' => array(
+                'format' => array('xls', 'csv', 'pdf'),
+                'data' => array('multidimensionnal', 'keepalive'),
+            ),
+            'community' => array(
+                'format' => array('xls', 'csv'),
+            ),
+        );
+    }
+
+    // Check existance of the 'pro' dir in plugin.
+    if (is_dir(__DIR__.'/pro')) {
+        if ($feature == 'emulate/community') {
+            return 'pro';
+        }
+        if (empty($config->emulatecommunity)) {
+            $versionkey = 'pro';
+        } else {
+            $versionkey = 'community';
+        }
+    } else {
+        $versionkey = 'community';
+    }
+
+    list($feat, $subfeat) = explode('/', $feature);
+
+    if (!array_key_exists($feat, $supports[$versionkey])) {
+        return false;
+    }
+
+    if (!in_array($subfeat, $supports[$versionkey][$feat])) {
+        return false;
+    }
+
+    return $versionkey;
 }
 
 function block_use_stats_setup_theme_notification() {
-    global $USER, $COURSE, $DB, $PAGE;
+    global $CFG;
 
-    $context = context_course::instance($COURSE->id);
-
-    if (!isloggedin() || is_guest($context)) {
-        return;
-    }
-
-    $cm = $PAGE->cm;
-    $config = get_config('block_use_stats');
-
-    if (empty($config->keepalive_delay)) {
-        return;
-    }
-
-    // Control for adding the code to the footer. This saves performance with non concerned users.
-    if (!empty($config->keepalive_rule)) {
-        $notallowed = false;
-        if (@$config->keepalive_control == 'capability') {
-            if (has_capability($config->keepalive_control_value, context_system::instance())) {
-                if ($config->keepalive_rule == 'deny') {
-                    $notallowed = true;
-                }
-            } else {
-                if ($config->keepalive_rule == 'allow') {
-                    $notallowed = true;
-                }
-            }
-        } else if (@$config->keepalive_control == 'profilefield') {
-            $profilefield = $DB->get_record('user_info_field', array('shortname' => @$config->keepalive_control_value));
-            $profilevalue = $DB->get_record('user_info_data', array('userid' => $USER->id, 'fieldid' => @$profilefield->id));
-            if ($profilevalue && empty($profilevalue->data)) {
-                if ($config->keepalive_rule == 'deny') {
-                    $notallowed = true;
-                }
-            } else {
-                if ($config->keepalive_rule == 'allow') {
-                    $notallowed = true;
-                }
-            }
-        }
-
-        if ($notallowed) {
-            return;
-        }
-    }
-
-    if (!is_null($cm)) {
-        $scripturl = new moodle_url('/blocks/use_stats/js/notif_keepalive.php', array('id' => $COURSE->id, 'cmid' => $cm->id));
-        return '<script src="'.$scripturl.'"></script>';
-    } else {
-        $scripturl = new moodle_url('/blocks/use_stats/js/notif_keepalive.php', array('id' => $COURSE->id));
-        return '<script src="'.$scripturl.'"></script>';
+    if (block_use_stats_supports_feature('data/keepalive')) {
+        include_once($CFG->dirroot.'/blocks/use_stats/pro/lib.php');
+        block_use_stats_pro_setup_theme_notification();
     }
 }
