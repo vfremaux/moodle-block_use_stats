@@ -30,6 +30,10 @@ require_once($CFG->dirroot.'/lib/blocklib.php');
 require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
+if (block_use_stats_supports_feature('data/multidimensionnal')) {
+    // Only in "pro" distributions.
+    include_once($CFG->dirroot.'/blocks/use_stats/pro/lib.php');
+}
 
 class block_use_stats extends block_base {
 
@@ -126,10 +130,26 @@ class block_use_stats extends block_base {
             $SESSION->usestatsfromwhen = $config->fromwhen;
         }
 
-        $fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT);
-
-        $daystocompilelogs = $fromwhen * DAYSECS;
-        $timefrom = time() - $daystocompilelogs;
+        $fromwhen = $config->fromwhen;
+        if ($config->backtrackmode == 'fixeddate') {
+            if ($COURSE->id == SITEID) {
+                $timefrom = $USER->firstaccess;
+            } else {
+                $timefrom = $COURSE->startdate;
+            }
+            if ($config->backtracksource == 'studentchoice') {
+                $htmlkey = 'ts_horizon'.$context->id;
+                if ($tshorizon = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    $fromwhen = $tshorizon;
+                    $timefrom = strtotime($tshorizon);
+                }
+            }
+        } else {
+            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
+                $daystocompilelogs = $fromwhen * DAYSECS;
+                $timefrom = time() - $daystocompilelogs;
+            }
+        }
 
         $capabilities = array('block/use_stats:seesitedetails',
                               'block/use_stats:seecoursedetails',
@@ -304,19 +324,9 @@ class block_use_stats extends block_base {
                 $gaprec->time = $log->time;
                 $gaprec->course = $log->course;
 
-                for ($ci = 1; $ci <= 6; $ci++) {
-                    $key = 'customtag'.$ci;
-                    $gaprec->$key = '';
-                    if (!empty($config->enablecompilecube)) {
-                        $customselectkey = "customtag{$ci}select";
-                        if (!empty($config->$customselectkey)) {
-                            $customsql = str_replace('<%%LOGID%%>', $log->id, stripslashes($config->$customselectkey));
-                            $customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
-                            $customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
-                            $customsql = str_replace('<%%CMID%%>', $log->cmid, $customsql);
-                            $gaprec->$key = $DB->get_field_sql($customsql, array());
-                        }
-                    }
+                if (block_use_stats_supports_feature('data/multidimensionnal')) {
+                    // This is an advanced feature only in pro distribution.
+                    block_use_stats_get_cube_info($log, $gaprec, $config);
                 }
 
                 $gaprec->gap = 0;
@@ -530,15 +540,11 @@ class block_use_stats extends block_base {
 
         parent::get_required_javascript();
 
+        $PAGE->requires->jquery();
+
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.js', true);
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar_locales.js', true);
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_dhx_web.css', true);
     }
-}
-
-global $PAGE;
-
-if ($PAGE->state < moodle_page::STATE_PRINTING_HEADER) {
-    block_use_stats_setup_theme_requires();
 }
