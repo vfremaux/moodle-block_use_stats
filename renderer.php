@@ -28,7 +28,6 @@ defined('MOODLE_INTERNAL') || die();
 class block_use_stats_renderer extends plugin_renderer_base {
 
     public function per_course(&$aggregate, &$fulltotal) {
-        global $OUTPUT;
 
         $config = get_config('block_use_stats');
 
@@ -75,7 +74,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         if (!empty($config->filterdisplayunder)) {
             $title = htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder));
-            $pix = '<img src="'.$OUTPUT->pix_url('i/warning').'">';
+            $pix = '<img src="'.$this->output->pix_url('i/warning').'">';
             $str .= '<tr><td class="teacherstatsbycourse" title="'.$title.'">'.$pix.'</td>';
             $str .= '<td align="right" class="teacherstatsbycourse">';
             if (@$config->displayactivitytimeonly != DISPLAY_FULL_COURSE) {
@@ -174,47 +173,20 @@ class block_use_stats_renderer extends plugin_renderer_base {
     }
 
     /**
-     * @global type $OUTPUT
-     * @global type $COURSE
-     * @global type $USER
      * @param type $userid
      * @param type $from
      * @param type $to
      * @param type $context
-     * @return type
+     * @return HTML code for a button to pdf report task.
      */
     public function button_pdf($userid, $from, $to, $context) {
-        global $OUTPUT, $COURSE, $USER;
+        global $CFG;
 
-        // XSS security.
-        $capabilities = array('block/use_stats:seegroupdetails',
-                              'block/use_stats:seecoursedetails',
-                              'block/use_stats:seesitedetails');
-        if (!has_any_capability($capabilities, $context)) {
-            // Force report about yourself.
-            $userid = $USER->id;
+        if (block_use_stats_supports_feature('format/pdf')) {
+            include_once($CFG->dirroot.'/blocks/use_stats/pro/renderer.php');
+            $prorenderer = new block_use_stats_pro_renderer();
+            return $prorenderer->button_pdf($userid, $from, $to, $context);
         }
-
-        $config = get_config('block_use_stats');
-
-        $now = time();
-        $filename = 'report_user_'.$userid.'_'.date('Ymd_His', $now).'.pdf';
-
-        $reportscope = (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) ? 'fullcourse' : 'activities';
-        $params = array(
-            'id' => $COURSE->id,
-            'from' => $from,
-            'to' => $to,
-            'userid' => $userid,
-            'scope' => $reportscope,
-            'timesession' => $now,
-            'outputname' => $filename);
-
-        $url = new moodle_url('/report/trainingsessions/tasks/userpdfreportallcourses_batch_task.php', $params);
-
-        $str = '';
-        $str .= $OUTPUT->single_button($url, get_string('printpdf', 'block_use_stats'));
-
-        return $str;
+        return '';
     }
 }
