@@ -67,6 +67,8 @@ $string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
 $string['dimensionitem'] = 'Classes observables';
 $string['displayactivitiestime'] = 'Uniquement le temps passés dans les activités formalisées du cours.';
 $string['displaycoursetime'] = 'Temps complet du cours (tous les temps assignables au cours et à ses sous-contextes)';
+$string['emulatecommunity'] = 'Emuler la version communautaire';
+$string['emulatecommunity_desc'] = 'Si elle est activée, cette option force le composant à fonctionner en version communautaire. Certaines fonctionnalités ne seront plus disponibles.';
 $string['errornorecords'] = 'Aucune donnée de tracking';
 $string['eventscount'] = 'Nombre de hits';
 $string['eventusestatskeepalive'] = 'Maintien de session de formation';
@@ -80,6 +82,7 @@ $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthismoodlefrom'] = ' depuis ';
 $string['other'] = 'Autres zones hors cours';
 $string['othershort'] = 'Hors cours';
+$string['plugindist'] = 'Distribution du plugin';
 $string['pluginname'] = 'Mesure d\'activité';
 $string['printpdf'] = 'Exporter en PDF';
 $string['profilefieldcontrol'] = 'sur champ de profil';
@@ -94,3 +97,10 @@ $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // @DYNAK
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // @DYNAKEY.
 $string['youspent'] = 'Cumul&nbsp;:&ensp;';
+
+$string['plugindist_desc'] = '<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
+correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugn existe et est distribuée
+sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
+<p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
+<ul><li><a href="http://service.activeprolearn.com/local/shop/front/view.php?id=1">ActiveProLearn SAS</a></li>
+<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
