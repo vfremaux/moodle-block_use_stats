@@ -34,3 +34,4 @@ $plugin->release = '2.8.0 (build 2016111100)';
 
 // Non moodle attributes.
 $plugin->codeincrement = '2.8.0005';
+$plugin->privacy = 'dualrelease';
