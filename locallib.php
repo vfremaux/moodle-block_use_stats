@@ -553,16 +553,16 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     // Check assertions.
     if (!empty($aggregate['coursetotal'])) {
         foreach (array_keys($aggregate['coursetotal']) as $courseid) {
-            if ($aggregate['coursetotal'][$courseid]->events != 
-                        @$aggregate['course'][$courseid]->events + 
-                        @$aggregate['activities'][$courseid]->events + 
-                        @$aggregate['other'][$courseid]->events) {
+            $c = @$aggregate['course'][$courseid]->events;
+            $a = @$aggregate['activities'][$courseid]->events;
+            $o = @$aggregate['other'][$courseid]->events;
+            if ($aggregate['coursetotal'][$courseid]->events != $c + $a + $o) {
                 echo "Bad sumcheck on events for course $courseid <br/>";
             }
-            if ($aggregate['coursetotal'][$courseid]->elapsed != 
-                        @$aggregate['course'][$courseid]->elapsed + 
-                        @$aggregate['activities'][$courseid]->elapsed + 
-                        @$aggregate['other'][$courseid]->elapsed) {
+            $c = @$aggregate['course'][$courseid]->elapsed;
+            $a = @$aggregate['activities'][$courseid]->elapsed;
+            $o = @$aggregate['other'][$courseid]->elapsed;
+            if ($aggregate['coursetotal'][$courseid]->elapsed != $c + $a + $o) {
                 echo "Bad sumcheck on time for course $courseid <br/>";
             }
         }
@@ -910,7 +910,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
                 $result->user[$gap->userid]->lasthit = $gap->time;
             }
 
-            // user detail.
+            // User detail.
             if ($institutionresult) {
                 if (!array_key_exists($gap->institution, $result->institutions)) {
                     $result->institutions[$gap->institution] = $institutionid;
