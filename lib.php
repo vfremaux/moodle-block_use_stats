@@ -24,13 +24,14 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * This is part of the dual release distribution system.
- * Tells wether a feature is supported or not. Gives back the 
+ * Tells wether a feature is supported or not. Gives back the
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
  */
 function block_use_stats_supports_feature($feature) {
-    global $CFG;
     static $supports;
+
+    $config = get_config('block_use_stats');
 
     if (!isset($supports)) {
         $supports = array(
@@ -66,6 +67,18 @@ function block_use_stats_supports_feature($feature) {
 
     if (!in_array($subfeat, $supports[$versionkey][$feat])) {
         return false;
+    }
+
+    if (in_array($feat, $supports['community'])) {
+        if (in_array($subfeat, $supports['community'][$feat])) {
+            // If community exists, default path points community code.
+            if (isset($prefer[$feat][$subfeat])) {
+                // Configuration tells which location to prefer if explicit.
+                $versionkey = $prefer[$feat][$subfeat];
+            } else {
+                $versionkey = 'community';
+            }
+        }
     }
 
     return $versionkey;
