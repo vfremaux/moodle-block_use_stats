@@ -152,7 +152,7 @@ if ($ADMIN->fulltree) {
     }
 
     if (block_use_stats_supports_feature('emulate/community')) {
-        $settings->add(new admin_setting_heading('plugindisthdr', get_string('plugindist', 'block_use_stats')));
+        $settings->add(new admin_setting_heading('plugindisthdr', get_string('plugindist', 'block_use_stats'), ''));
 
         $key = 'block_dashboard/emulatecommunity';
         $label = get_string('emulatecommunity', 'block_use_stats');
