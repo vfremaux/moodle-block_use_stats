@@ -120,31 +120,31 @@ if ($ADMIN->fulltree) {
 
     if (block_use_stats_supports_feature('data/activetracking')) {
         $settings->add(new admin_setting_heading('activetracking', get_string('activetrackingparams', 'block_use_stats'), ''));
-    
+
         $key = 'block_use_stats/keepalive_delay';
         $label = get_string('configkeepalivedelay', 'block_use_stats');
         $desc = get_string('configkeepalivedelay_desc', 'block_use_stats');
         $settings->add(new admin_setting_configtext($key, $label, $desc, 600));
-    
+
         $ctloptions = array();
         $ctloptions['0'] = get_string('allusers', 'block_use_stats');
         $ctloptions['allow'] = get_string('allowrule', 'block_use_stats');
         $ctloptions['deny'] = get_string('denyrule', 'block_use_stats');
-    
+
         $key = 'block_use_stats/keepalive_rule';
         $label = get_string('configkeepaliverule', 'block_use_stats');
         $desc = get_string('configkeepaliverule_desc', 'block_use_stats');
         $settings->add(new admin_setting_configselect($key, $label, $desc, 'deny', $ctloptions));
-    
+
         $options = array();
         $options['capability'] = get_string('capabilitycontrol', 'block_use_stats');
         $options['profilefield'] = get_string('profilefieldcontrol', 'block_use_stats');
-    
+
         $key = 'block_use_stats/keepalive_control';
         $label = get_string('configkeepalivecontrol', 'block_use_stats');
         $desc = get_string('configkeepalivecontrol_desc', 'block_use_stats');
         $settings->add(new admin_setting_configselect($key, $label, $desc, 'capability', $options));
-    
+
         $key = 'block_use_stats/keepalive_control_value';
         $label = get_string('configkeepalivecontrolvalue', 'block_use_stats');
         $desc = get_string('configkeepalivecontrolvalue_desc', 'block_use_stats');
