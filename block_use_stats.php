@@ -205,7 +205,7 @@ class block_use_stats extends block_base {
 
             $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow';
 
-            $this->content->text .= "<!-- $timefrom / $now Ev : {$aggregate->events} -->";
+            $this->content->text .= "<!-- $timefrom / $now -->";
             $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
