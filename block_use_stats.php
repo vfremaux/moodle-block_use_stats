@@ -177,9 +177,13 @@ class block_use_stats extends block_base {
             if (debugging()) {
                 $cachestate = 'missed';
             }
-            $logs = use_stats_extract_logs($timefrom, $now, $userid);
+            if ($COURSE->id > SITEID) {
+                $logs = use_stats_extract_logs($timefrom, $now, $userid, $COURSE->id);
+            } else {
+                $logs = use_stats_extract_logs($timefrom, $now, $userid);
+            }
             if ($logs) {
-                $aggregate = use_stats_aggregate_logs($logs, 'module');
+                $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $timefrom, $now);
             }
             $cache->set($cachekey, serialize($aggregate));
 
@@ -201,6 +205,7 @@ class block_use_stats extends block_base {
 
             $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow';
 
+            $this->content->text .= "<!-- $timefrom / $now Ev : {$aggregate->events} -->";
             $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
             $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
@@ -457,9 +462,9 @@ class block_use_stats extends block_base {
     }
 
     public static function prepare_coursetable(&$aggregate, &$fulltotal, &$fullevents, $order = 'name') {
-        global $DB;
+        global $DB, $COURSE;
 
-        $config = get_config('bock_use_stats');
+        $config = get_config('block_use_stats');
 
         $courseelapsed = array();
         $courseshort = array();
@@ -484,7 +489,7 @@ class block_use_stats extends block_base {
                 }
 
                 if (empty($config->displayothertime)) {
-                    if (!$courseid) {
+                    if (!$courseid || (($COURSE->id > SITEID) && ($courseid == 1))) {
                         continue;
                     }
                 }
