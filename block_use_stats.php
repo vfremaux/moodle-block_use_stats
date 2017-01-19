@@ -177,7 +177,7 @@ class block_use_stats extends block_base {
             if (debugging()) {
                 $cachestate = 'missed';
             }
-            if ($COURSE->id > SITEID) {
+            if (($COURSE->id > SITEID) && !empty($config->displayothertime)) {
                 $logs = use_stats_extract_logs($timefrom, $now, $userid, $COURSE->id);
             } else {
                 $logs = use_stats_extract_logs($timefrom, $now, $userid);
@@ -488,7 +488,7 @@ class block_use_stats extends block_base {
                     $course->idnumber = '';
                 }
 
-                if (empty($config->displayothertime)) {
+                if (!$config->displayothertime) {
                     if (!$courseid || (($COURSE->id > SITEID) && ($courseid == 1))) {
                         continue;
                     }
