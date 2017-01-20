@@ -121,35 +121,8 @@ class block_use_stats extends block_base {
         }
 
         $id = optional_param('id', 0, PARAM_INT);
-        if (empty($config->fromwhen)) {
-            $config->fromwhen = 60;
-            set_config('fromwhen', 60, 'block_use_stats');
-        }
 
-        if (!isset($SESSION->usestatsfromwhen)) {
-            $SESSION->usestatsfromwhen = $config->fromwhen;
-        }
-
-        $fromwhen = $config->fromwhen;
-        if ($config->backtrackmode == 'fixeddate') {
-            if ($COURSE->id == SITEID) {
-                $timefrom = $USER->firstaccess;
-            } else {
-                $timefrom = $COURSE->startdate;
-            }
-            if ($config->backtracksource == 'studentchoice') {
-                $htmlkey = 'ts_horizon'.$context->id;
-                if ($tshorizon = optional_param($htmlkey, '', PARAM_TEXT)) {
-                    $fromwhen = $tshorizon;
-                    $timefrom = strtotime($tshorizon);
-                }
-            }
-        } else {
-            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
-                $daystocompilelogs = $fromwhen * DAYSECS;
-                $timefrom = time() - $daystocompilelogs;
-            }
-        }
+        list($from, $to) = $this->get_range();
 
         $capabilities = array('block/use_stats:seesitedetails',
                               'block/use_stats:seecoursedetails',
@@ -166,8 +139,7 @@ class block_use_stats extends block_base {
          * We want to know the effective logrange against required period to
          * query the cache
          */
-        $now = time();
-        $logrange = block_use_stats_get_log_range($userid, $timefrom, $now);
+        $logrange = block_use_stats_get_log_range($userid, $from, $to);
 
         $cachekey = $userid.'_'.$logrange->min.'_'.$logrange->max;
         $userkeys = unserialize($cache->get('user'.$userid));
@@ -178,12 +150,12 @@ class block_use_stats extends block_base {
                 $cachestate = 'missed';
             }
             if (($COURSE->id > SITEID) && !empty($config->displayothertime)) {
-                $logs = use_stats_extract_logs($timefrom, $now, $userid, $COURSE->id);
+                $logs = use_stats_extract_logs($from, $to, $userid, $COURSE->id);
             } else {
-                $logs = use_stats_extract_logs($timefrom, $now, $userid);
+                $logs = use_stats_extract_logs($from, $to, $userid);
             }
             if ($logs) {
-                $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $timefrom, $now);
+                $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $from, $to);
             }
             $cache->set($cachekey, serialize($aggregate));
 
@@ -205,17 +177,24 @@ class block_use_stats extends block_base {
 
             $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow';
 
-            $this->content->text .= "<!-- $timefrom / $now -->";
+            $this->content->text .= "<!-- $from / $to -->";
             $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
-            $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
 
             $strbuffer = $renderer->per_course($aggregate, $fulltotal);
 
             $this->content->text .= get_string('youspent', 'block_use_stats');
             $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
-            $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
-            $this->content->text .= userdate($timefrom);
+            if ($config->backtrackmode == 'sliding') {
+                $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
+                $this->content->text .= userdate($from);
+            } else {
+                $this->content->text .= '&ensp;'.core_text::strtolower(get_string('fromrange', 'block_use_stats'));
+                $this->content->text .= userdate($from);
+                $this->content->text .= get_string('to', 'block_use_stats');
+                $this->content->text .= userdate($to);
+            }
             if (empty($this->config->hidecourselist)) {
                 $this->content->text .= $strbuffer;
             }
@@ -238,7 +217,7 @@ class block_use_stats extends block_base {
 
             if (has_capability('block/use_stats:export', $context)) {
                 if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
-                    $button = $renderer->button_pdf($userid, $timefrom, time(), $context);
+                    $button = $renderer->button_pdf($userid, $from, $to, $context);
                     $this->content->text .= '<div class="usestats-pdf">'.$button.'</div>';
                 }
             }
@@ -246,11 +225,72 @@ class block_use_stats extends block_base {
             $this->content->text = '<div class="message">';
             $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
             $this->content->text .= '<br/>';
-            $this->content->text .= $renderer->change_params_form($context, $id, $fromwhen, $userid);
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
             $this->content->text .= '</div>';
         }
 
         return $this->content;
+    }
+
+    protected function get_range() {
+        global $COURSE, $SESSION, $USER;
+
+        $config = get_config('block_use_stats');
+        $context = context_block::instance($this->instance->id);
+
+        if ($config->backtrackmode == 'fixeddate') {
+
+            // Choose default.
+            if ($COURSE->id == SITEID) {
+                $from = $USER->firstaccess;
+            } else {
+                $from = $COURSE->startdate;
+            }
+            $to = time();
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsfromwhen)) {
+                $SESSION->usestatsfrom = $from;
+            }
+
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsto)) {
+                $SESSION->usestatsfrom = $to;
+            }
+
+            if ($config->backtracksource == 'studentchoice') {
+                $htmlkey = 'ts_from'.$context->id;
+                if ($tsfrom = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    $from = strtotime($tsfrom);
+                }
+
+                $htmlkey = 'ts_to'.$context->id;
+                if ($tsto = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    $to = strtotime($tsto);
+                }
+            }
+
+        } else {
+            // This config only for slidingrange.
+            if (empty($config->fromwhen)) {
+                $config->fromwhen = 60;
+                set_config('fromwhen', 60, 'block_use_stats');
+            }
+    
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsfromwhen)) {
+                $SESSION->usestatsfromwhen = $config->fromwhen;
+            }
+
+            $fromwhen = $config->fromwhen;
+            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
+                $daystocompilelogs = $fromwhen * DAYSECS;
+                $now = time();
+                $from = $now - $daystocompilelogs;
+                $to = $now;
+            }
+        }
+
+        return array($from, $to);
     }
 
     /**
@@ -543,6 +583,8 @@ class block_use_stats extends block_base {
     public function get_required_javascript() {
         global $CFG, $PAGE;
 
+        $config = get_config('block_use_stats');
+
         parent::get_required_javascript();
 
         $PAGE->requires->jquery();
@@ -550,6 +592,6 @@ class block_use_stats extends block_base {
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.js', true);
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar_locales.js', true);
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
-        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_dhx_web.css', true);
+        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_'.$config->calendarskin.'.css', true);
     }
 }
