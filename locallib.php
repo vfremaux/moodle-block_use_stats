@@ -84,26 +84,52 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $courseenrolclause = '';
     $inparams = array();
 
-    if (is_object($course)) {
-        if (!empty($course->id)) {
-            $courseclause = " AND {$courseparm} = $course->id ";
-            list($insql, $inparams) = $DB->get_in_or_equal(array($course->id));
+    if (empty($config->displayothertime)) {
+        if (is_object($course)) {
+            if (!empty($course->id)) {
+                $courseclause = " AND {$courseparm} = $course->id ";
+                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id));
+                $courseenrolclause = "e.courseid $insql AND ";
+            }
+        } else if (is_integer($course)) {
+            if (!empty($course)) {
+                $courseclause = " AND {$courseparm} = $course ";
+                list($insql, $inparams) = $DB->get_in_or_equal(array($course));
+                $courseenrolclause = "e.courseid $insql AND ";
+            }
+        } else if (is_array($course)) {
+            // Finish solving from value as MIN(firstassignement).
+            foreach ($course as $c) {
+                $cids[] = $c->id;
+            }
+            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
+            list($insql, $inparams) = $DB->get_in_or_equal($cids);
             $courseenrolclause = "e.courseid $insql AND ";
         }
-    } else if (is_integer($course)) {
-        if (!empty($course)) {
-            $courseclause = " AND {$courseparm} = $course ";
-            list($insql, $inparams) = $DB->get_in_or_equal(array($course));
+    } else {
+        if (is_object($course)) {
+            if (!empty($course->id)) {
+                $courseclause = " AND {$courseparm} IN($course->id, 0, 1) ";
+                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id, 0, 1));
+                $courseenrolclause = "e.courseid $insql AND ";
+            }
+        } else if (is_integer($course)) {
+            if (!empty($course)) {
+                $courseclause = " AND {$courseparm} IN ($course, 0, 1) ";
+                list($insql, $inparams) = $DB->get_in_or_equal(array($course, 0, 1));
+                $courseenrolclause = "e.courseid $insql AND ";
+            }
+        } else if (is_array($course)) {
+            // Finish solving from value as MIN(firstassignement).
+            foreach ($course as $c) {
+                $cids[] = $c->id;
+            }
+            $cids[] = 0;
+            $cids[] = 1;
+            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
+            list($insql, $inparams) = $DB->get_in_or_equal($cids);
             $courseenrolclause = "e.courseid $insql AND ";
         }
-    } else if (is_array($course)) {
-        // Finish solving from value as MIN(firstassignement).
-        foreach ($course as $c) {
-            $cids[] = $c->id;
-        }
-        $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-        list($insql, $inparams) = $DB->get_in_or_equal($cids);
-        $courseenrolclause = "e.courseid $insql AND ";
     }
 
     // We search first enrol time still active for this user.
