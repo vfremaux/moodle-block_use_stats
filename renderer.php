@@ -98,7 +98,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @param type $userid
      * @return string
      */
-    public function change_params_form($context, $id, $fromwhen, $userid) {
+    public function change_params_form($context, $id, $from, $to, $userid) {
         global $USER, $DB, $COURSE;
 
         $config = get_config('block_use_stats');
@@ -146,28 +146,46 @@ class block_use_stats_renderer extends plugin_renderer_base {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
                 $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-                $str .= html_writer::select($timemenu, 'ts_from', $fromwhen, 'choose', $attrs);
+                $str .= html_writer::select($timemenu, 'ts_from', floor($to - $from / DAYSECS), 'choose', $attrs);
             }
         } else {
             if (@$config->backtracksource == 'studentchoice') {
-                $str .= '<br/>'.get_string('from', 'block_use_stats');
-                $htmlkey = 'ts_horizon'.$context->id;
-                $str .= ': <input type="text"
-                                  size="10"
-                                  id="date-'.$htmlkey.'"
-                                  name="'.$htmlkey.'"
-                                  value="'.$fromwhen.'"
+
+                $str .= '<br/>'.get_string('fromrange', 'block_use_stats');
+                $str .= $this->calendar('ts_from'.$context->id, $from);
+
+                $str .= '&ensp;'.get_string('to', 'block_use_stats');
+
+                $str .= $this->calendar('ts_to'.$context->id, $to);
+
+                $str .= '&ensp;<input type="button"
+                                  id="go-usestats-'.$context->id.'"
+                                  name="go-usestats-'.$context->id.'"
+                                  value="'.get_string('go', 'block_use_stats').'"
+                                  onclick="document.ts_changeParms.submit()"
                                   />';
-                $str .= '<script type="text/javascript">'."\n";
-                $str .= 'var '.$htmlkey.'Cal = new dhtmlXCalendarObject(["date-'.$htmlkey.'"]);'."\n";
-                $str .= $htmlkey.'Cal.loadUserLanguage(\''.current_language().'_utf8\');'."\n";
-                $str .= $htmlkey.'Cal.attachEvent("onClick", function() {
-                    document.ts_changeParms.submit();
-                });'."\n";
-                $str .= '</script>'."\n";
             }
         }
         $str .= "</form><br/>";
+
+        return $str;
+    }
+
+    protected function calendar($htmlkey, $value) {
+
+        $valuestr = date('Y-m-d', $value);
+        $str = '';
+
+        $str .= '<input type="text"
+                          size="10"
+                          id="date-'.$htmlkey.'"
+                          name="'.$htmlkey.'"
+                          value="'.$valuestr.'"
+                          />';
+        $str .= '<script type="text/javascript">'."\n";
+        $str .= 'var '.$htmlkey.'Cal = new dhtmlXCalendarObject(["date-'.$htmlkey.'"]);'."\n";
+        $str .= $htmlkey.'Cal.loadUserLanguage(\''.current_language().'_utf8\');'."\n";
+        $str .= '</script>'."\n";
 
         return $str;
     }
