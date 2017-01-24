@@ -220,7 +220,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * @param array $logs
  * @param string $dimension
  */
-function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0, $progress = '') {
+function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0, $progress = '', $nosessions = false) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
 
     $backdebug = 0;
@@ -594,40 +594,42 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         }
     }
 
-    // Finish last session.
-    if (!empty($aggregate['sessions'])) {
-        @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
-    }
-
-    // Explicit session dates.
-    if (!empty($aggregate['sessions'])) {
-        foreach ($aggregate['sessions'] as $sessid => $session) {
-            $aggregate['sessions'][$sessid]->start = date('Y-m-d H:i:s', 0 + @$session->sessionstart);
-            $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
-            $dt = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
-            $aggregate['sessions'][$sessid]->duration = $dt;
+    if (!$nosessions) {
+        // Finish last session.
+        if (!empty($aggregate['sessions'])) {
+            @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
         }
 
-        // Store sessions in base.
-        foreach ($aggregate['sessions'] as $session) {
-            if (empty($session->sessionstart)) {
-                continue;
+        // Explicit session dates.
+        if (!empty($aggregate['sessions'])) {
+            foreach ($aggregate['sessions'] as $sessid => $session) {
+                $aggregate['sessions'][$sessid]->start = date('Y-m-d H:i:s', 0 + @$session->sessionstart);
+                $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
+                $dt = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
+                $aggregate['sessions'][$sessid]->duration = $dt;
             }
 
-            $params = array('userid' => $currentuser, 'sessionstart' => $session->sessionstart);
-            if (!$oldrec = $DB->get_record('block_use_stats_session', $params)) {
-                $rec = new StdClass;
-                $rec->userid = $currentuser;
-                $rec->sessionstart = $session->sessionstart;
-                $rec->sessionend = @$session->sessionend;
-                if (!empty($session->courses)) {
-                    $rec->courses = implode(',', array_keys($session->courses));
+            // Store sessions in base.
+            foreach ($aggregate['sessions'] as $session) {
+                if (empty($session->sessionstart)) {
+                    continue;
                 }
-                $DB->insert_record('block_use_stats_session', $rec);
-            } else {
-                if (!$oldrec->sessionend && !empty($session->sessionend)) {
-                    $oldrec->sessionend = $session->sessionend;
-                    $DB->update_record('block_use_stats_session', $oldrec);
+
+                $params = array('userid' => $currentuser, 'sessionstart' => $session->sessionstart);
+                if (!$oldrec = $DB->get_record('block_use_stats_session', $params)) {
+                    $rec = new StdClass;
+                    $rec->userid = $currentuser;
+                    $rec->sessionstart = $session->sessionstart;
+                    $rec->sessionend = @$session->sessionend;
+                    if (!empty($session->courses)) {
+                        $rec->courses = implode(',', array_keys($session->courses));
+                    }
+                    $DB->insert_record('block_use_stats_session', $rec);
+                } else {
+                    if (!$oldrec->sessionend && !empty($session->sessionend)) {
+                        $oldrec->sessionend = $session->sessionend;
+                        $DB->update_record('block_use_stats_session', $oldrec);
+                    }
                 }
             }
         }
