@@ -80,6 +80,17 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configdisplayactivitytimeonly_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $displayopts));
 
+    $options = array('dhx_web' => 'web',
+                     'dhx_blue' => 'blue',
+                     'dhx_black' => 'black',
+                     'dhx_skyblue' => 'skyblue',
+                     'dhx_terrace' => 'terrace',
+                     'omega' => 'omega');
+    $key = 'block_use_stats/calendarskin';
+    $label = get_string('configcalendarskin', 'block_use_stats');
+    $desc = get_string('configcalendarskin_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configselect($key, $label, $desc, 'web', $options));
+
     $settings->add(new admin_setting_heading('loganalysisparams', get_string('loganalysisparams', 'block_use_stats'), ''));
 
     $key = 'block_use_stats/threshold';
