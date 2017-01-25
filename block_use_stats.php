@@ -276,7 +276,7 @@ class block_use_stats extends block_base {
                 $config->fromwhen = 60;
                 set_config('fromwhen', 60, 'block_use_stats');
             }
-    
+
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsfromwhen)) {
                 $SESSION->usestatsfromwhen = $config->fromwhen;
