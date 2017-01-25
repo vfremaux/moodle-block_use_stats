@@ -595,6 +595,17 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
     }
 
     if (!$nosessions) {
+
+        $params = array('userid' => $currentuser);
+        $sessionsids = array();
+        $usersessions = array();
+        if ($allsessions = $DB->get_records('block_use_stats_session', $params, 'sessionstart', 'id,sessionstart,sessionend')) {
+            foreach ($allsessions as $sess) {
+                $usersessions[] = $sess->sessionstart;
+                $sessionsids[$sess->sessionstart] = $sess;
+            }
+        }
+
         // Finish last session.
         if (!empty($aggregate['sessions'])) {
             @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
@@ -615,8 +626,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     continue;
                 }
 
-                $params = array('userid' => $currentuser, 'sessionstart' => $session->sessionstart);
-                if (!$oldrec = $DB->get_record('block_use_stats_session', $params)) {
+                if (empty($usersessions) || !in_array($session->sessionstart, $usersessions)) {
                     $rec = new StdClass;
                     $rec->userid = $currentuser;
                     $rec->sessionstart = $session->sessionstart;
@@ -626,7 +636,9 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     }
                     $DB->insert_record('block_use_stats_session', $rec);
                 } else {
-                    if (!$oldrec->sessionend && !empty($session->sessionend)) {
+                    $oldrec = new StdClass;
+                    $oldrec->id = $sessionsids[$session->sessionstart]->id;
+                    if (!empty($session->sessionend) && ($session->sessionend > $sessionsids[$session->sessionstart]->sessionend)) {
                         $oldrec->sessionend = $session->sessionend;
                         $DB->update_record('block_use_stats_session', $oldrec);
                     }
@@ -981,6 +993,7 @@ function use_stats_render($sessions) {
  */
 function use_stats_add_module_from_context(&$log) {
     global $DB;
+    static $cmnames = array();
 
     $log->module = 'undefined';
     switch ($log->contextlevel) {
@@ -998,10 +1011,13 @@ function use_stats_add_module_from_context(&$log) {
             $log->cmid = 0;
             break;
         case CONTEXT_MODULE:
-            $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
-            $moduleid = $DB->get_field('course_modules', 'module', array('id' => $cmid));
-            $modulename = $DB->get_field('modules', 'name', array('id' => $moduleid));
-            $log->module = $modulename;
+            if (!array_key_exists($log->contextid, $cmnames)) {
+                $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
+                $moduleid = $DB->get_field('course_modules', 'module', array('id' => $cmid));
+                $cmnames[$log->contextid] = $DB->get_field('modules', 'name', array('id' => $moduleid));
+            }
+
+            $log->module = $cmnames[$log->contextid];
             $log->cmid = 0 + @$cmid; // Protect in case of faulty module.
             break;
         default:
