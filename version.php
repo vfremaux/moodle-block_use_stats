@@ -33,5 +33,5 @@ $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '2.7.0 (build 2016111100)';
 
 // Non moodle attributes.
-$plugin->codeincrement = '2.7.0006';
+$plugin->codeincrement = '2.7.0007';
 $plugin->privacy = 'dualrelease';
