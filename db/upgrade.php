@@ -245,7 +245,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
             $table->add_field('userid', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
             $table->add_field('sessionstart', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, XMLDB_NOTNULL, null, null, null, '0');
             $table->add_field('sessionend', XMLDB_TYPE_INTEGER, '11', XMLDB_UNSIGNED, null, null, null, null, '0');
-            $table->add_field('courses', XMLDB_TYPE_CHAR, '255', null, null, null, null, null, null);
+            $table->add_field('courses', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
 
             // Adding keys to table use_stats.
             $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
@@ -256,6 +256,17 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Use_stats savepoint reached.
         upgrade_block_savepoint(true, 2016111100, 'use_stats');
+    }
+
+    if ($oldversion < 2017021600) {
+        // Define table use_stats_session to be created.
+        $table = new xmldb_table('block_use_stats_session');
+
+        $field = new xmldb_field('courses', XMLDB_TYPE_TEXT, 'small', null, null, null);
+        $dbman->change_field_precision($table, $field);
+
+        // Use_stats savepoint reached.
+        upgrade_block_savepoint(true, 2017021600, 'use_stats');
     }
 
     return $result;
