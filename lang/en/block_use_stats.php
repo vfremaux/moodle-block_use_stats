@@ -95,6 +95,7 @@ $string['other'] = 'Other out of course presence';
 $string['othershort'] = 'OTHER';
 $string['plugindist'] = 'Plugin distribution';
 $string['pluginname'] = 'Use Stats';
+$string['pluginname_desc'] = 'A block that compiles session times';
 $string['printpdf'] = 'Print PDF';
 $string['profilefieldcontrol'] = 'Profile Field';
 $string['showdetails'] = 'Show details';
