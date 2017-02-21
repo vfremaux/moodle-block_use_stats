@@ -127,9 +127,46 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0){
             // do not loose last lap, but set sometime to it
             // if ($lap > $CFG->block_use_stats_threshold * MINSECS) $lap = ($CFG->block_use_stats_threshold * MINSECS) / 2;
             $sessionpunch = false;
+<<<<<<< HEAD
             if ($lap > $CFG->block_use_stats_threshold * MINSECS){
             	$lap = $CFG->block_use_stats_lastpingcredit * MINSECS;
             	if ($lognext->action != 'login' && $log->action != 'login') $sessionpunch = true;
+=======
+            if ($lap > $threshold) {
+                $lap = $lastpingcredit;
+
+                if (!block_use_stats_is_login_event($lognext->action)) {
+                    $sessionpunch = true;
+                }
+            }
+
+            if ($automatondebug || $backdebug) {
+                if ($log->module != 'course') {
+                    $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
+                } else {
+                    $logbuffer .= "[S-$sessionid/$log->id:course>{$log->course}:";
+                }
+                $logbuffer .= "{$log->action}] (".date('Y-m-d H:i:s', $log->time)." | $lap) ";
+            }
+
+            // Discard unsignificant cases.
+            if (block_use_stats_is_logout_event($log->action)) {
+                @$aggregate['sessions'][$sessionid]->elapsed += $memlap;
+                @$aggregate['sessions'][$sessionid]->sessionend = $log->time;
+                $memlap = 0;
+                if ($automatondebug || $backdebug) {
+                    $logbuffer .= " ... (X) finish session on clean loggout\n";
+                }
+                continue;
+            }
+
+            if ($log->$dimension == 'system' and $log->action == 'failed') {
+                $memlap = 0;
+                if ($automatondebug || $backdebug) {
+                    $logbuffer .= "\n";
+                }
+                continue;
+>>>>>>> MOODLE_32_STABLE
             }
 
             switch($dimension){
@@ -373,6 +410,7 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed += $lap[$userid];
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->events += 1;
             } else {
+<<<<<<< HEAD
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->elapsed = $lap[$userid];
                 $aggregate[$userid][$log[$userid]->$dimension][$log[$userid]->cmid]->events = 1;
             }
@@ -461,6 +499,139 @@ function use_stats_aggregate_logs_per_user($logs, $dimension, $origintime = 0){
 			}
             
             // $origintime = $log[$userid]->time;
+=======
+                $log->module = 'system';
+            }
+            $log->cmid = 0;
+            break;
+        case CONTEXT_USER:
+            $log->module = 'user';
+            $log->cmid = 0;
+            break;
+        case CONTEXT_MODULE:
+            $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
+            if (!array_key_exists($log->contextid, $cmnames)) {
+                $moduleid = $DB->get_field('course_modules', 'module', array('id' => $cmid));
+                $cmnames[$log->contextid] = $DB->get_field('modules', 'name', array('id' => $moduleid));
+            }
+
+            $log->module = $cmnames[$log->contextid];
+            $log->cmid = 0 + @$cmid; // Protect in case of faulty module.
+            break;
+        default:
+            $log->cmid = 0;
+            $log->module = 'course';
+            break;
+    }
+}
+
+/**
+ * special time formating,
+ * @see report/trainingsessions/locallib.php§report_trainingsessions_format_time();
+ */
+function block_use_stats_format_time($timevalue) {
+    if ($timevalue) {
+        $secs = $timevalue % 60;
+        $mins = floor($timevalue / 60);
+        $hours = floor($mins / 60);
+        $mins = $mins % 60;
+
+        if ($hours > 0) {
+            return "{$hours}h {$mins}m {$secs}s";
+        }
+        if ($mins > 0) {
+            return "{$mins}m {$secs}s";
+        }
+        return "{$secs}s";
+    }
+    return '0s';
+}
+
+/**
+ * Obsolete: unused function
+ * @todo Remove this function.
+ */
+function block_use_stats_render_aggregate(&$aggregate) {
+    global $DB;
+
+    echo '<div style="background-color:#f0f0f0;padding:10px;border:1px solid #c0c0c0;border-radius:5px">';
+    echo '<h3>User</h3>';
+    echo '<table width="100%">';
+    foreach ($aggregate['user'] as $courseid => $usertotal) {
+        echo '<tr>';
+        echo '<td width="40%"></td>';
+        echo '<td width="20%">'.$usertotal->elapsed.'</td>';
+        echo '<td width="20%">'.block_use_stats_format_time($usertotal->elapsed).'</td>';
+        echo '<td width="20%">'.$usertotal->events.'</td>';
+        echo '</tr>';
+    }
+
+    echo '<h3>Course total</h3>';
+    echo '<table width="100%">';
+    foreach ($aggregate['coursetotal'] as $courseid => $coursetotal) {
+        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+        echo '<tr>';
+        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+        echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
+        echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+        echo '<td width="20%">'.$coursetotal->events.'</td>';
+        echo '</tr>';
+    }
+
+    echo '<h3>In course</h3>';
+    echo '<table width="100%">';
+    foreach ($aggregate['course'] as $courseid => $coursetotal) {
+        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+        echo '<tr>';
+        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+        echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
+        echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+        echo '<td width="20%">'.$coursetotal->events.'</td>';
+        echo '</tr>';
+    }
+
+    echo '<h3>Activities</h3>';
+    echo '<table width="100%">';
+    foreach ($aggregate['activities'] as $courseid => $activitytotal) {
+        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+        echo '<tr>';
+        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+        echo '<td width="20%">'.$activitytotal->elapsed.'</td>';
+        echo '<td width="20%">'.block_use_stats_format_time($activitytotal->elapsed).'</td>';
+        echo '<td width="20%">'.$activitytotal->events.'</td>';
+        echo '</tr>';
+    }
+
+    echo '<h3>Other</h3>';
+    echo '<table width="100%">';
+    foreach ($aggregate['other'] as $courseid => $othertotal) {
+        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+        echo '<tr>';
+        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+        echo '<td width="20%">'.$othertotal->elapsed.'</td>';
+        echo '<td width="20%">'.block_use_stats_format_time($othertotal->elapsed).'</td>';
+        echo '<td width="20%">'.$othertotal->events.'</td>';
+        echo '</tr>';
+    }
+    echo '</table>';
+
+    $notdisplay = array('coursetotal', 'activities', 'other', 'sessions', 'user', 'course', 'system');
+    foreach ($aggregate as $key => $subs) {
+        if (in_array($key, $notdisplay)) {
+            continue;
+        }
+        echo '<h3>'.$key.'</h3>';
+        echo '<table width="100%">';
+        foreach ($subs as $cmid => $cmtotal) {
+            $instanceid = $DB->get_field('course_modules', 'instance', array('id' => $cmid));
+            $instancename = $DB->get_field($key, 'name', array('id' => $instanceid));
+            echo '<tr>';
+            echo '<td width="40%">CM'.$cmid.' '.$instancename.'</td>';
+            echo '<td width="20%">'.$cmtotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($cmtotal->elapsed).'</td>';
+            echo '<td width="20%">'.$cmtotal->events.'</td>';
+            echo '</tr>';
+>>>>>>> MOODLE_32_STABLE
         }
     }
     return $aggregate;    
