@@ -304,7 +304,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             }
 
             if ($automatondebug || $backdebug) {
-                $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
+                if ($log->module != 'course') {
+                    $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
+                } else {
+                    $logbuffer .= "[S-$sessionid/$log->id:course>{$log->course}:";
+                }
                 $logbuffer .= "{$log->action}] (".date('Y-m-d H:i:s', $log->time)." | $lap) ";
             }
 
@@ -1011,8 +1015,8 @@ function use_stats_add_module_from_context(&$log) {
             $log->cmid = 0;
             break;
         case CONTEXT_MODULE:
+            $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
             if (!array_key_exists($log->contextid, $cmnames)) {
-                $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
                 $moduleid = $DB->get_field('course_modules', 'module', array('id' => $cmid));
                 $cmnames[$log->contextid] = $DB->get_field('modules', 'name', array('id' => $moduleid));
             }
