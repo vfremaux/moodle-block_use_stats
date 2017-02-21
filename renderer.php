@@ -99,7 +99,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @return string
      */
     public function change_params_form($context, $id, $from, $to, $userid) {
-        global $USER, $DB, $COURSE;
+        global $USER, $DB, $COURSE, $SESSION;
 
         $config = get_config('block_use_stats');
 
@@ -154,19 +154,34 @@ class block_use_stats_renderer extends plugin_renderer_base {
                 $str .= '<br/>'.get_string('fromrange', 'block_use_stats');
                 $str .= $this->calendar('ts_from'.$context->id, $from);
 
-                $str .= '&ensp;'.get_string('to', 'block_use_stats');
+                $str .= '(0h00)&ensp;'.get_string('to', 'block_use_stats');
 
-                $str .= $this->calendar('ts_to'.$context->id, $to);
+                $str .= $this->calendar('ts_to'.$context->id, $to).'(23h59)';
 
+                $checked = '';
+                if ($SESSION->usestatstoenable = optional_param('usestatstoenable', false, PARAM_BOOL)) {
+                    $checked = 'checked="checked"';
+                }
+
+                $jshandler = 'toggleusestatsto('.$context->id.')';
+                $str .= '&nbsp;<input type="checkbox" name="usestatstoenable" value="1" '.$checked.' onchange="'.$jshandler.'" />';
                 $str .= '&ensp;<input type="button"
                                   id="go-usestats-'.$context->id.'"
                                   name="go-usestats-'.$context->id.'"
                                   value="'.get_string('go', 'block_use_stats').'"
                                   onclick="document.ts_changeParms.submit()"
                                   />';
+
+                $state = ($SESSION->usestatstoenable) ? 'false' : 'true';
+                $date = date('Y-m-d', time()); // Force at "tomorrow" when disabled.
+                $str .= '
+<script type="text/javascript">
+initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
+</script>
+';
             }
         }
-        $str .= "</form><br/>";
+        $str .= '</form><br/>';
 
         return $str;
     }
