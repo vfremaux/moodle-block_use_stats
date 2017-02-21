@@ -248,6 +248,7 @@ class block_use_stats extends block_base {
                 $from = $COURSE->startdate;
             }
             $to = time();
+
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsfromwhen)) {
                 $SESSION->usestatsfrom = $from;
@@ -255,7 +256,7 @@ class block_use_stats extends block_base {
 
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsto)) {
-                $SESSION->usestatsfrom = $to;
+                $SESSION->usestatsto = $to;
             }
 
             if ($config->backtracksource == 'studentchoice') {
@@ -266,8 +267,16 @@ class block_use_stats extends block_base {
 
                 $htmlkey = 'ts_to'.$context->id;
                 if ($tsto = optional_param($htmlkey, '', PARAM_TEXT)) {
-                    $to = strtotime($tsto);
+                    // When coming from calendar, time is 00h00 of the given day.
+                    $to = strtotime($tsto) + DAYSECS - 5; // Push up to 23:59:55.
+                    $SESSION->usestatsto = $to;
                 }
+            }
+
+            $SESSION->usestatsenable = optional_param('usestatsenable', 0, PARAM_BOOL);
+            if (empty($SESSION->usestatstoenable)) {
+                // Force to to track until latest moves.
+                $to = time() + 120;
             }
 
         } else {
@@ -290,7 +299,6 @@ class block_use_stats extends block_base {
                 $to = $now;
             }
         }
-
         return array($from, $to);
     }
 
@@ -590,6 +598,7 @@ class block_use_stats extends block_base {
 
         $PAGE->requires->jquery();
 
+        $PAGE->requires->js('/blocks/use_stats/js/usestats.js', true);
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.js', true);
         $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar_locales.js', true);
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
