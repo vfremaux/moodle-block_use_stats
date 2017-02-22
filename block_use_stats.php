@@ -142,6 +142,7 @@ class block_use_stats extends block_base {
             	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
                 $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id, firstname, lastname');
             }
+<<<<<<< HEAD
             else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
             	$mygroups = groups_get_user_groups($COURSE->id);
             	$users = array();
@@ -155,14 +156,54 @@ class block_use_stats extends block_base {
                 $usermenu = array();
                 foreach($users as $user){
                     $usermenu[$user->id] = fullname($user);
+=======
+            $to = time();
+
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsfromwhen)) {
+                $SESSION->usestatsfrom = $from;
+            }
+
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsto)) {
+                $SESSION->usestatsto = $to;
+            }
+
+            if ($config->backtracksource == 'studentchoice') {
+                $htmlkey = 'ts_from'.$context->id;
+                if ($tsfrom = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    $from = strtotime($tsfrom);
+                }
+
+                $htmlkey = 'ts_to'.$context->id;
+                if ($tsto = optional_param($htmlkey, '', PARAM_TEXT)) {
+                    // When coming from calendar, time is 00h00 of the given day.
+                    $to = strtotime($tsto) + DAYSECS - 5; // Push up to 23:59:55.
+                    $SESSION->usestatsto = $to;
+>>>>>>> MOODLE_32_STABLE
                 }
 	            $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
             }
+<<<<<<< HEAD
             $this->content->text .= get_string('from', 'block_use_stats');
             $this->content->text .= "<select name=\"ts_from\" onChange=\"document.ts_changeParms.submit();\">";
             foreach(array(5,15,30,60,90,365) as $interval){
                 $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
                 $this->content->text .= "<option value=\"{$interval}\" {$selected} >{$interval} ".get_string('days')."</option>";
+=======
+
+            $SESSION->usestatsenable = optional_param('usestatsenable', 0, PARAM_BOOL);
+            if (empty($SESSION->usestatstoenable)) {
+                // Force to to track until latest moves.
+                $to = time() + 120;
+            }
+
+        } else {
+            // This config only for slidingrange.
+            if (empty($config->fromwhen)) {
+                $config->fromwhen = 60;
+                set_config('fromwhen', 60, 'block_use_stats');
+>>>>>>> MOODLE_32_STABLE
             }
             $this->content->text .= "</select>";
             $this->content->text .= "</form><br/>";
@@ -192,6 +233,70 @@ class block_use_stats extends block_base {
                 $fromclause = (!empty($fromwhen)) ? "&amp;ts_from={$fromwhen}" : '' ;
                 $this->content->text .= "<a href=\"{$CFG->wwwroot}/blocks/use_stats/detail.php?id={$this->instance->id}&amp;userid={$userid}{$fromclause}&course={$COURSE->id}\">$showdetailstr</a>";
             }
+<<<<<<< HEAD
+=======
+        }
+        return array($from, $to);
+    }
+
+    /**
+     * Used by the component associated task.
+     */
+    public static function cron_task() {
+        global $DB;
+
+        $config = get_config('block_use_stats');
+
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers(use_stats_get_reader());
+        $reader = reset($readers);
+
+        if (empty($reader)) {
+            mtrace('No log reader.');
+            return false; // No log reader found.
+        }
+
+        if ($reader instanceof \logstore_standard\log\store) {
+            $courseparm = 'courseid';
+        } else if ($reader instanceof \logstore_legacy\log\store) {
+            $courseparm = 'course';
+        } else {
+            mtrace('Unsupported log reader.');
+            return;
+        }
+
+        if (!isset($config->lastcompiled)) {
+            set_config('lastcompiled', '0', 'block_use_stats');
+            $config->lastcompiled = 0;
+        }
+
+        mtrace("\n".'... Compiling gaps from : '.$config->lastcompiled);
+
+        // Feed the table with log gaps.
+        $previouslog = array();
+        if ($reader instanceof \logstore_standard\log\store) {
+            $sql = "
+                SELECT
+                    id,
+                    courseid as course,
+                    action,
+                    timecreated as time,
+                    target as module,
+                    userid,
+                    objectid as cmid
+                FROM
+                    {logstore_standard_log}
+                WHERE
+                    timecreated > ?
+                ORDER BY
+                    timecreated
+            ";
+            $rs = $DB->get_recordset_sql($sql, array($config->lastcompiled));
+        } else if ($reader instanceof \logstore_legacy\log\store) {
+            $params = array($config->lastcompiled);
+            $fields = 'id,time,userid,course,cmid';
+            $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
+>>>>>>> MOODLE_32_STABLE
         } else {
             $this->content->text = "<div class=\"message\">";
             $this->content->text .= get_string('noavailablelogs', 'block_use_stats');
@@ -243,6 +348,7 @@ class block_use_stats extends block_base {
     }
 
 
+<<<<<<< HEAD
 	/**
 	 * Setup the XMLRPC service, RPC calls and default block parameters.
 	 * @return boolean TRUE if the installation is successfull, FALSE otherwise.
@@ -353,6 +459,18 @@ class block_use_stats extends block_base {
 		// Returning result
 		return true;
 	}
+=======
+        parent::get_required_javascript();
+
+        $PAGE->requires->jquery();
+
+        $PAGE->requires->js('/blocks/use_stats/js/usestats.js', true);
+        $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.js', true);
+        $PAGE->requires->js('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar_locales.js', true);
+        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
+        $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_'.$config->calendarskin.'.css', true);
+    }
+>>>>>>> MOODLE_32_STABLE
 }
 
 ?>
