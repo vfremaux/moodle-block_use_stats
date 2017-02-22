@@ -1,162 +1,252 @@
-<?PHP //$Id: block_use_stats.php,v 1.7 2011-07-29 09:02:11 vf Exp $
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Master block class for use_stats compiler
+ *
+ * @package    block_use_stats
+ * @category   blocks
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/lib/blocklib.php');
+require_once($CFG->dirroot.'/blocks/moodleblock.class.php');
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
+require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
+if (block_use_stats_supports_feature('data/multidimensionnal')) {
+    // Only in "pro" distributions.
+    include_once($CFG->dirroot.'/blocks/use_stats/pro/lib.php');
+}
 
-/**
-*/
 class block_use_stats extends block_base {
 
-    function init() {
-
-        $this->title = get_string('blockname','block_use_stats');
+    public function init() {
+        $this->title = get_string('blockname', 'block_use_stats');
         $this->content_type = BLOCK_TYPE_TEXT;
     }
 
     /**
-    * is the bloc configurable ?
-    */
-    function has_config() {
+     * is the bloc configurable ?
+     */
+    public function has_config() {
         return true;
     }
-    
+
     /**
-    * do we have local config
-    */
-    function instance_allow_config() {
+     * do we have local config
+     */
+    public function instance_allow_config() {
         global $COURSE;
 
         return false;
     }
 
-    function applicable_formats() {
+    /**
+     * In which course format can we see and add the block.
+     */
+    public function applicable_formats() {
         return array('all' => true);
     }
-    
+
     /**
-    *
-    */
-    function user_can_addto($page) {
-        global $CFG, $COURSE;
+     * Produce content for the bloc
+     */
+    public function get_content() {
+        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION;
 
-        if (has_capability('moodle/site:config', context_system::instance())){
-            return true;
-        }        
+        $config = get_config('block_use_stats');
 
-		$context = context_course::instance($COURSE->id);
-        if (!has_capability('block/use_stats:canaddto', $context)){
-            return false;
+        $renderer = $PAGE->get_renderer('block_use_stats');
+
+        if (!isset($this->config->studentscansee)) {
+            if (!isset($this->config)) {
+                $this->config = new StdClass;
+            }
+            $this->config->studentscansee = 1;
+            $this->instance_config_save($this->config);
         }
-        return true;
-    }
 
-    /**
-    *
-    */
-    function user_can_edit() {
-        global $CFG, $COURSE;
-
-        return false;
-    }
-
-    /**
-    * Produce content for the bloc
-    */
-    function get_content() {
-        global $USER, $CFG, $COURSE, $DB;
-
-        if ($this->content !== NULL) {
+        if ($this->content !== null) {
             return $this->content;
         }
 
-        $this->content = new stdClass;
+        $this->content = new stdClass();
         $this->content->text = '';
         $this->content->footer = '';
-        
+
         if (empty($this->instance)) {
             return $this->content;
         }
-        
+
+        // Know which reader we are working with.
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers(use_stats_get_reader());
+        $reader = reset($readers);
+
+        if (empty($reader)) {
+            return $this->content; // No log reader found.
+        }
+
         // Get context so we can check capabilities.
-        $context = get_context_instance(CONTEXT_BLOCK, $this->instance->id);
-        $systemcontext = get_context_instance(CONTEXT_SYSTEM);
-        if (!has_capability('block/use_stats:view', $context)){
+        $context = context_block::instance($this->instance->id);
+        $systemcontext = context_system::instance();
+
+        // Check global per role config.
+        if (!has_capability('block/use_stats:view', $context)) {
             return $this->content;
         }
 
-        $fromwhen = 30;
-        $fromwhen = optional_param('ts_from', $CFG->block_use_stats_fromwhen, PARAM_INT);
+        // Check student access on instance.
+        if (!$this->_seeother()) {
+            if (empty($this->config->studentscansee)) {
+                return $this->content;
+            }
+        }
 
-        $daystocompilelogs = $fromwhen * DAYSECS;
-        $timefrom = time() - $daystocompilelogs;
-        
-        if (has_any_capability(array('block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context, $USER->id)){
+        $id = optional_param('id', 0, PARAM_INT);
+
+        list($from, $to) = $this->get_range();
+
+        $capabilities = array('block/use_stats:seesitedetails',
+                              'block/use_stats:seecoursedetails',
+                              'block/use_stats:seegroupdetails');
+        if (has_any_capability($capabilities, $context, $USER->id)) {
             $userid = optional_param('uid', $USER->id, PARAM_INT);
         } else {
             $userid = $USER->id;
         }
 
-        $logs = use_stats_extract_logs($timefrom, time(), $userid);
-        $lasttime = $timefrom;
-        $totalTime = 0;
-        $totalTimeCourse = array();
-        $totalTimeModule = array();
-        if ($logs){
-            foreach($logs as $aLog){
-                $delta = $aLog->time - $lasttime;
-                if ($delta < @$CFG->block_use_stats_threshold * MINSECS){
-                    $totalTime = $totalTime + $delta;
+        $cache = cache::make('block_use_stats', 'aggregate');
 
-                    if (!array_key_exists($aLog->course, $totalTimeCourse))
-                        $totalTimeCourse[$aLog->course] = 0;
-                    else
-                        $totalTimeCourse[$aLog->course] = $totalTimeCourse[$aLog->course] + $delta;
+        /*
+         * We want to know the effective logrange against required period to
+         * query the cache
+         */
+        $logrange = block_use_stats_get_log_range($userid, $from, $to);
 
-                    if (!array_key_exists($aLog->course, $totalTimeModule))
-                        $totalTimeModule[$aLog->course][$aLog->module] = 0;
-                    elseif (!array_key_exists($aLog->module, $totalTimeModule[$aLog->course]))
-                        $totalTimeModule[$aLog->course][$aLog->module] = 0;
-                    else
-                        $totalTimeModule[$aLog->course][$aLog->module] = $totalTimeModule[$aLog->course][$aLog->module] + $delta;
+        $cachekey = $userid.'_'.$logrange->min.'_'.$logrange->max;
+        $userkeys = unserialize($cache->get('user'.$userid));
+
+        $cachestate = '';
+        if (!$aggregate = unserialize($cache->get($cachekey))) {
+            if (debugging()) {
+                $cachestate = 'missed';
+            }
+            if (($COURSE->id > SITEID) && !empty($config->displayothertime)) {
+                $logs = use_stats_extract_logs($from, $to, $userid, $COURSE->id);
+            } else {
+                $logs = use_stats_extract_logs($from, $to, $userid);
+            }
+            if ($logs) {
+                // Call without session storage for speed.
+                $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $from, $to, '', true);
+            }
+            $cache->set($cachekey, serialize($aggregate));
+
+            // Update keys for this user.
+            if (empty($userkeys)) {
+                $userkeys = array();
+            }
+            if (!in_array($cachekey, $userkeys)) {
+                $userkeys[] = $cachekey;
+                $cache->set('user'.$userid, serialize($userkeys));
+            }
+        } else {
+            if (debugging()) {
+                $cachestate = 'hit';
+            }
+        }
+
+        if ($aggregate) {
+
+            $shadowclass = ($this->config->studentscansee) ? '' : 'usestats-shadow';
+
+            $this->content->text .= "<!-- $from / $to -->";
+            $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
+
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
+
+            $strbuffer = $renderer->per_course($aggregate, $fulltotal);
+
+            $this->content->text .= get_string('youspent', 'block_use_stats');
+            $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
+            if ($config->backtrackmode == 'sliding') {
+                $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
+                $this->content->text .= userdate($from);
+            } else {
+                $this->content->text .= '&ensp;'.core_text::strtolower(get_string('fromrange', 'block_use_stats'));
+                $this->content->text .= userdate($from);
+                $this->content->text .= get_string('to', 'block_use_stats');
+                $this->content->text .= userdate($to);
+            }
+            if (empty($this->config->hidecourselist)) {
+                $this->content->text .= $strbuffer;
+            }
+
+            $this->content->text .= '</div>';
+
+            $capabilities = array('block/use_stats:seeowndetails',
+                                  'block/use_stats:seesitedetails',
+                                  'block/use_stats:seecoursedetails',
+                                  'block/use_stats:seegroupdetails');
+            if (has_any_capability($capabilities, $context, $USER->id)) {
+                $showdetailstr = get_string('showdetails', 'block_use_stats');
+                $params = array('id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id);
+                if (!empty($fromwhen)) {
+                     $params['ts_from'] = $fromwhen;
                 }
-                $lasttime = $aLog->time;
-            }
-            
-            $hours = floor($totalTime/HOURSECS);
-            $remainder = $totalTime - $hours * HOURSECS;
-            $min = floor($remainder/MINSECS);
-
-            if (file_exists("{$CFG->dirroot}/theme/{$CFG->theme}/block_use_stats.css")){
-                $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/".current_theme()."/block_use_stats.css\" type=\"text/css\" />";
-            } elseif (file_exists("{$CFG->dirroot}/theme/default/block_use_stats.css")){
-                $this->content->text = "<link rel=\"stylesheet\" href=\"{$CFG->wwwroot}/theme/default/block_use_stats.css\" type=\"text/css\" />";
+                $viewurl = new moodle_url('/blocks/use_stats/detail.php', $params);
+                $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
             }
 
-            $this->content->text .= "<div class=\"message\">";
-            $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
-            if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
-                $users = $DB->get_records('user', array('deleted' => 0), 'lastname', 'id, firstname, lastname');
-            } 
-            else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
-            	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
-                $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id, firstname, lastname');
+            if (has_capability('block/use_stats:export', $context)) {
+                if (is_dir($CFG->dirroot.'/report/trainingsessions')) {
+                    $button = $renderer->button_pdf($userid, $from, $to, $context);
+                    $this->content->text .= '<div class="usestats-pdf">'.$button.'</div>';
+                }
             }
-<<<<<<< HEAD
-            else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
-            	$mygroups = groups_get_user_groups($COURSE->id);
-            	$users = array();
-            	// get all users in my groups
-            	foreach($mygroupids as $mygroupid){
-	            	$users = $fellows + groups_get_members($groupid, 'u.id, firstname, lastname');
-	            }
-            }
+        } else {
+            $this->content->text = '<div class="message">';
+            $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
+            $this->content->text .= '<br/>';
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
+            $this->content->text .= '</div>';
+        }
 
-            if (!empty($users)){
-                $usermenu = array();
-                foreach($users as $user){
-                    $usermenu[$user->id] = fullname($user);
-=======
+        return $this->content;
+    }
+
+    protected function get_range() {
+        global $COURSE, $SESSION, $USER;
+
+        $config = get_config('block_use_stats');
+        $context = context_block::instance($this->instance->id);
+
+        if ($config->backtrackmode == 'fixeddate') {
+
+            // Choose default.
+            if ($COURSE->id == SITEID) {
+                $from = $USER->firstaccess;
+            } else {
+                $from = $COURSE->startdate;
+            }
             $to = time();
 
             // Memorize in session for tracking changes.
@@ -180,17 +270,8 @@ class block_use_stats extends block_base {
                     // When coming from calendar, time is 00h00 of the given day.
                     $to = strtotime($tsto) + DAYSECS - 5; // Push up to 23:59:55.
                     $SESSION->usestatsto = $to;
->>>>>>> MOODLE_32_STABLE
                 }
-	            $this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
             }
-<<<<<<< HEAD
-            $this->content->text .= get_string('from', 'block_use_stats');
-            $this->content->text .= "<select name=\"ts_from\" onChange=\"document.ts_changeParms.submit();\">";
-            foreach(array(5,15,30,60,90,365) as $interval){
-                $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
-                $this->content->text .= "<option value=\"{$interval}\" {$selected} >{$interval} ".get_string('days')."</option>";
-=======
 
             $SESSION->usestatsenable = optional_param('usestatsenable', 0, PARAM_BOOL);
             if (empty($SESSION->usestatstoenable)) {
@@ -203,38 +284,20 @@ class block_use_stats extends block_base {
             if (empty($config->fromwhen)) {
                 $config->fromwhen = 60;
                 set_config('fromwhen', 60, 'block_use_stats');
->>>>>>> MOODLE_32_STABLE
             }
-            $this->content->text .= "</select>";
-            $this->content->text .= "</form><br/>";
-            $this->content->text .= get_string('youspent', 'block_use_stats');
-            $this->content->text .= $hours . ' ' . get_string('hours') . ' ' . $min . ' ' . get_string('mins'); 
-            $this->content->text .= get_string('onthisMoodlefrom', 'block_use_stats');
-            $this->content->text .= userdate($timefrom);
-            if (count(array_keys($totalTimeCourse))){
-                $this->content->text .= "<table width=\"100%\">";
-                foreach(array_keys($totalTimeCourse) as $aCourseId){
-                    $aCourse = $DB->get_record('course', array('id' => $aCourseId));
-                    if ($totalTimeCourse[$aCourseId] < 60) continue;
-                    if ($aCourse){
-                        $hours = floor($totalTimeCourse[$aCourseId] / HOURSECS);
-                        $remainder = $totalTimeCourse[$aCourseId] - $hours * HOURSECS;
-                        $min = floor($remainder/MINSECS);
-                        $courseelapsed = $hours . ' ' . get_string('hours') . ' ' . $min . ' ' . get_string('mins'); 
-                        $this->content->text .= "<tr><td class=\"teacherstatsbycourse\" align=\"left\" title=\"".htmlspecialchars(format_string($aCourse->fullname))."\">{$aCourse->shortname}</td><td class=\"teacherstatsbycourse\" align=\"right\">{$courseelapsed}</td></tr>";
-                    }
-                }
-                $this->content->text .= "</table>";
-            }
-            $this->content->text .= "</div>";
 
-            if (has_any_capability(array('block/use_stats:seeowndetails', 'block/use_stats:seesitedetails', 'block/use_stats:seecoursedetails', 'block/use_stats:seegroupdetails'), $context, $USER->id)){
-                $showdetailstr = get_string('showdetails', 'block_use_stats');
-                $fromclause = (!empty($fromwhen)) ? "&amp;ts_from={$fromwhen}" : '' ;
-                $this->content->text .= "<a href=\"{$CFG->wwwroot}/blocks/use_stats/detail.php?id={$this->instance->id}&amp;userid={$userid}{$fromclause}&course={$COURSE->id}\">$showdetailstr</a>";
+            // Memorize in session for tracking changes.
+            if (!isset($SESSION->usestatsfromwhen)) {
+                $SESSION->usestatsfromwhen = $config->fromwhen;
             }
-<<<<<<< HEAD
-=======
+
+            $fromwhen = $config->fromwhen;
+            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
+                $daystocompilelogs = $fromwhen * DAYSECS;
+                $now = time();
+                $from = $now - $daystocompilelogs;
+                $to = $now;
+            }
         }
         return array($from, $to);
     }
@@ -296,170 +359,241 @@ class block_use_stats extends block_base {
             $params = array($config->lastcompiled);
             $fields = 'id,time,userid,course,cmid';
             $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
->>>>>>> MOODLE_32_STABLE
         } else {
-            $this->content->text = "<div class=\"message\">";
-            $this->content->text .= get_string('noavailablelogs', 'block_use_stats');
-            $this->content->text .= "<br/>";
-            $this->content->text .= " <form style=\"display:inline\" name=\"ts_changeParms\" method=\"post\" action=\"#\">";
-            if (has_capability('block/use_stats:seesitedetails', $context, $USER->id)){
-                $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id, firstname, lastname');
-            }
-            else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)){
-            	$coursecontext = get_context_instance(CONTEXT_COURSE, $COURSE->id);
-                $users = get_users_by_capability($coursecontext, 'moodle/course:view', 'u.id, firstname, lastname');
-            }
-            else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)){
-            	$mygroupings = groups_get_user_groups($COURSE->id);
+            mtrace("this logstore is not supported");
+            return;
+        }
 
-				$mygroups = array();            	
-            	foreach($mygroupings as $grouping){
-            		$mygroups = $mygroups + $grouping;
-            	}
-            	
-            	$users = array();
-            	// get all users in my groups
-            	foreach($mygroups as $mygroupid){
-            		$members = groups_get_members($mygroupid, 'u.id, firstname, lastname');
-            		if ($members){
-		            	$users = $users + $members;
-		            }
-	            }
-            }
-            if (!empty($users)){
-                $usermenu = array();
-                foreach($users as $user){
-                    $usermenu[$user->id] = fullname($user);
+        if ($rs) {
+
+            $r = 0;
+
+            $starttime = time();
+
+            while ($rs->valid()) {
+                $log = $rs->current();
+                $gaprec = new StdClass;
+                $gaprec->logid = $log->id;
+                $gaprec->userid = $log->userid;
+                $gaprec->time = $log->time;
+                $gaprec->course = $log->course;
+
+                if (block_use_stats_supports_feature('data/multidimensionnal')) {
+                    // This is an advanced feature only in pro distribution.
+                    block_use_stats_get_cube_info($log, $gaprec, $config);
                 }
-            	$this->content->text .= html_writer::select($usermenu, 'uid', $userid, 'choose', array('onchange' => 'document.ts_changeParms.submit();'));
-            }
-            $this->content->text .= get_string('from', 'block_use_stats');
-            $this->content->text .= "<select name=\"ts_from\" onChange=\"document.ts_changeParms.submit();\">";
-            foreach(array(5,15,30,60,90,365) as $interval){
-                $selected = ($interval == $fromwhen) ? "selected=\"selected\"" : '' ;
-                $this->content->text .= "<option value=\"{$interval}\" {$selected} >{$interval} ".get_string('days')."</option>";
-            }
-            $this->content->text .= "</select>";
-            $this->content->text .= "</form><br/>";
-            $this->content->text .= "</div>";
-        }        
 
-        return $this->content;
+                $gaprec->gap = 0;
+                if (!$DB->record_exists('block_use_stats_log', array('logid' => $log->id))) {
+                    $DB->insert_record('block_use_stats_log', $gaprec);
+                }
+                // Is there a last log found before actual compilation session ?
+                if (!array_key_exists($log->userid, $previouslog)) {
+                    if ($reader instanceof \logstore_standard\log\store) {
+                        $select = ' timecreated < ? ';
+                        $params = array($config->lastcompiled);
+                        $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', $select, $params);
+                        $params = array('timecreated' => $maxlasttime);
+                        $lastlog = $DB->get_records('logstore_standard_log', $params, 'id DESC', '*', 0, 1);
+                    } else if ($reader instanceof \logstore_legacy\log\store) {
+                        $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
+                        $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
+                    }
+                    $lastlogs = array_values($lastlog);
+                    $previouslog[$log->userid] = array_shift($lastlogs);
+                }
+                $value = $log->time - (0 + @$previouslog[$log->userid]->time);
+                $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => @$previouslog[$log->userid]->id));
+                $previouslog[$log->userid] = $log;
+                $lasttime = $log->time;
+                $r++;
+
+                if ($r % 10 == 0) {
+                    echo '.';
+                    $processtime = time();
+                    if (($processtime > $starttime + 60 * 15) || ($r > 100000)) {
+                        break; // Do not process more than 15 minutes.
+                    }
+                }
+                if ($r % 1000 == 0) {
+                    // Store intermediary track points.
+                    if (!empty($lasttime)) {
+                        set_config('lastcompiled', $lasttime, 'block_use_stats');
+                    }
+                }
+                $rs->next();
+            }
+            $rs->close();
+
+            mtrace("\n... $r logs gapped");
+            // Register last log time for cron further updates.
+            if (!empty($lasttime)) {
+                set_config('lastcompiled', $lasttime, 'block_use_stats');
+            }
+        }
     }
 
+    /**
+     * Purges selectively caches of online users every x minutes
+     */
+    public static function cache_ttl_task() {
+        global $DB;
 
-<<<<<<< HEAD
-	/**
-	 * Setup the XMLRPC service, RPC calls and default block parameters.
-	 * @return boolean TRUE if the installation is successfull, FALSE otherwise.
-	 */
-	function after_install() {
-		global $CFG, $DB, $OUTPUT;
-		
-		// Initialising
-		$result = true;
-		
-		/*
-		 * Installing use_stats service
-		 */
-		if (!$DB->get_record('mnet_service', array('name' => 'use_stats'))) {
-			// Installing service
-			$service = new stdclass;
-			$service->name = 'use_stats';
-			$service->description = get_string('use_stats_rpc_service_name', 'use_stats');
-			$service->apiversion = 1;
-			$service->offer = 1;
-			if (!$serviceid = insert_record('mnet_service', $service)){
-				$OUTPUT->notify('Error installing use_stats service.');
-				$result = false;
-			}
-		}
-		
-		/*
-		 * Installing RPC call 'get_stats'
-		 */
-		// Checking if it is already installed
-		if (!$DB->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_stats'))) {
-			
-			// Creating RPC call
-			$rpc = new stdclass;
-			$rpc->function_name = 'use_stats_rpc_get_stats';
-			$rpc->xmlrpc_path = 'blocks/use_stats/rpclib.php/use_stats_rpc_get_stats';
-			$rpc->parent_type = 'block';  
-			$rpc->parent = 'use_stats';
-			$rpc->enabled = 0; 
-			$rpc->help = 'get remotely use stats information.';
-			$rpc->profile = '';
-			
-			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_stats RPC call "get_stats".');
-				$result = false;
-			} else {
-				// Mapping service and call
-				$rpcmap = new stdclass;
-				$rpcmap->serviceid = $serviceid;
-				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_stats" to the "use_stats" service.');
-					$result = false;
-				}
-			}
-		}
+        $timeminusthirty = time() - 30 * MINSECS;
 
-		if (!$DBè->get_record('mnet_rpc', array('function_name' => 'use_stats_rpc_get_scores'))) {
-			
-			// Creating RPC call
-			$rpc = new stdclass;
-			$rpc->function_name = 'use_stats_rpc_get_scores';
-			$rpc->xmlrpc_path = 'blocks/use_stats/rpclib.php/use_stats_rpc_get_scores';
-			$rpc->parent_type = 'block';  
-			$rpc->parent = 'use_stats';
-			$rpc->enabled = 0; 
-			$rpc->help = 'get remotely scores information.';
-			$rpc->profile = '';
-			
-			// Adding RPC call
-			if (!$rpcid = $DB->insert_record('mnet_rpc', $rpc)) {
-				$OUTPUT->notify('Error installing use_scores RPC call "get_scores".');
-				$result = false;
-			} else {
-				// Mapping service and call
-				$rpcmap = new stdclass;
-				$rpcmap->serviceid = $serviceid;
-				$rpcmap->rpcid = $rpcid;
-				if (!$DB->insert_record('mnet_service2rpc', $rpcmap)) {
-					$OUTPUT->notify('Error mapping RPC call "get_scores" to the "use_scores" service.');
-					$result = false;
-				}
-			}
-		}
-				
-		// Returning result
-		return $result;    
-	}
-	
-	/**
-	 * Remove the XMLRPC service.
-	 * @return					boolean				TRUE if the deletion is successfull, FALSE otherwise.
-	 */
-	function before_delete() {
-		global $CFG, $DB;
-				
-		// Checking if use_stats service is installed
-		if (!($service = $DB->get_record('mnet_service', array('name' => 'use_stats'))))
-			return true;
-		
-		// Uninstalling use_stats service
-		$DB->delete_records('mnet_host2service', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_service2rpc', array('serviceid' => $service->id));
-		$DB->delete_records('mnet_rpc', array('parent' => 'use_stats'));
-		$DB->delete_records('mnet_service', array('name' => 'use_stats'));
-		
-		// Returning result
-		return true;
-	}
-=======
+        $cache = cache::make('block_use_stats', 'aggregate');
+
+        $sql = "
+            SELECT
+                id,
+                id
+            FROM
+                {user}
+            WHERE
+                lastaccess < ?
+        ";
+
+        $onlineusers = $DB->get_records_sql($sql, array($timeminusthirty));
+
+        foreach (array_keys($onlineusers) as $userid) {
+            $userkeys = unserialize($cache->get('user'.$userid));
+            if (!empty($userkeys)) {
+                foreach ($userkeys as $cachekey) {
+                    $cache->delete($cachekey);
+                }
+            }
+        }
+    }
+
+    /**
+     * to cleanup some logs to delete.
+     */
+    public static function cleanup_task() {
+        global $DB;
+
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers('\core\log\sql_select_reader');
+        $reader = reset($readers);
+
+        if (empty($reader)) {
+            mtrace('No log reader.');
+            return false; // No log reader found.
+        }
+
+        if ($reader instanceof \logstore_standard\log\store) {
+            $sql = "
+                DELETE FROM
+                    {block_use_stats_log}
+                WHERE
+                    logid NOT IN(
+                        SELECT
+                            id
+                        FROM
+                            {log})
+            ";
+        } else if ($reader instanceof \logstore_legacy\log\store) {
+            $sql = "
+                DELETE FROM
+                    {block_use_stats_log}
+                WHERE
+                    logid NOT IN(
+                        SELECT
+                            id
+                        FROM
+                            {logstore_standard_log})
+            ";
+        } else {
+            mtrace('Unsupported log reader.');
+            return;
+        }
+
+        $DB->execute($sql);
+    }
+
+    public static function prepare_coursetable(&$aggregate, &$fulltotal, &$fullevents, $order = 'name') {
+        global $DB, $COURSE;
+
+        $config = get_config('block_use_stats');
+
+        $courseelapsed = array();
+        $courseshort = array();
+        $coursefull = array();
+        $courseevents = array();
+
+        $fulltotal = 0;
+        $fullevents = 0;
+
+        // Prepare per course table.
+        if (!empty($aggregate['coursetotal'])) {
+            foreach ($aggregate['coursetotal'] as $courseid => $coursestats) {
+
+                if ($courseid) {
+                    $fields = 'id,shortname,idnumber,fullname';
+                    $course = $DB->get_record('course', array('id' => $courseid), $fields);
+                } else {
+                    $course = new StdClass();
+                    $course->shortname = get_string('othershort', 'block_use_stats');
+                    $course->fullname = get_string('other', 'block_use_stats');
+                    $course->idnumber = '';
+                }
+
+                if (!$config->displayothertime) {
+                    if (!$courseid || (($COURSE->id > SITEID) && ($courseid == 1))) {
+                        continue;
+                    }
+                }
+
+                if ($course) {
+                    // Count total even if not shown (D NOT loose time).
+                    if (@$config->displayactivitytimeonly == DISPLAY_FULL_COURSE) {
+                        $reftime = 0 + @$aggregate['coursetotal'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    } else {
+                        $reftime = 0 + @$aggregate['activities'][$courseid]->elapsed;
+                        $refevents = 0 + @$aggregate['coursetotal'][$courseid]->events;
+                    }
+                    $fulltotal += $reftime;
+                    $fullevents += $refevents;
+
+                    if (!empty($config->filterdisplayunder)) {
+                        if ($reftime < $config->filterdisplayunder) {
+                            continue;
+                        }
+                    }
+
+                    $courseshort[$courseid] = $course->shortname;
+                    $coursefull[$courseid] = $course->fullname;
+                    $courseelapsed[$courseid] = $reftime;
+                    $courseevents[$courseid] = $refevents;
+                }
+            }
+        }
+
+        if ($order == 'name') {
+            $displaycourses = $courseshort;
+            asort($displaycourses);
+        } else {
+            $displaycourses = $courseelapsed;
+            asort($displaycourses);
+            $displaycourses = array_reverse($displaycourses, true);
+        }
+
+        return array($displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents);
+    }
+
+    private function _seeother() {
+        $context = context_block::instance($this->instance->id);
+        $capabilities = array('block/use_stats:seesitedetails',
+                              'block/use_stats:seecoursedetails',
+                              'block/use_stats:seegroupdetails');
+        return has_any_capability($capabilities, $context);
+    }
+
+    public function get_required_javascript() {
+        global $CFG, $PAGE;
+
+        $config = get_config('block_use_stats');
+
         parent::get_required_javascript();
 
         $PAGE->requires->jquery();
@@ -470,7 +604,4 @@ class block_use_stats extends block_base {
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/dhtmlxcalendar.css', true);
         $PAGE->requires->css('/blocks/use_stats/js/dhtmlxCalendar/codebase/skins/dhtmlxcalendar_'.$config->calendarskin.'.css', true);
     }
->>>>>>> MOODLE_32_STABLE
 }
-
-?>
