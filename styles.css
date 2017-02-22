@@ -1,1 +1,9 @@
-.teacherstatsbycourse { font-size : 9px ; background-color : #E0E0E0 }
+.teacherstatsbycourse {
+    font-size : 9px;
+    background-color : #E0E0E0;
+}
+
+.block_use_stats select#menuuid {
+    max-width:175px;
+    width:175px;
+}
