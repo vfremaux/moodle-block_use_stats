@@ -273,7 +273,7 @@ class block_use_stats extends block_base {
                 }
             }
 
-            $SESSION->usestatsenable = optional_param('usestatsenable', 0, PARAM_BOOL);
+            $SESSION->usestatstoenable = optional_param('usestatstoenable', 0, PARAM_BOOL);
             if (empty($SESSION->usestatstoenable)) {
                 // Force to to track until latest moves.
                 $to = time() + 120;
