@@ -112,10 +112,11 @@ function use_stats_invoke_local_user($user, $capability, $context = null) {
 /**
  * get a complete report of user stats for a single user.
  *
- * @param array $callinguser
- * @param string $targetuser
- * @param string $wherefrom
- * @param string $statsscope
+ * @param array $callinguser The calling user descriptor
+ * @param string $targetuser Who stats are required for
+ * @param string $whereroot Where the user comes from
+ * @param string $statsscope Scope of the stats
+ * @param string $timefrom Scope of the stats
  */
 function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot,
                                  $statsscope = USE_STATS_SITE_SCOPE, $timefrom = 0, $jsonresponse = true) {
@@ -315,12 +316,14 @@ function use_stats_rpc_get_stats_wrapped($wrap) {
 /**
  * get a complete report of user scoring for a single user.
  *
- * @param array $callinguser
- * @param string $targetuser
- * @param string $wherefrom
- * // @param string $courseidfield
- * // @param string $courseidentifier
- * @param string $statsscope
+ * @param array $callinguser The calling user descriptor
+ * @param string $targetuser Who stats are required for
+ * @param string $whereroot Where the user comes from
+ * @param string $scorescope The grading scope
+ * @param string $courseidfield The course identifier field as 'id', 'idnumber' or 'shortname'
+ * @param string $courseidentifier The course effective identifier
+ * @param string $jsonresponse If true expects a jsonified scalar response
+ * @return a response object
  */
 function use_stats_rpc_get_scores($callinguser, $targetuser, $whereroot, $scorescope = 'notes/global', $courseidfield,
                                   $courseidentifier, $jsonresponse = true) {
