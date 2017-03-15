@@ -117,5 +117,5 @@ $string['plugindist_desc'] = '<p>This plugin is the community version and is pub
 core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
 and improvement effort.</p>
 <p>Please contact one of our distributors to get "Pro" version support.</p>
-<ul><li><a href="http://service.activeprolearn.com/local/shop/front/view.php?id=1">ActiveProLearn SAS</a></li>
+<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li>
 <li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
