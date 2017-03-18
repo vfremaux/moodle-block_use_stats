@@ -40,3 +40,16 @@ class theme_customtheme_core_renderer extends theme_core_renderer {
         return $str;
     }
 }
+
+2017022102 - New distribution policy
+====================================
+
+Due to the huge amount of demands for increasing reliability and accuracy of the time tracking tools in Moodle, and
+the huge amount of work hours that it needs, we have decided to split our publication policy keeping the main essential functions
+in the community version of the plugin, and deferring the most demanding, test and validation consuming, or advanced features into
+a "pro" version. We hope usual users of such "dual release" plugins will understand our need to stay being able to maintain and pursue
+provide support, innovation and code quality for Moodle, but being also supported ourself to do so. Plugin documentation provides
+information about feature sets and how to get "pro" versions. In our scope is also to provide simpler plugins for the usual non advanced use,
+and keep very fine options to people that really needs them.
+
+Policy change will not affect the moodle version path of the plugin, data model remains unchanged, such as core bound definitions.
