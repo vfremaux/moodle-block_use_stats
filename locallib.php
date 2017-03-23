@@ -278,6 +278,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             // Let's get lap time to next log in track.
             $nexti = $i + 1;
+            $lognext = false;
             if (isset($logs[$i + 1])) {
                 /*
                  * Fetch ahead possible jumps over some non significant logs
@@ -298,7 +299,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             if ($lap > $threshold) {
                 $lap = $lastpingcredit;
 
-                if (!block_use_stats_is_login_event($lognext->action)) {
+                if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
                     $sessionpunch = true;
                 }
             }
@@ -353,7 +354,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 }
 
                 if ($continue) {
-                    if (block_use_stats_is_login_event(@$lognext->action)) {
+                    if ($lognext && block_use_stats_is_login_event(@$lognext->action)) {
                         // We are the last action before a new login.
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap + $memlap;
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap + $memlap;
@@ -403,7 +404,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 // All other cases : login or non login.
                 if (block_use_stats_is_login_event($log->action)) {
                     // We are explicit login.
-                    if (!block_use_stats_is_login_event(@$lognext->action)) {
+                    if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
                         if (!$preinit || $sessionid) {
                             // Not session 0, must increment.
                             if ($automatondebug || $backdebug) {
@@ -441,7 +442,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                             $logbuffer .= " ... (P) session punch in : {$lognext->action} ";
                         }
                     }
-                    if ($sessionpunch || block_use_stats_is_login_event($lognext->action)) {
+                    if ($sessionpunch || !$lognext || block_use_stats_is_login_event($lognext->action)) {
                         // This record is the last one of the current session.
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap;
