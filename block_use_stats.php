@@ -186,7 +186,7 @@ class block_use_stats extends block_base {
             $strbuffer = $renderer->per_course($aggregate, $fulltotal);
 
             $this->content->text .= get_string('youspent', 'block_use_stats');
-            $this->content->text .= block_use_stats_format_time($fulltotal);
+            $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
             if ($config->backtrackmode == 'sliding') {
                 $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
                 $this->content->text .= userdate($from);
@@ -294,9 +294,10 @@ class block_use_stats extends block_base {
             }
 
             $fromwhen = $config->fromwhen;
+            $daystocompilelogs = $fromwhen * DAYSECS;
+            $now = time();
             if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
                 $daystocompilelogs = $fromwhen * DAYSECS;
-                $now = time();
                 $to = $now;
             }
             $from = $now - $daystocompilelogs;
