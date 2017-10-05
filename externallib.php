@@ -252,52 +252,7 @@ class block_use_stats_external extends external_api {
 
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
-            new external_single_structure(
-                array(
-                    'user' => new external_single_structure(
-                        array(
-                            'id' => new external_value(PARAM_INT, 'User id'),
-                            'idnumber' => new external_value(PARAM_TEXT, 'User idnumber'),
-                            'username' => new external_value(PARAM_TEXT, 'User username'),
-                        )
-                    ),
-
-                    'query' => new external_single_structure(
-                        array(
-                            'from' => new external_value(PARAM_INT, 'From date'),
-                            'to' => new external_value(PARAM_INT, 'To date'),
-                        )
-                    ),
-
-                    'sessions' => new external_single_structure(
-                        array(
-                            'sessions' => new external_value(PARAM_INT, 'Number of sessions', VALUE_OPTIONAL, 0, true),
-                            'firstsession' => new external_value(PARAM_INT, 'First session date', VALUE_OPTIONAL, 0, true),
-                            'lastsession' => new external_value(PARAM_INT, 'Last session date', VALUE_OPTIONAL, 0, true),
-                            'sessionmin' => new external_value(PARAM_INT, 'Min session duration', VALUE_OPTIONAL, 0, true),
-                            'sessionmax' => new external_value(PARAM_INT, 'Max session duration', VALUE_OPTIONAL, 0, true),
-                            'meansession' => new external_value(PARAM_INT, 'Mean session duration', VALUE_OPTIONAL, 0, true),
-                        )
-                    ),
-
-                    'courses' => new external_multiple_structure(
-                        new external_single_structure(
-                            array(
-                                'id' => new external_value(PARAM_INT, 'Course id'),
-                                'idnumber' => new external_value(PARAM_TEXT, 'Course idnumber'),
-                                'shortname' => new external_value(PARAM_TEXT, 'Course shortname'),
-                                'fullname' => new external_value(PARAM_TEXT, 'Course fullname'),
-                                'activitytime' => new external_value(PARAM_INT, 'Elapsed time in activities'),
-                                'coursetime' => new external_value(PARAM_INT, 'Elapsed time in course outside activities'),
-                                'coursetotal' => new external_value(PARAM_INT, 'Elapsed time in course (all times)'),
-                                'othertime' => new external_value(PARAM_INT, 'Elapsed time in system areas'),
-                                'sitecoursetime' => new external_value(PARAM_INT, 'Elapsed time in site course during session'),
-                                'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
-                            )
-                        )
-                    ),
-                )
-            )
+            self::get_user_stats_returns()
         );
     }
 
