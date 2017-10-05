@@ -225,7 +225,7 @@ function use_stats_rpc_get_stats($callinguser, $targetuser, $whereroot,
                                 $modulename = 'N.C.';
                                 $modrecname = 'N.C.';
                             }
-                            $data = "\t<NAME>{$mudrecname}</NAME>\n";
+                            $data = "\t<NAME>{$modrecname}</NAME>\n";
                             $data .= "\t<TYPE>{$modulename}</TYPE>\n";
                             $data .= "\t<IDNUMBER>{$cm->idnumber}</IDNUMBER>\n";
                             $data .= "\t<ELAPSED>{$elapsed}</ELAPSED>\n";
