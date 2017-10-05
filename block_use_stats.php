@@ -280,6 +280,8 @@ class block_use_stats extends block_base {
             }
 
         } else {
+            $to = time();
+
             // This config only for slidingrange.
             if (empty($config->fromwhen)) {
                 $config->fromwhen = 60;
@@ -295,9 +297,9 @@ class block_use_stats extends block_base {
             if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
                 $daystocompilelogs = $fromwhen * DAYSECS;
                 $now = time();
-                $from = $now - $daystocompilelogs;
                 $to = $now;
             }
+            $from = $now - $daystocompilelogs;
         }
         return array($from, $to);
     }

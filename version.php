@@ -32,6 +32,6 @@ $plugin->component = 'block_use_stats'; // Full name of the plugin (used for dia
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '2.7.0 (build 2017022102)';
 
-// Non moodle attributes.
+// Non Moodle attributes.
 $plugin->codeincrement = '2.7.0007';
 $plugin->privacy = 'dualrelease';

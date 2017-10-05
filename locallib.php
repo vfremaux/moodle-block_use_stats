@@ -202,7 +202,6 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         assert(false);
         // External DB logs is NOT supported.
     }
-
     if ($rs = $DB->get_recordset_sql($sql, array($from, $to))) {
         $logs = array();
         foreach ($rs as $log) {
@@ -278,6 +277,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             // Let's get lap time to next log in track.
             $nexti = $i + 1;
+            $lognext = false;
             if (isset($logs[$i + 1])) {
                 /*
                  * Fetch ahead possible jumps over some non significant logs
@@ -298,7 +298,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             if ($lap > $threshold) {
                 $lap = $lastpingcredit;
 
-                if (!block_use_stats_is_login_event($lognext->action)) {
+                if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
                     $sessionpunch = true;
                 }
             }
@@ -353,7 +353,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 }
 
                 if ($continue) {
-                    if (block_use_stats_is_login_event(@$lognext->action)) {
+                    if ($lognext && block_use_stats_is_login_event(@$lognext->action)) {
                         // We are the last action before a new login.
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap + $memlap;
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap + $memlap;
@@ -403,7 +403,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 // All other cases : login or non login.
                 if (block_use_stats_is_login_event($log->action)) {
                     // We are explicit login.
-                    if (!block_use_stats_is_login_event(@$lognext->action)) {
+                    if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
                         if (!$preinit || $sessionid) {
                             // Not session 0, must increment.
                             if ($automatondebug || $backdebug) {
@@ -441,7 +441,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                             $logbuffer .= " ... (P) session punch in : {$lognext->action} ";
                         }
                     }
-                    if ($sessionpunch || block_use_stats_is_login_event($lognext->action)) {
+                    if ($sessionpunch || !$lognext || block_use_stats_is_login_event($lognext->action)) {
                         // This record is the last one of the current session.
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap;
@@ -1063,61 +1063,71 @@ function block_use_stats_render_aggregate(&$aggregate) {
     echo '<div style="background-color:#f0f0f0;padding:10px;border:1px solid #c0c0c0;border-radius:5px">';
     echo '<h3>User</h3>';
     echo '<table width="100%">';
-    foreach ($aggregate['user'] as $courseid => $usertotal) {
-        echo '<tr>';
-        echo '<td width="40%"></td>';
-        echo '<td width="20%">'.$usertotal->elapsed.'</td>';
-        echo '<td width="20%">'.block_use_stats_format_time($usertotal->elapsed).'</td>';
-        echo '<td width="20%">'.$usertotal->events.'</td>';
-        echo '</tr>';
+    if (!empty($aggregate['user'])) {
+        foreach ($aggregate['user'] as $courseid => $usertotal) {
+            echo '<tr>';
+            echo '<td width="40%"></td>';
+            echo '<td width="20%">'.$usertotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($usertotal->elapsed).'</td>';
+            echo '<td width="20%">'.$usertotal->events.'</td>';
+            echo '</tr>';
+        }
     }
 
     echo '<h3>Course total</h3>';
     echo '<table width="100%">';
-    foreach ($aggregate['coursetotal'] as $courseid => $coursetotal) {
-        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
-        echo '<tr>';
-        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-        echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
-        echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
-        echo '<td width="20%">'.$coursetotal->events.'</td>';
-        echo '</tr>';
+    if (!empty($aggregate['coursetotal'])) {
+        foreach ($aggregate['coursetotal'] as $courseid => $coursetotal) {
+            $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+            echo '<tr>';
+            echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+            echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+            echo '<td width="20%">'.$coursetotal->events.'</td>';
+            echo '</tr>';
+        }
     }
 
     echo '<h3>In course</h3>';
     echo '<table width="100%">';
-    foreach ($aggregate['course'] as $courseid => $coursetotal) {
-        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
-        echo '<tr>';
-        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-        echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
-        echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
-        echo '<td width="20%">'.$coursetotal->events.'</td>';
-        echo '</tr>';
+    if (!empty($aggregate['course'])) {
+        foreach ($aggregate['course'] as $courseid => $coursetotal) {
+            $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+            echo '<tr>';
+            echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+            echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+            echo '<td width="20%">'.$coursetotal->events.'</td>';
+            echo '</tr>';
+        }
     }
 
     echo '<h3>Activities</h3>';
     echo '<table width="100%">';
-    foreach ($aggregate['activities'] as $courseid => $activitytotal) {
-        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
-        echo '<tr>';
-        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-        echo '<td width="20%">'.$activitytotal->elapsed.'</td>';
-        echo '<td width="20%">'.block_use_stats_format_time($activitytotal->elapsed).'</td>';
-        echo '<td width="20%">'.$activitytotal->events.'</td>';
-        echo '</tr>';
+    if (!empty($aggregate['activities'])) {
+        foreach ($aggregate['activities'] as $courseid => $activitytotal) {
+            $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+            echo '<tr>';
+            echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+            echo '<td width="20%">'.$activitytotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($activitytotal->elapsed).'</td>';
+            echo '<td width="20%">'.$activitytotal->events.'</td>';
+            echo '</tr>';
+        }
     }
 
     echo '<h3>Other</h3>';
     echo '<table width="100%">';
-    foreach ($aggregate['other'] as $courseid => $othertotal) {
-        $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
-        echo '<tr>';
-        echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-        echo '<td width="20%">'.$othertotal->elapsed.'</td>';
-        echo '<td width="20%">'.block_use_stats_format_time($othertotal->elapsed).'</td>';
-        echo '<td width="20%">'.$othertotal->events.'</td>';
-        echo '</tr>';
+    if (!empty($aggregate['other'])) {
+        foreach ($aggregate['other'] as $courseid => $othertotal) {
+            $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
+            echo '<tr>';
+            echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
+            echo '<td width="20%">'.$othertotal->elapsed.'</td>';
+            echo '<td width="20%">'.block_use_stats_format_time($othertotal->elapsed).'</td>';
+            echo '<td width="20%">'.$othertotal->events.'</td>';
+            echo '</tr>';
+        }
     }
     echo '</table>';
 
