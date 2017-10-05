@@ -146,7 +146,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
                 $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-                $str .= html_writer::select($timemenu, 'ts_from', floor($to - $from / DAYSECS), 'choose', $attrs);
+                $str .= html_writer::select($timemenu, 'ts_from', floor(($to - $from) / DAYSECS), 'choose', $attrs);
             }
         } else {
             if (@$config->backtracksource == 'studentchoice') {
