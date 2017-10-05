@@ -132,22 +132,24 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         }
     }
 
-    // We search first enrol time still active for this user.
-    $sql = "
-        SELECT
-            MIN(timestart) as timestart
-        FROM
-            {enrol} e,
-            {user_enrolments} ue
-        WHERE
-            $courseenrolclause
-            e.id = ue.enrolid AND
-            (ue.timeend = 0 OR ue.timeend > ".time().")
-            $userclause
-    ";
-    $firstenrol = $DB->get_record_sql($sql, $inparams);
+    if (!empty($config->enrolmentfilter)) {
+        // We search first enrol time still active for this user.
+        $sql = "
+            SELECT
+                MIN(timestart) as timestart
+            FROM
+                {enrol} e,
+                {user_enrolments} ue
+            WHERE
+                $courseenrolclause
+                e.id = ue.enrolid AND
+                (ue.timeend = 0 OR ue.timeend > ".time().")
+                $userclause
+        ";
+        $firstenrol = $DB->get_record_sql($sql, $inparams);
 
-    $from = max($from, $firstenrol->timestart);
+        $from = max($from, $firstenrol->timestart);
+    }
 
     if ($reader instanceof \logstore_standard\log\store) {
         $sql = "
