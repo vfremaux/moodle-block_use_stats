@@ -33,7 +33,8 @@ $tasks = array(
         'hour' => '*',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
+        'dayofweek' => '*',
+        'disabled' => 1,
     ),
 
     array(
@@ -43,7 +44,8 @@ $tasks = array(
         'hour' => '3',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
+        'dayofweek' => '*',
+        'disabled' => 1,
     ),
 
     array(
