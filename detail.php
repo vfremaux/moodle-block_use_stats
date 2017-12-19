@@ -142,14 +142,22 @@ foreach ($aggregate as $module => $moduleset) {
         if (!is_object($value)) {
             continue;
         }
-        $cm = $DB->get_record('course_modules', array('id' => $key));
-        if ($cm) {
-            $module = $DB->get_record('modules', array('id' => $cm->module));
-            if ($modrec = $DB->get_record($module->name, array('id' => $cm->instance))) {
-                $table->data[] = array($modrec->name, block_use_stats_format_time($value->elapsed, 'html'), 0 + @$value->events);
+        if ($module != 'course' && $module != 'coursetotal') {
+            $cm = $DB->get_record('course_modules', array('id' => $key));
+            if ($cm) {
+                $module = $DB->get_record('modules', array('id' => $cm->module));
+                if ($modrec = $DB->get_record($module->name, array('id' => $cm->instance))) {
+                    $table->data[] = array($modrec->name, block_use_stats_format_time($value->elapsed, 'html'), 0 + @$value->events);
+                }
+            } else {
+                $table->data[] = array('', block_use_stats_format_time(0 + @$value->elapsed, 'html'));
             }
         } else {
-            $table->data[] = array('', block_use_stats_format_time(0 + @$value->elapsed, 'html'));
+            if ($course = $DB->get_record('course', array('id' => $key))) {
+                $table->data[] = array($course->shortname.' ('.$course->id.')', block_use_stats_format_time(0 + @$value->elapsed, 'html'));
+            } else {
+                $table->data[] = array('N.C.', block_use_stats_format_time(0 + @$value->elapsed, 'html'));
+            }
         }
     }
 }
