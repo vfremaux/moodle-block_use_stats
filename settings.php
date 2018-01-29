@@ -108,6 +108,11 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configlastpingcredit_desc', 'block_use_stats');
     $settings->add(new admin_setting_configtext($key, $label, $desc, 15));
 
+    $key = 'block_use_stats/enrolmentfilter';
+    $label = get_string('configenrolmentfilter', 'block_use_stats');
+    $desc = get_string('configenrolmentfilter_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 1));
+
     if (block_use_stats_supports_feature('data/multidimensionnal')) {
         $settings->add(new admin_setting_heading('datacubing', get_string('datacubing', 'block_use_stats'), ''));
 
