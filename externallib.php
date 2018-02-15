@@ -227,7 +227,7 @@ class block_use_stats_external extends external_api {
         );
     }
 
-    public static function get_users_stats($uidsource, $uids ,$cidsource, $cid, $from, $to, $score) {
+    public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
 
         $parameters = array(
             'cidsource' => $cidsource,
