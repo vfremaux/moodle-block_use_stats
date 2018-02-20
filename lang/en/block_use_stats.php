@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 // Capabilities.
-$string['use_stats:addinstance'] = 'Can add an instance'; // @DYNAKEYS.
-$string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // @DYNAKEYS.
-$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course'; // @DYNAKEYS.
-$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups'; // @DYNAKEYS.
-$string['use_stats:seeowndetails'] = 'Can see his own detail'; // @DYNAKEYS.
-$string['use_stats:seesitedetails'] = 'Can see detail of all users'; // @DYNAKEYS.
-$string['use_stats:view'] = 'Can see stats'; // @DYNAKEYS.
-$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // @DYNAKEYS.
+$string['use_stats:addinstance'] = 'Can add an instance'; // Is a @DYNAKEY.
+$string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // Is a @DYNAKEY.
+$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course'; // Is a @DYNAKEY.
+$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups'; // Is a @DYNAKEY.
+$string['use_stats:seeowndetails'] = 'Can see his own detail'; // Is a @DYNAKEY.
+$string['use_stats:seesitedetails'] = 'Can see detail of all users'; // Is a @DYNAKEY.
+$string['use_stats:view'] = 'Can see stats'; // Is a @DYNAKEY.
+$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // Is a @DYNAKEY.
 
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
@@ -72,7 +72,7 @@ $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
 $string['credittime'] = '(LTC) ';
 $string['datacubing'] = 'Data cubing';
-$string['declaredtime'] = 'Declared time'; // @DYNAKEYS.
+$string['declaredtime'] = 'Declared time'; // Is a @DYNAKEY.
 $string['denyrule'] = 'Allow sending unless matching rule';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
@@ -111,9 +111,9 @@ $string['task_compile'] = 'Time gaps compilation';
 $string['timeelapsed'] = 'Time elapsed';
 $string['to'] = '&ensp;to&ensp;';
 $string['use_stats_description'] = 'By publishing this service, you allow remote servers to ask for reading statistics of local users.<br/>When subscribing to this service, you allow your local server to query a remote server about stats on his members.<br/>';
-$string['use_stats_name'] = 'Remote access to statistics';
-$string['use_stats_rpc_service'] = 'Remote access to statistics';
-$string['use_stats_rpc_service_name'] = 'Remote access to statistics';
+$string['use_stats_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
+$string['use_stats_rpc_service'] = 'Remote access to statistics'; // Is a @DYNAKEY.
+$string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['youspent'] = 'You spent&ensp;';
 
 $string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s

@@ -20,8 +20,8 @@
  * @author      Valery Fremaux (valery.fremaux@gmail.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
- * this file provides with WS document requests to externalize report documents
- * from within an external management system
+ * This file is a proxy class to the "pro" real implementation of moodle web services.
+ * Web services will be actually registered in all distributions.
  */
 defined('MOODLE_INTERNAL') || die;
 
@@ -45,116 +45,14 @@ class block_use_stats_external extends external_api {
     }
 
     public static function get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score = 0) {
-        global $DB;
+        global $DB, $CFG;
 
-        $parameters = array(
-            'uidsource' => $uidsource,
-            'uid' => $uid
-        );
-        $user = self::validate_user_parameters($parameters);
-
-        $parameters = array(
-            'cidsource' => $cidsource,
-            'cid' => $cid
-        );
-        $course = self::validate_course_parameters($parameters);
-
-        if (empty($to)) {
-            $to = time();
+        if (block_use_stats_supports_feature('api/ws')) {
+            include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
+            return block_use_stats_external_extended::get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score);
         }
 
-        if (!empty($course)) {
-            $logs = use_stats_extract_logs($from, $to, $user->id, $course);
-        } else {
-            $logs = use_stats_extract_logs($from, $to, $user->id);
-        }
-
-        $userres = new StdClass;
-        $userres->id = $user->id;
-        $userres->username = $user->username;
-        $userres->idnumber = $user->idnumber;
-
-        $queryres = new StdClass;
-        $queryres->from = $from;
-        $queryres->to = $to;
-
-        $result = new StdClass;
-        $result->user = $userres;
-        $result->query = $queryres;
-        $result->sessions = new StdClass;
-        $result->courses = array();
-
-        if (empty($logs)) {
-            return $result;
-        }
-
-        $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $from, $to);
-
-        if (array_key_exists('course', $aggregate)) {
-
-            // Scan sessions for stats.
-            $maxsession = 0;
-            $minsession = 1000000;
-            $sum = 0;
-            $count = 0;
-            foreach ($aggregate['sessions'] as $s) {
-
-                if ($s->elapsed > $maxsession) {
-                    $maxsession = $s->elapsed;
-                }
-                if ($s->elapsed < $minsession) {
-                    $minsession = $s->elapsed;
-                }
-                $sum += $s->elapsed;
-                $count++;
-            }
-
-            $meansession = ($count) ? round($sum / $count) : 0;
-
-            $sessionres = new Stdclass;
-            $sessionres->sessions = count($aggregate['sessions']);
-            $firstsession = array_shift($aggregate['sessions']);
-            $sessionres->firstsession = $firstsession->sessionstart;
-            $lastsession = array_pop($aggregate['sessions']);
-            $sessionres->lastsession = $lastsession->sessionstart;
-            $sessionres->sessionmax = $maxsession;
-            $sessionres->sessionmin = $minsession;
-            $sessionres->meansession = $meansession;
-            $result->sessions = $sessionres;
-
-            foreach (array_keys($aggregate['course']) as $courseid) {
-                $rescourse = $DB->get_record('course', array('id' => $courseid));
-                if ($courseid == 0 || $courseid == SITEID) {
-                    continue;
-                }
-
-                $courseres = new StdClass;
-                $courseres->id = $rescourse->id;
-                $courseres->shortname = $rescourse->shortname;
-                $courseres->idnumber = $rescourse->idnumber;
-                $courseres->fullname = format_string($rescourse->fullname);
-
-                $courseres->activitytime = $aggregate['activities'][$courseid]->elapsed;
-                $courseres->coursetime = $aggregate['course'][$courseid]->elapsed;
-                $courseres->coursetotal = $aggregate['coursetotal'][$courseid]->elapsed;
-                $courseres->othertime = 0 + @$aggregate['other']->elapsed;
-                $courseres->sitecoursetime = 0 + @$aggregate['course'][SITEID]->elapsed;
-
-                if ($score) {
-                    $gradeitem = $DB->get_record('grade_items', array('itemtype' => 'course', 'courseid' => $courseid));
-                    $grade = $DB->get_record('grade_grades', array('itemid' => $gradeitem->id, 'userid' => $user->id));
-                    if ($grade) {
-                        $courseres->score = $grade->rawgrade;
-                    } else {
-                        $courseres->score = '-';
-                    }
-                }
-
-                $result->courses[] = $courseres;
-            }
-        }
-
-        return $result;
+        throw new moodle_exception('WS Not available in this distribution');
     }
 
     public static function get_user_stats_returns() {
@@ -227,113 +125,19 @@ class block_use_stats_external extends external_api {
         );
     }
 
-    public static function get_users_stats($uidsource, $uids ,$cidsource, $cid, $from, $to, $score) {
+    public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
 
-        $parameters = array(
-            'cidsource' => $cidsource,
-            'cid' => $cid
-        );
-        $course = self::validate_course_parameters($parameters);
-
-        $result = array();
-
-        foreach ($uids as $uid) {
-            $parameters = array(
-                'uidsource' => $uidsource,
-                'uid' => $uid
-            );
-            $user = self::validate_user_parameters($parameters);
-
-            $result[] = self::get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score);
+        if (block_use_stats_supports_feature('api/ws')) {
+            include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
+            return block_use_stats_external_extended::get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score);
         }
 
-        return $result;
+        throw new moodle_exception('WS Not available in this distribution');
     }
 
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
             self::get_user_stats_returns()
         );
-    }
-
-    /* *************************** Common functions ************************ */
-
-    protected static function validate_course_parameters($parameters) {
-        global $DB;
-
-        if (!in_array($parameters['cidsource'], array('', 'id', 'idnumber', 'shortname'))) {
-            throw invalid_parameter_exception('course source not in expected range');
-        }
-
-        switch ($parameters['cidsource']) {
-            case '':
-                return null;
-                break;
-
-            case 'id':
-                $course = $DB->get_record('course', array('id' => $parameters['cid']));
-                if (!$course) {
-                    throw new invalid_parameter_exception('Invalid course by id '.$parameters['cid']);
-                }
-                break;
-
-            case 'idnumber':
-                $course = $DB->get_record('course', array('idnumber' => $parameters['cid']));
-                if (!$course) {
-                    throw new invalid_parameter_exception('Invalid course by idnumber '.$parameters['cid']);
-                }
-                break;
-
-            case 'shortname':
-                $course = $DB->get_record('course', array('shortname' => $parameters['cid']));
-                if (!$course) {
-                    throw new invalid_parameter_exception('Invalid course by idnumber '.$parameters['cid']);
-                }
-        }
-
-        return $course;
-    }
-
-    protected static function validate_user_parameters($parameters) {
-        global $DB;
-
-        if (!in_array($parameters['uidsource'], array('', 'id', 'username', 'idnumber', 'email'))) {
-            throw invalid_parameter_exception('user source not in expected range');
-        }
-
-        switch ($parameters['uidsource']) {
-            case '':
-                return null;
-                break;
-
-            case 'id':
-                $user = $DB->get_record('user', array('id' => $parameters['uid']));
-                if (!$user) {
-                    throw new invalid_parameter_exception('Invalid user by id '.$parameters['uid']);
-                }
-                break;
-
-            case 'idnumber':
-                $user = $DB->get_record('user', array('idnumber' => $parameters['uid']));
-                if (!$user) {
-                    throw new invalid_parameter_exception('Invalid user by idnumber '.$parameters['uid']);
-                }
-                break;
-
-            case 'username':
-                $user = $DB->get_record('user', array('username' => $parameters['uid']));
-                if (!$user) {
-                    throw new invalid_parameter_exception('Invalid user by username '.$parameters['uid']);
-                }
-                break;
-
-            case 'email':
-                $user = $DB->get_record('user', array('email' => $parameters['uid']));
-                if (!$user) {
-                    throw new invalid_parameter_exception('Invalid user by username '.$parameters['uid']);
-                }
-        }
-
-        return $user;
     }
 }
