@@ -84,6 +84,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $courseenrolclause = '';
     $inparams = array();
 
+    /*
     if (empty($config->displayothertime)) {
         if (is_object($course)) {
             if (!empty($course->id)) {
@@ -131,6 +132,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
             $courseenrolclause = "e.courseid $insql AND ";
         }
     }
+    */
 
     if (!empty($config->enrolmentfilter)) {
         // We search first enrol time still active for this user.
@@ -299,6 +301,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             // Fix session breaks over the threshold time.
             $sessionpunch = false;
             if ($lap > $threshold) {
+
                 $lap = $lastpingcredit;
 
                 if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
@@ -787,6 +790,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 }
             }
         }
+    }
+
+    if ($automatondebug) {
+        echo '<h2>Aggregator output</h2>';
+        block_use_stats_render_aggregate($aggregate);
     }
 
     return $aggregate;

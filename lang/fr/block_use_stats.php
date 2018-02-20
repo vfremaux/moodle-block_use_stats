@@ -15,14 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 // Capabilities.
-$string['use_stats:addinstance'] = 'Peut ajouter une instance'; // @DYNAKEY.
-$string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée'; // @DYNAKEY.
-$string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours'; // @DYNAKEY.
-$string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes'; // @DYNAKEY.
-$string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage'; // @DYNAKEY.
-$string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilisateurs'; // @DYNAKEY.
-$string['use_stats:view'] = 'Peut voir les statistiques'; // @DYNAKEY.
-$string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)'; // @DYNAKEY.
+$string['use_stats:addinstance'] = 'Peut ajouter une instance'; // Is a @DYNAKEY.
+$string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée'; // Is a @DYNAKEY.
+$string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours'; // Is a @DYNAKEY.
+$string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes'; // Is a @DYNAKEY.
+$string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage'; // Is a @DYNAKEY.
+$string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilisateurs'; // Is a @DYNAKEY.
+$string['use_stats:view'] = 'Peut voir les statistiques'; // Is a @DYNAKEY.
+$string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)'; // Is a @DYNAKEY.
 
 $string['activetrackingparams'] = 'Réglage du tracking actif';
 $string['activities'] = 'Activités';
@@ -32,7 +32,7 @@ $string['blockdisplay'] = 'Réglages de l\'affichage du bloc';
 $string['blockname'] = 'Mesure d\'activité';
 $string['byname'] = 'Par nom';
 $string['bytimedesc'] = 'Par temps de présence';
-$string['cachedef_aggregate'] = 'Cache d\'aggregats'; // @DYNAKEY.
+$string['cachedef_aggregate'] = 'Cache d\'aggregats'; // Is in @DYNAKEY.
 $string['capabilitycontrol'] = 'Sur capacité';
 $string['configcalendarskin'] = 'Style du calendrier';
 $string['configcalendarskin_desc'] = 'Choisit le theme du calendrier';
@@ -101,9 +101,9 @@ $string['task_compile'] = 'Compilation des temps intercalaires';
 $string['timeelapsed'] = 'Temps passé';
 $string['to'] = '&ensp;au&ensp;';
 $string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs du serveur distant.<br/>'; // @DYNAKEY.
-$string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // @DYNAKEY.
-$string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // @DYNAKEY.
-$string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // @DYNAKEY.
+$string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // Is a @DYNAKEY.
+$string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // Is a @DYNAKEY.
+$string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // Is a @DYNAKEY.
 $string['youspent'] = 'Cumul&nbsp;:&ensp;';
 
 $string['plugindist_desc'] = '<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
