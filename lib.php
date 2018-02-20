@@ -38,6 +38,8 @@ function block_use_stats_supports_feature($feature) {
             'pro' => array(
                 'format' => array('xls', 'csv', 'pdf'),
                 'data' => array('multidimensionnal', 'keepalive'),
+                'view' => array('detail'),
+                'api' => array('ws'),
             ),
             'community' => array(
                 'format' => array('xls', 'csv'),
