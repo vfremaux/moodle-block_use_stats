@@ -181,6 +181,9 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
 ';
             }
         }
+        if (is_siteadmin()) {
+            $str .= '<div class="admin-mode"><input type="checkbox" name="debug" value="1"> Debug mode</div>';
+        }
         $str .= '</form><br/>';
 
         return $str;
