@@ -72,6 +72,7 @@ class block_use_stats extends block_base {
         global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION;
 
         $config = get_config('block_use_stats');
+        $debug = optional_param('debug', false, PARAM_BOOL);
 
         $renderer = $PAGE->get_renderer('block_use_stats');
 
@@ -145,8 +146,8 @@ class block_use_stats extends block_base {
         $userkeys = unserialize($cache->get('user'.$userid));
 
         $cachestate = '';
-        if (!$aggregate = unserialize($cache->get($cachekey))) {
-            if (debugging()) {
+        if ((!$aggregate = unserialize($cache->get($cachekey))) || $debug) {
+            if (debugging() || $debug) {
                 $cachestate = 'missed';
             }
             if (($COURSE->id > SITEID) && !empty($config->displayothertime)) {
@@ -154,6 +155,7 @@ class block_use_stats extends block_base {
             } else {
                 $logs = use_stats_extract_logs($from, $to, $userid);
             }
+
             if ($logs) {
                 // Call without session storage for speed.
                 $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $from, $to, '', true);
@@ -202,18 +204,20 @@ class block_use_stats extends block_base {
 
             $this->content->text .= '</div>';
 
-            $capabilities = array('block/use_stats:seeowndetails',
-                                  'block/use_stats:seesitedetails',
-                                  'block/use_stats:seecoursedetails',
-                                  'block/use_stats:seegroupdetails');
-            if (has_any_capability($capabilities, $context, $USER->id)) {
-                $showdetailstr = get_string('showdetails', 'block_use_stats');
-                $params = array('id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id);
-                if (!empty($fromwhen)) {
-                     $params['ts_from'] = $fromwhen;
+            if (block_use_stats_supports_feature('view/detail')) {
+                $capabilities = array('block/use_stats:seeowndetails',
+                                      'block/use_stats:seesitedetails',
+                                      'block/use_stats:seecoursedetails',
+                                      'block/use_stats:seegroupdetails');
+                if (has_any_capability($capabilities, $context, $USER->id)) {
+                    $showdetailstr = get_string('showdetails', 'block_use_stats');
+                    $params = array('id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id);
+                    if (!empty($fromwhen)) {
+                         $params['ts_from'] = $fromwhen;
+                    }
+                    $viewurl = new moodle_url('/blocks/use_stats/pro/detail.php', $params);
+                    $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
                 }
-                $viewurl = new moodle_url('/blocks/use_stats/detail.php', $params);
-                $this->content->text .= '<a href="'.$viewurl.'">'.$showdetailstr.'</a>';
             }
 
             if (has_capability('block/use_stats:export', $context)) {
