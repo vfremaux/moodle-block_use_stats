@@ -649,7 +649,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     }
                     $DB->insert_record('block_use_stats_session', $rec);
                 } else {
-                    if (!empty($session->sessionend) && ($session->sessionend > $sessionsids[$session->sessionstart]->sessionend)) {
+                    if (!empty($session->sessionend) && ($session->sessionend > @$sessionsids[$session->sessionstart]->sessionend)) {
                         $oldrec->sessionend = $session->sessionend;
                         $DB->update_record('block_use_stats_session', $oldrec);
                     }
