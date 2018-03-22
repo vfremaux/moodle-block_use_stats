@@ -158,7 +158,7 @@ class block_use_stats extends block_base {
 
             if ($logs) {
                 // Call without session storage for speed.
-                $aggregate = use_stats_aggregate_logs($logs, 'module', 0, $from, $to, '', true);
+                $aggregate = use_stats_aggregate_logs($logs, $from, $to, '', true);
             }
             $cache->set($cachekey, serialize($aggregate));
 
