@@ -66,6 +66,7 @@ $string['configonesessionpercourse'] = 'Une session par cours';
 $string['configonesessionpercourse_desc'] = 'Si activé, alors l\analyseru commencera une nouvelle session chaque fois que la trace change de cours. Sinonn, une session peut représenter une séance de travail qui chevauche plusieurs cours.';
 $string['configthreshold'] = 'Seuil';
 $string['configthreshold_desc'] = 'Seuil de détection (en minutes). Au dessus de ce délai entre deux traces successives, l\'analyseur conclut à une déconnexion de l\'utilisateur et attribue le temps forfaitaire.';
+$string['credittime'] = '(LTC) ';
 $string['datacubing'] = 'Données multidimensionnelles';
 $string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
 $string['dimensionitem'] = 'Classes observables';
