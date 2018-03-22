@@ -100,7 +100,7 @@ if ($options['full']) {
         $logsize = count($logs);
         $progress = "    Compiling for {$u->username} %%PROGRESS%%";
         echo str_replace('%%PROGRESS%%', "(0/$logsize)", $progress);
-        use_stats_aggregate_logs($logs, 'module', 0, 0, time(), $progress);
+        use_stats_aggregate_logs($logs, 0, time(), $progress);
         echo "\n";
     }
 
