@@ -171,6 +171,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
              origin != 'cli' AND
              timecreated > ? AND
              timecreated < ? AND
+             action != failed AND
              ((courseid = 0 AND action = 'loggedin') OR
              (courseid = 0 AND action = 'loggedout') OR
               (1
@@ -223,11 +224,17 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * user log extraction. User will be guessed out from log records.
  * @param array $logs
  * @param string $dimension
+ * @param string $origintime
+ * @param string $from
+ * @param string $to
+ * @param string $progress
+ * @param string $nosessions
  */
-function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0, $progress = '', $nosessions = false) {
+function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
 
     $backdebug = 0;
+    $dimension = 'module';
 
     $config = get_config('block_use_stats');
     if (file_exists($CFG->dirroot.'/mod/learningtimecheck/xlib.php')) {
@@ -273,7 +280,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         for ($i = 0; $i < $logsize; $i = $nexti) {
 
             if ($progress) {
-                echo "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
+                $logbuffer .= "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
             }
 
             $log = $logs[$i];
@@ -331,9 +338,6 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             if ($log->$dimension == 'system' and $log->action == 'failed') {
                 $memlap = 0;
-                if ($automatondebug || $backdebug) {
-                    $logbuffer .= "\n";
-                }
                 continue;
             }
 
@@ -649,7 +653,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     }
                     $DB->insert_record('block_use_stats_session', $rec);
                 } else {
-                    if (!empty($session->sessionend) && ($session->sessionend > $sessionsids[$session->sessionstart]->sessionend)) {
+                    if (!empty($session->sessionend) && ($session->sessionend > @$sessionsids[$session->sessionstart]->sessionend)) {
                         $oldrec->sessionend = $session->sessionend;
                         $DB->update_record('block_use_stats_session', $oldrec);
                     }
