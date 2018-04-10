@@ -37,7 +37,7 @@ function block_use_stats_supports_feature($feature) {
         $supports = array(
             'pro' => array(
                 'format' => array('xls', 'csv', 'pdf'),
-                'data' => array('multidimensionnal', 'keepalive'),
+                'data' => array('multidimensionnal', 'activetracking'),
                 'view' => array('detail'),
                 'api' => array('ws'),
             ),
