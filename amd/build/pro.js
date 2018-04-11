@@ -22,7 +22,7 @@
  * @package    block_use_stats
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, str) {
+define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
     var usestatspro = {
 
@@ -49,7 +49,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
             var waiticon = ' <img src="' + cfg.wwwroot + '/pix/i/ajaxloader.gif' + '">';
 
             if (crc === calculated) {
-                url = cfg.wwwroot + '/blocks/use_stats/pro/ajax/services.php?';
+                var url = cfg.wwwroot + '/blocks/use_stats/pro/ajax/services.php?';
                 url += 'what=license';
                 url += '&service=check';
                 url += '&customerkey=' + that.val();
@@ -96,4 +96,4 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
     };
 
     return usestatspro;
-})
+});
