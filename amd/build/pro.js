@@ -1,5 +1,27 @@
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+// jshint undef:false, unused:false, scripturl:true
 
+/**
+ * Javascript controller for pro services.
+ *
+ * @module     block_use_stats/pro
+ * @package    block_use_stats
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, str) {
 
     var usestatspro = {
@@ -13,7 +35,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
 
         check_product_key: function() {
 
-            that = $(this);
+            var that = $(this);
 
             var productkey = that.val().replace(/-/g, '');
             var payload = productkey.substr(0, 14);
@@ -26,7 +48,7 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
             var invalidicon = ' <img src="' + cfg.wwwroot + '/pix/i/invalid.png' + '">';
             var waiticon = ' <img src="' + cfg.wwwroot + '/pix/i/ajaxloader.gif' + '">';
 
-            if (crc == calculated) {
+            if (crc === calculated) {
                 url = cfg.wwwroot + '/blocks/use_stats/pro/ajax/services.php?';
                 url += 'what=license';
                 url += '&service=check';
@@ -51,18 +73,18 @@ define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, 
             }
         },
 
-        /**
+        /*
          * Calculates a checksum on 2 chars.
          */
         checksum: function(keypayload) {
 
             var crcrange = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-            var crcrangearr =  crcrange.split('');
+            var crcrangearr = crcrange.split('');
             var crccount = crcrangearr.length;
             var chars = keypayload.split('');
             var crc = 0;
 
-            for (ch in chars) {
+            for (var ch in chars) {
                 var ord = chars[ch].charCodeAt(0);
                 crc += ord;
             }
