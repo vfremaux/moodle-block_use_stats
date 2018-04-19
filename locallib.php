@@ -642,7 +642,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                 $params = array('sessionstart' => 0 + $session->sessionstart,
                                 'userid' => $currentuser);
-                $oldrec = $DB->get_record('block_use_stats_session', $params);
+                $oldrec = $DB->get_record('block_use_stats_session', $params, '*', IGNORE_MULTIPLE);
                 if (empty($oldrec)) {
                     $rec = new StdClass;
                     $rec->userid = $currentuser;
@@ -692,8 +692,13 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                         if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
                             if ($credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) {
                                 // Cut over with credit time.
+                                $diff = $declaredtime->credittime - $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
                                 $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
                                 $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+
+                                // Fix the global aggregators accordingly.
+                                @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                             }
                         }
                     } else {
@@ -702,20 +707,30 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             // This processes validated modules that although have no logs.
                             if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
                                 // Initiate value.
+                                $diff = $declaredtime->credittime;
                                 $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
                                 $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
                                 $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
                                 $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
                                 $aggregate[$credittime->modname][$credittime->cmid]->firstaccess = $fa;
                                 $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
+
+                                // Fix the global aggregators accordingly.
+                                @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                             }
 
                             if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
                                 // Override value if not enough spent time.
+                                $diff = $credittime->credittime - $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
                                 $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
                                 $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
                                 $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
                                 $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
+
+                                // Fix the global aggregators accordingly.
+                                @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                             }
                         }
                     }
@@ -733,23 +748,37 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                     if (!empty($ltcconfig->strict_declared)) {
                         // If strict declared, do override time even if real time is higher.
+                        $diff = $declaredtime->declaredtime - $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
                         $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
                         $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
+
+                        // Fix the global aggregators accordingly.
+                        @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                        @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                     } else {
                         // This processes validated modules that although have no logs.
                         if (!isset($aggregate[$declaredtime->modname][$declaredtime->cmid])) {
+                            $diff = $declaredtime->declaredtime;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid] = new StdClass;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = 0;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->events = 0;
                             $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess = $fa;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
+
+                            // Fix the global aggregators accordingly.
+                            @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                            @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                         }
                         if ($aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed <= $declaredtime->declaredtime) {
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
                             $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
                             $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
+
+                            // Fix the global aggregators accordingly.
+                            @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                            @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                         }
                     }
                 }
@@ -777,7 +806,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 if ($to) {
                     $select .= " AND timemodified <= $to ";
                 }
-                if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, array(), 'id,element,value')) {
+                if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, array(), 'id, element, value')) {
                     foreach ($realtimes as $rt) {
                         preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
                         $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
