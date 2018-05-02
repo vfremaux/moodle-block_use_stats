@@ -84,6 +84,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $courseenrolclause = '';
     $inparams = array();
 
+    /*
     if (empty($config->displayothertime)) {
         if (is_object($course)) {
             if (!empty($course->id)) {
@@ -131,6 +132,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
             $courseenrolclause = "e.courseid $insql AND ";
         }
     }
+    */
 
     if (!empty($config->enrolmentfilter)) {
         // We search first enrol time still active for this user.
@@ -169,6 +171,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
              origin != 'cli' AND
              timecreated > ? AND
              timecreated < ? AND
+             action != 'failed' AND
              ((courseid = 0 AND action = 'loggedin') OR
              (courseid = 0 AND action = 'loggedout') OR
               (1
@@ -221,6 +224,11 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * user log extraction. User will be guessed out from log records.
  * @param array $logs
  * @param string $dimension
+ * @param string $origintime
+ * @param string $from
+ * @param string $to
+ * @param string $progress
+ * @param string $nosessions
  */
 function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0, $to = 0, $progress = '', $nosessions = false) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
@@ -229,7 +237,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
     $config = get_config('block_use_stats');
     if (file_exists($CFG->dirroot.'/mod/learningtimecheck/xlib.php')) {
-        $ltcconfig = get_config('mod_learningtimecheck');
+        $ltcconfig = get_config('learningtimecheck');
     }
 
     // Will record session aggregation state as current session ordinal.
@@ -271,7 +279,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
         for ($i = 0; $i < $logsize; $i = $nexti) {
 
             if ($progress) {
-                echo "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
+                $logbuffer .= "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
             }
 
             $log = $logs[$i];
@@ -299,6 +307,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
             // Fix session breaks over the threshold time.
             $sessionpunch = false;
             if ($lap > $threshold) {
+
                 $lap = $lastpingcredit;
 
                 if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
@@ -328,9 +337,6 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
             if ($log->$dimension == 'system' and $log->action == 'failed') {
                 $memlap = 0;
-                if ($automatondebug || $backdebug) {
-                    $logbuffer .= "\n";
-                }
                 continue;
             }
 
@@ -633,7 +639,10 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     continue;
                 }
 
-                if (empty($usersessions) || !in_array($session->sessionstart, $usersessions)) {
+                $params = array('sessionstart' => 0 + $session->sessionstart,
+                                'userid' => $currentuser);
+                $oldrec = $DB->get_record('block_use_stats_session', $params);
+                if (empty($oldrec)) {
                     $rec = new StdClass;
                     $rec->userid = $currentuser;
                     $rec->sessionstart = $session->sessionstart;
@@ -643,9 +652,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                     }
                     $DB->insert_record('block_use_stats_session', $rec);
                 } else {
-                    $oldrec = new StdClass;
-                    $oldrec->id = $sessionsids[$session->sessionstart]->id;
-                    if (!empty($session->sessionend) && ($session->sessionend > $sessionsids[$session->sessionstart]->sessionend)) {
+                    if (!empty($session->sessionend) && ($session->sessionend > @$sessionsids[$session->sessionstart]->sessionend)) {
                         $oldrec->sessionend = $session->sessionend;
                         $DB->update_record('block_use_stats_session', $oldrec);
                     }
@@ -666,6 +673,7 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
 
         foreach ($checklists as $ckl) {
             if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
+
                 foreach ($credittimes as $credittime) {
 
                     // If credit time is assigned to NULL course module, we assign it to the checklist itself.
@@ -674,25 +682,40 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                         $credittime->cmid = $cklcm->id;
                     }
 
-                    if (!empty($ltcconfig->strict_credits)) {
-                        // If strict credits, do override time even if real time is higher.
-                        $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
-                        $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
-                    } else {
-                        // This processes validated modules that although have no logs.
-                        if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
-                            $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
-                            $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
-                            $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
-                            $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
-                            $aggregate[$credittime->modname][$credittime->cmid]->firstaccess = $fa;
-                            $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
+                    if (!empty($ltcconfig->strictcredits)) {
+                        /*
+                         * If strict credits, the reported time cannot be higher to the standard time credit for the
+                         * item. The user is credited with the real time if lower then the credit, or the credit
+                         * as peak cutoff. This does not care of the item being checked or not.
+                         */
+                        if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
+                            if ($credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) {
+                                // Cut over with credit time.
+                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+                                $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+                            }
                         }
-                        if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
-                            $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
-                            $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
-                            $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
-                            $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
+                    } else {
+                        if ($credittime->ismarked) {
+
+                            // This processes validated modules that although have no logs.
+                            if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
+                                // Initiate value.
+                                $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
+                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
+                                $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+                                $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
+                                $aggregate[$credittime->modname][$credittime->cmid]->firstaccess = $fa;
+                                $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
+                            }
+
+                            if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
+                                // Override value if not enough spent time.
+                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+                                $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+                                $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
+                                $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
+                            }
                         }
                     }
                 }
@@ -770,6 +793,11 @@ function use_stats_aggregate_logs($logs, $dimension, $origintime = 0, $from = 0,
                 }
             }
         }
+    }
+
+    if ($automatondebug) {
+        echo '<h2>Aggregator output</h2>';
+        block_use_stats_render_aggregate($aggregate);
     }
 
     return $aggregate;
