@@ -74,7 +74,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         if (!empty($config->filterdisplayunder)) {
             $title = htmlspecialchars(get_string('isfiltered', 'block_use_stats', $config->filterdisplayunder));
-            $pix = '<img src="'.$this->output->pix_url('i/warning').'">';
+            $pix = $this->output->pix_icon('i/warning', '');
             $str .= '<tr><td class="teacherstatsbycourse" title="'.$title.'">'.$pix.'</td>';
             $str .= '<td align="right" class="teacherstatsbycourse">';
             if (@$config->displayactivitytimeonly != DISPLAY_FULL_COURSE) {
