@@ -230,8 +230,12 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * @param string $progress
  * @param string $nosessions
  */
-function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false) {
+function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false, $currentcourse = null) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
+
+    if (is_null($currentcourse)) {
+        $currentcourse = $COURSE;
+    }
 
     $backdebug = 0;
     $dimension = 'module';
@@ -276,6 +280,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $memlap = 0; // Will store the accumulated time for in the way but out of scope laps.
 
         $logsize = count($logs);
+
+        if ($logsize > 15000) {
+            raise_memory_limit(MEMORY_EXTRA);
+        }
 
         for ($i = 0; $i < $logsize; $i = $nexti) {
 
@@ -564,32 +572,6 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         echo '</pre>';
     }
 
-    // Add some control values.
-    if (!empty($aggregate['coursetotal'])) {
-        foreach ($aggregate['coursetotal'] as $courseid => $stat) {
-            $t = block_use_stats_format_time($aggregate['coursetotal'][$courseid]->elapsed);
-            $aggregate['coursetotal'][$courseid]->elapsedhtml = $t;
-        }
-    }
-    if (!empty($aggregate['activities'])) {
-        foreach ($aggregate['activities'] as $courseid => $stat) {
-            $t = block_use_stats_format_time($aggregate['activities'][$courseid]->elapsed);
-            $aggregate['activities'][$courseid]->elapsedhtml = $t;
-        }
-    }
-    if (!empty($aggregate['other'])) {
-        foreach ($aggregate['other'] as $courseid => $stat) {
-            $t = block_use_stats_format_time($aggregate['other'][$courseid]->elapsed);
-            $aggregate['other'][$courseid]->elapsedhtml = $t;
-        }
-    }
-    if (!empty($aggregate['course'])) {
-        foreach ($aggregate['course'] as $courseid => $stat) {
-            $t = block_use_stats_format_time($aggregate['course'][$courseid]->elapsed);
-            $aggregate['course'][$courseid]->elapsedhtml = $t;
-        }
-    }
-
     // Check assertions.
     if (!empty($aggregate['coursetotal'])) {
         foreach (array_keys($aggregate['coursetotal']) as $courseid) {
@@ -642,7 +624,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                 $params = array('sessionstart' => 0 + $session->sessionstart,
                                 'userid' => $currentuser);
-                $oldrec = $DB->get_record('block_use_stats_session', $params, '*', IGNORE_MULTIPLE);
+                $oldrec = $DB->get_record('block_use_stats_session', $params);
                 if (empty($oldrec)) {
                     $rec = new StdClass;
                     $rec->userid = $currentuser;
@@ -670,7 +652,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     // We need check if time credits are used and override by credit earned.
     if (file_exists($CFG->dirroot.'/mod/learningtimecheck/xlib.php')) {
         include_once($CFG->dirroot.'/mod/learningtimecheck/xlib.php');
-        $checklists = learningtimecheck_get_instances($COURSE->id, true); // Get timecredit enabled ones.
+        $checklists = learningtimecheck_get_instances($currentcourse->id, true); // Get timecredit enabled ones.
 
         foreach ($checklists as $ckl) {
             if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
@@ -822,6 +804,32 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     @$aggregate['activities'][$cm->course]->elapsed += $diff;
                 }
             }
+        }
+    }
+
+    // Add some control values.
+    if (!empty($aggregate['coursetotal'])) {
+        foreach ($aggregate['coursetotal'] as $courseid => $stat) {
+            $t = block_use_stats_format_time($aggregate['coursetotal'][$courseid]->elapsed);
+            $aggregate['coursetotal'][$courseid]->elapsedhtml = $t;
+        }
+    }
+    if (!empty($aggregate['activities'])) {
+        foreach ($aggregate['activities'] as $courseid => $stat) {
+            $t = block_use_stats_format_time($aggregate['activities'][$courseid]->elapsed);
+            $aggregate['activities'][$courseid]->elapsedhtml = $t;
+        }
+    }
+    if (!empty($aggregate['other'])) {
+        foreach ($aggregate['other'] as $courseid => $stat) {
+            $t = block_use_stats_format_time($aggregate['other'][$courseid]->elapsed);
+            $aggregate['other'][$courseid]->elapsedhtml = $t;
+        }
+    }
+    if (!empty($aggregate['course'])) {
+        foreach ($aggregate['course'] as $courseid => $stat) {
+            $t = block_use_stats_format_time($aggregate['course'][$courseid]->elapsed);
+            $aggregate['course'][$courseid]->elapsedhtml = $t;
         }
     }
 
