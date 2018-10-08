@@ -24,6 +24,9 @@ $string['use_stats:seesitedetails'] = 'Can see detail of all users'; // Is a @DY
 $string['use_stats:view'] = 'Can see stats'; // Is a @DYNAKEY.
 $string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // Is a @DYNAKEY.
 
+// Privacy.
+$string['privacy:metadata'] = "The Use Stats Block does not directely store any data belonging to users";
+
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
 $string['allowrule'] = 'Allow sending when matching rule';
