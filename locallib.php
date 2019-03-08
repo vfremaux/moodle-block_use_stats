@@ -622,9 +622,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     continue;
                 }
 
+                // Important : do not consider session end.
                 $params = array('sessionstart' => 0 + $session->sessionstart,
                                 'userid' => $currentuser);
-                $oldrec = $DB->get_record('block_use_stats_session', $params);
+                $oldrec = $DB->get_record('block_use_stats_session', $params, '*', IGNORE_MULTIPLE);
                 if (empty($oldrec)) {
                     $rec = new StdClass;
                     $rec->userid = $currentuser;
@@ -689,7 +690,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             // This processes validated modules that although have no logs.
                             if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
                                 // Initiate value.
-                                $diff = $declaredtime->credittime;
+                                $diff = $credittime->credittime;
                                 $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
                                 $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
                                 $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
