@@ -26,6 +26,7 @@
 defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
+require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
 
 class block_use_stats_external extends external_api {
 
@@ -104,6 +105,33 @@ class block_use_stats_external extends external_api {
         );
     }
 
+    /* *************************** Simple bulk users response ************************* */
+
+    /**
+     * Same input API than get_users_stats()
+     * Only response structure changes
+     */
+    public static function get_users_course_stats_parameters() {
+        return self::get_users_stats_parameters();
+    }
+
+    public static function get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
+        global $CFG;
+
+        if (block_use_stats_supports_feature('api/ws')) {
+            include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
+            return block_use_stats_external_extended::get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score);
+        }
+
+        throw new moodle_exception('WS Not available in this distribution');
+    }
+
+    public static function get_users_course_stats_returns() {
+        return new external_multiple_structure(
+            self::get_user_course_stats_returns()
+        );
+    }
+
     /* *************************** Bulk data ************************* */
 
     public static function get_users_stats_parameters() {
@@ -126,6 +154,7 @@ class block_use_stats_external extends external_api {
     }
 
     public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
+        global $CFG;
 
         if (block_use_stats_supports_feature('api/ws')) {
             include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
@@ -138,6 +167,39 @@ class block_use_stats_external extends external_api {
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
             self::get_user_stats_returns()
+        );
+    }
+
+    /* *************** Common functions ******************* */
+
+    protected static function get_user_course_stats_returns() {
+        return new external_single_structure(
+            array(
+                'user' => new external_single_structure(
+                    array(
+                        'id' => new external_value(PARAM_INT, 'User id'),
+                        'idnumber' => new external_value(PARAM_TEXT, 'User idnumber'),
+                        'username' => new external_value(PARAM_TEXT, 'User username'),
+                    )
+                ),
+
+                'coursedata' => new external_single_structure(
+                    array(
+                        'id' => new external_value(PARAM_INT, 'Course id'),
+                        'idnumber' => new external_value(PARAM_TEXT, 'Course idnumber'),
+                        'shortname' => new external_value(PARAM_TEXT, 'Course shortname'),
+                        'fullname' => new external_value(PARAM_TEXT, 'Course fullname'),
+                        'activitytime' => new external_value(PARAM_INT, 'Elapsed time in activities'),
+                        'coursetime' => new external_value(PARAM_INT, 'Elapsed time in course outside activities'),
+                        'coursetotal' => new external_value(PARAM_INT, 'Elapsed time in course (all times)'),
+                        'othertime' => new external_value(PARAM_INT, 'Elapsed time in system areas'),
+                        'sitecoursetime' => new external_value(PARAM_INT, 'Elapsed time in site course during session'),
+                        'firstsession' => new external_value(PARAM_INT, 'First session date', VALUE_OPTIONAL),
+                        'lastsession' => new external_value(PARAM_INT, 'Last session date', VALUE_OPTIONAL),
+                        'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
+                    )
+                ),
+            )
         );
     }
 }
