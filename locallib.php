@@ -282,7 +282,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
         $logsize = count($logs);
 
-        if ($logsize > 5000) {
+        if ($logsize > 15000) {
             raise_memory_limit(MEMORY_EXTRA);
         }
 
