@@ -111,10 +111,12 @@ $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // Is a @
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // Is a @DYNAKEY.
 $string['youspent'] = 'Cumul&nbsp;:&ensp;';
+$string['warningusestateenrolfilter'] = 'La vérification des dates d\'inscription est activée dans le bloc "Mesure d\'activité". Ceci peut avoir un effet de filtrage innatendu pour des utiisateurs ayant eu des
+activités AVANT la date d\'inscription la plus récente constatée dans le cours.';
 
 $string['plugindist_desc'] = '<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
 correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugn existe et est distribuée
 sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
 <p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
 <ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=fr">ActiveProLearn SAS</a></li>
-<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
+</ul>';
