@@ -1,5 +1,5 @@
 .teacherstatsbycourse {
-    background-color: #e0e0e0;
+    /* background-color: #e0e0e0; */
     font-size: 9px;
 }
 
@@ -21,7 +21,7 @@
 }
 
 .usestats-message.missed {
-    background-color: #e0ffe0;
+    /* background-color: #e0ffe0; */
 }
 
 .usestats-shadow {
