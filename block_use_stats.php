@@ -96,15 +96,6 @@ class block_use_stats extends block_base {
             return $this->content;
         }
 
-        // Know which reader we are working with.
-        $logmanager = get_log_manager();
-        $readers = $logmanager->get_readers(use_stats_get_reader());
-        $reader = reset($readers);
-
-        if (empty($reader)) {
-            return $this->content; // No log reader found.
-        }
-
         // Get context so we can check capabilities.
         $context = context_block::instance($this->instance->id);
         $systemcontext = context_system::instance();
@@ -115,10 +106,21 @@ class block_use_stats extends block_base {
         }
 
         // Check student access on instance.
+        // echo "See other : ".$this->_seeother();
         if (!$this->_seeother()) {
             if (empty($this->config->studentscansee)) {
+                // echo "No see !! ";
                 return $this->content;
             }
+        }
+
+        // Know which reader we are working with.
+        $logmanager = get_log_manager();
+        $readers = $logmanager->get_readers(use_stats_get_reader());
+        $reader = reset($readers);
+
+        if (empty($reader)) {
+            return $this->content; // No log reader found.
         }
 
         $id = optional_param('id', 0, PARAM_INT);

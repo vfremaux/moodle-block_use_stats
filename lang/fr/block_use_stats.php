@@ -90,7 +90,7 @@ $string['licenseprovider_desc'] = 'Entrez la clef de votre distributeur.';
 $string['licensekey'] = 'Clef de license pro';
 $string['licensekey_desc'] = 'Entrez ici la clef de produit que vous avez reçu de votre distributeur.';
 $string['loganalysisparams'] = 'Réglages de l\'analyseur d\'historiques';
-$string['modulename'] = 'Activity tracking';
+$string['modulename'] = 'Mesure d\'activité';
 $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthismoodlefrom'] = '&ensp;depuis&ensp;';
 $string['other'] = 'Autres zones hors cours';
@@ -119,4 +119,4 @@ correspondant à une utilisation courante du plugin. Une version "professionnell
 sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
 <p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
 <ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=fr">ActiveProLearn SAS</a></li>
-<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
+</ul>';
