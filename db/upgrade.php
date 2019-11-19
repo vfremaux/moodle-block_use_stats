@@ -44,14 +44,6 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
         $table = new xmldb_table('use_stats_log');
         if ($dbman->table_exists($table)) {
             $dbman->rename_table($table, 'block_use_stats_log');
-
-            $table = new xmldb_table('use_stats');
-            $dbman->rename_table($table, 'block_use_stats');
-
-            $table = new xmldb_table('use_stats_userdata');
-            if ($dbman->table_exists($table)) {
-                $dbman->drop_table($table);
-            }
         } else {
 
             // Define table use_stats_log to be created.
@@ -79,6 +71,16 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 // Launch create table for use_stats.
                 $dbman->create_table($table);
             }
+        }
+
+        $table = new xmldb_table('use_stats');
+        if ($dbman->table_exists($table)) {
+            $dbman->rename_table($table, 'block_use_stats');
+        }
+
+        $table = new xmldb_table('use_stats_userdata');
+        if ($dbman->table_exists($table)) {
+            $dbman->drop_table($table);
         }
 
         // Feed the table with log gaps.

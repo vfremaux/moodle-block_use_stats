@@ -121,10 +121,10 @@ $string['use_stats_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['youspent'] = 'You spent&ensp;';
+$string['warningusestateenrolfilter'] = 'The enrolment checker is on in the Use Stats bloc. This may have effects on reports if the user\'s activity falls before the latest enrolment start date.';
 
 $string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
 core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
 and improvement effort.</p>
 <p>Please contact one of our distributors to get "Pro" version support.</p>
-<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li>
-<li><a href="http://www.edunao.com">Edunao SAS</a></li></ul>';
+<ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li></ul>';
