@@ -223,12 +223,11 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * given an array of log records, make a displayable aggregate. Needs a single
  * user log extraction. User will be guessed out from log records.
  * @param array $logs
- * @param string $dimension
- * @param string $origintime
  * @param string $from
  * @param string $to
  * @param string $progress
  * @param string $nosessions
+ * @param string $currentcourse // for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
  */
 function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false, $currentcourse = null) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
@@ -316,9 +315,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             }
 
-            // Adjust "module" for new logstore if using the standard log.
+            // Adjust "module" for new logstore if using the standard log. Do it only for current course.
+            // Other logs deeper info not needed.
             if ($reader instanceof \logstore_standard\log\store) {
-                use_stats_add_module_from_context($log);
+                if (($log->course == $currentcourse->id) || ($log->contextlevel != CONTEXT_MODULE)) {
+                    use_stats_add_module_from_context($log);
+                } else {
+                    $log->module = 'outoftargetcourse';
+                    $log->cmid = 0;
+                }
             }
 
             // Fix session breaks over the threshold time.
@@ -679,6 +684,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $checklists = learningtimecheck_get_instances($currentcourse->id, true); // Get timecredit enabled ones.
 
         foreach ($checklists as $ckl) {
+            if ($currentuser == 0) {
+                continue;
+            }
             if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
 
                 foreach ($credittimes as $credittime) {
@@ -1135,6 +1143,7 @@ function use_stats_render($sessions) {
 function use_stats_add_module_from_context(&$log) {
     global $DB;
     static $cmnames = array();
+    static $contexttocmids = array();
 
     $log->module = 'undefined';
     switch ($log->contextlevel) {
@@ -1152,14 +1161,16 @@ function use_stats_add_module_from_context(&$log) {
             $log->cmid = 0;
             break;
         case CONTEXT_MODULE:
-            $cmid = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
+            if (!array_key_exists($log->contextid, $contexttocmids)) {
+                $contexttocmids[$log->contextid] = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
+            }
             if (!array_key_exists($log->contextid, $cmnames)) {
-                $moduleid = $DB->get_field('course_modules', 'module', array('id' => $cmid));
+                $moduleid = $DB->get_field('course_modules', 'module', array('id' => $contexttocmids[$log->contextid]));
                 $cmnames[$log->contextid] = $DB->get_field('modules', 'name', array('id' => $moduleid));
             }
 
             $log->module = $cmnames[$log->contextid];
-            $log->cmid = 0 + @$cmid; // Protect in case of faulty module.
+            $log->cmid = 0 + $contexttocmids[$log->contextid]; // Protect in case of faulty module.
             break;
         default:
             $log->cmid = 0;
@@ -1280,7 +1291,7 @@ function block_use_stats_render_aggregate(&$aggregate) {
         echo '<h3>'.$key.'</h3>';
         echo '<table width="100%">';
         foreach ($subs as $cmid => $cmtotal) {
-            if ($key != 'section') {
+            if (!in_array($key, array('section', 'outoftargetcourse'))) {
                 $instanceid = $DB->get_field('course_modules', 'instance', array('id' => $cmid));
                 $instancename = $DB->get_field($key, 'name', array('id' => $instanceid));
                 echo '<tr>';
