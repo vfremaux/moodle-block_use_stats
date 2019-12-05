@@ -1,4 +1,6 @@
-define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
+
+
+define(['jquery', 'core/log', 'core/config', 'core/str'], function($, log, cfg, str) {
 
     var usestatspro = {
 
