@@ -684,6 +684,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $checklists = learningtimecheck_get_instances($currentcourse->id, true); // Get timecredit enabled ones.
 
         foreach ($checklists as $ckl) {
+            if ($currentuser == 0) {
+                continue;
+            }
             if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
 
                 foreach ($credittimes as $credittime) {

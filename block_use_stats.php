@@ -106,10 +106,8 @@ class block_use_stats extends block_base {
         }
 
         // Check student access on instance.
-        // echo "See other : ".$this->_seeother();
         if (!$this->_seeother()) {
             if (empty($this->config->studentscansee)) {
-                // echo "No see !! ";
                 return $this->content;
             }
         }
