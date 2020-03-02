@@ -84,56 +84,6 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $courseenrolclause = '';
     $inparams = array();
 
-    /*
-    if (empty($config->displayothertime)) {
-        if (is_object($course)) {
-            if (!empty($course->id)) {
-                $courseclause = " AND {$courseparm} = $course->id ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_numeric($course)) {
-            if (!empty($course)) {
-                $courseclause = " AND {$courseparm} = $course ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_array($course)) {
-            // Finish solving from value as MIN(firstassignement).
-            foreach ($course as $c) {
-                $cids[] = $c->id;
-            }
-            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-            list($insql, $inparams) = $DB->get_in_or_equal($cids);
-            $courseenrolclause = "e.courseid $insql AND ";
-        }
-    } else {
-        if (is_object($course)) {
-            if (!empty($course->id)) {
-                $courseclause = " AND {$courseparm} IN($course->id, 0, 1) ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id, 0, 1));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_numeric($course)) {
-            if (!empty($course)) {
-                $courseclause = " AND {$courseparm} IN ($course, 0, 1) ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course, 0, 1));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_array($course)) {
-            // Finish solving from value as MIN(firstassignement).
-            foreach ($course as $c) {
-                $cids[] = $c->id;
-            }
-            $cids[] = 0;
-            $cids[] = 1;
-            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-            list($insql, $inparams) = $DB->get_in_or_equal($cids);
-            $courseenrolclause = "e.courseid $insql AND ";
-        }
-    }
-    */
-
     if (!empty($config->enrolmentfilter)) {
         // We search first enrol time still active for this user.
         $sql = "
@@ -571,10 +521,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     if (array_key_exists('section', $aggregate) && is_numeric($sectionid) && array_key_exists($sectionid, $aggregate['section'])) {
                         $aggregate['section'][$sectionid]->elapsed += $lap;
                         $aggregate['section'][$sectionid]->events += 1;
+                        $aggregate['realsection'][$sectionid]->elapsed += $lap;
+                        $aggregate['realsection'][$sectionid]->events += 1;
                     } else {
                         $aggregate['section'][$sectionid] = new StdClass();
                         $aggregate['section'][$sectionid]->elapsed = $lap;
                         $aggregate['section'][$sectionid]->events = 1;
+                        $aggregate['realsection'][$sectionid] = new StdClass();
+                        $aggregate['realsection'][$sectionid]->elapsed = $lap;
+                        $aggregate['realsection'][$sectionid]->events = 1;
                     }
                 }
             }
@@ -630,7 +585,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
         // Finish last session.
         if (!empty($aggregate['sessions'])) {
-            @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+            $lastkey = @array_pop(array_keys($aggregate['sessions']));
+            if (!empty($lastkey)) {
+                @$aggregate['sessions'][$lastkey]->sessionend = $log->time + $lap;
+            }
         }
 
         // Explicit session dates.
@@ -690,6 +648,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
 
                 foreach ($credittimes as $credittime) {
+
+                    if (empty($credittime->enablecredit)) {
+                        continue;
+                    }
 
                     // If credit time is assigned to NULL course module, we assign it to the checklist itself.
                     if (!$credittime->cmid) {
