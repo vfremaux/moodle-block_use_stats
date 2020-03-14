@@ -84,56 +84,6 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $courseenrolclause = '';
     $inparams = array();
 
-    /*
-    if (empty($config->displayothertime)) {
-        if (is_object($course)) {
-            if (!empty($course->id)) {
-                $courseclause = " AND {$courseparm} = $course->id ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_numeric($course)) {
-            if (!empty($course)) {
-                $courseclause = " AND {$courseparm} = $course ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_array($course)) {
-            // Finish solving from value as MIN(firstassignement).
-            foreach ($course as $c) {
-                $cids[] = $c->id;
-            }
-            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-            list($insql, $inparams) = $DB->get_in_or_equal($cids);
-            $courseenrolclause = "e.courseid $insql AND ";
-        }
-    } else {
-        if (is_object($course)) {
-            if (!empty($course->id)) {
-                $courseclause = " AND {$courseparm} IN($course->id, 0, 1) ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course->id, 0, 1));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_numeric($course)) {
-            if (!empty($course)) {
-                $courseclause = " AND {$courseparm} IN ($course, 0, 1) ";
-                list($insql, $inparams) = $DB->get_in_or_equal(array($course, 0, 1));
-                $courseenrolclause = "e.courseid $insql AND ";
-            }
-        } else if (is_array($course)) {
-            // Finish solving from value as MIN(firstassignement).
-            foreach ($course as $c) {
-                $cids[] = $c->id;
-            }
-            $cids[] = 0;
-            $cids[] = 1;
-            $courseclause = " AND {$courseparm} IN('".implode("','", $cids)."') ";
-            list($insql, $inparams) = $DB->get_in_or_equal($cids);
-            $courseenrolclause = "e.courseid $insql AND ";
-        }
-    }
-    */
-
     if (!empty($config->enrolmentfilter)) {
         // We search first enrol time still active for this user.
         $sql = "
@@ -571,10 +521,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     if (array_key_exists('section', $aggregate) && is_numeric($sectionid) && array_key_exists($sectionid, $aggregate['section'])) {
                         $aggregate['section'][$sectionid]->elapsed += $lap;
                         $aggregate['section'][$sectionid]->events += 1;
+                        $aggregate['realsection'][$sectionid]->elapsed += $lap;
+                        $aggregate['realsection'][$sectionid]->events += 1;
                     } else {
                         $aggregate['section'][$sectionid] = new StdClass();
                         $aggregate['section'][$sectionid]->elapsed = $lap;
                         $aggregate['section'][$sectionid]->events = 1;
+                        $aggregate['realsection'][$sectionid] = new StdClass();
+                        $aggregate['realsection'][$sectionid]->elapsed = $lap;
+                        $aggregate['realsection'][$sectionid]->events = 1;
                     }
                 }
             }
@@ -630,7 +585,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
         // Finish last session.
         if (!empty($aggregate['sessions'])) {
-            @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
+            $lastkey = @array_pop(array_keys($aggregate['sessions']));
+            if (!empty($lastkey)) {
+                @$aggregate['sessions'][$lastkey]->sessionend = $log->time + $lap;
+            }
         }
 
         // Explicit session dates.
@@ -683,95 +641,151 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         include_once($CFG->dirroot.'/mod/learningtimecheck/xlib.php');
         $checklists = learningtimecheck_get_instances($currentcourse->id, true); // Get timecredit enabled ones.
 
-        foreach ($checklists as $ckl) {
-            if ($currentuser == 0) {
-                continue;
-            }
-            if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
+        if ($checklists) {
+            foreach ($checklists as $ckl) {
+                if ($currentuser == 0) {
+                    continue;
+                }
+                if ($credittimes = learningtimecheck_get_credittimes($ckl->id, 0, $currentuser)) {
 
-                foreach ($credittimes as $credittime) {
+                    foreach ($credittimes as $credittime) {
 
-                    // If credit time is assigned to NULL course module, we assign it to the checklist itself.
-                    if (!$credittime->cmid) {
-                        $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
-                        $credittime->cmid = $cklcm->id;
-                    }
-                    $sectionid = @$CMSECTIONS[$credittime->cmid];
+                        if (empty($credittime->enablecredit)) {
+                            continue;
+                        }
 
-                    $cond = 0;
+                        // If credit time is assigned to NULL course module, we assign it to the checklist itself.
+                        if (!$credittime->cmid) {
+                            $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
+                            $credittime->cmid = $cklcm->id;
+                        }
+                        $sectionid = @$CMSECTIONS[$credittime->cmid];
 
-                    if (!empty($ltcconfig->strictcredits)) {
-                        /*
-                         * If strict credits, the reported time cannot be higher to the standard time credit for the
-                         * item. The user is credited with the real time if lower then the credit, or the credit
-                         * as peak cutoff. This does not care of the item being checked or not.
-                         */
-                        if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
-                            if ($ltcconfig->strictcredits == 1) {
-                                $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
-                                            !empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
-                            } else if ($ltcconfig->strictcredits == 2) {
-                                // if credit is under real time, apply credit.
-                                $cond = $credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                        $cond = 0;
+
+                        if (!empty($ltcconfig->strictcredits)) {
+                            /*
+                             * If strict credits, the reported time cannot be higher to the standard time credit for the
+                             * item. The user is credited with the real time if lower then the credit, or the credit
+                             * as peak cutoff. This does not care of the item being checked or not.
+                             */
+                            if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
+                                if ($ltcconfig->strictcredits == 1) {
+                                    $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
+                                                !empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
+                                } else if ($ltcconfig->strictcredits == 2) {
+                                    // if credit is under real time, apply credit.
+                                    $cond = $credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                } else {
+                                    // Apply cedit anyway.
+                                    if (!empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed)) {
+                                        $cond = 1;
+                                    }
+                                }
                             } else {
-                                // Apply cedit anyway.
-                                if (!empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed)) {
+                                // Course module counter never initialized, but it has been marked as completed.
+                                if ($credittime->credittime && $credittime->ismarked) {
                                     $cond = 1;
+                                    $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+                                }
+                            }
+
+                            if ($cond) {
+                                // Cut over with credit time.
+                                $diff = $credittime->credittime - @$aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                @$aggregate[$credittime->modname][$credittime->cmid]->real = @$aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                @$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+                                @$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+
+                                // Fix the global aggregators accordingly.
+                                @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                @$aggregate['activities'][$ckl->course]->elapsed += $diff;
+                                @$aggregate['section'][$sectionid]->elapsed += $diff;
+                            } else {
+                                if (!empty($credittime->credittime)) {
+                                    $aggregate[$credittime->modname][$credittime->cmid]->credit = $credittime->credittime;
                                 }
                             }
                         } else {
-                            // Course module counter never initialized, but it has been marked as completed.
-                            if ($credittime->credittime && $credittime->ismarked) {
-                                $cond = 1;
-                                $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
-                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
-                                $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+                            if ($credittime->ismarked) {
+
+                                // This processes validated modules that although have no logs.
+                                if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
+                                    // Initiate value.
+                                    $diff = $credittime->credittime;
+                                    $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+                                    $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->firstaccess = $fa;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
+
+                                    // Fix the global aggregators accordingly.
+                                    @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                    @$aggregate['activities'][$ckl->course]->elapsed += $diff;
+                                    @$aggregate['section'][$sectionid]->elapsed += $diff;
+                                }
+
+                                if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
+                                    // Override value if not enough spent time.
+                                    $diff = $credittime->credittime - $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+                                    $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
+
+                                    // Fix the global aggregators accordingly.
+                                    @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
+                                    @$aggregate['activities'][$ckl->course]->elapsed += $diff;
+                                    @$aggregate['section'][$sectionid]->elapsed += $diff;
+                                }
                             }
                         }
+                    }
+                }
 
-                        if ($cond) {
-                            // Cut over with credit time.
-                            $diff = $credittime->credittime - @$aggregate[$credittime->modname][$credittime->cmid]->elapsed;
-                            @$aggregate[$credittime->modname][$credittime->cmid]->real = @$aggregate[$credittime->modname][$credittime->cmid]->elapsed;
-                            @$aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
-                            @$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+                if ($declarativetimes = learningtimecheck_get_declaredtimes($ckl->id, 0, $currentuser)) {
+                    foreach ($declarativetimes as $declaredtime) {
+
+                        // If declared time is assigned to NULL course module, we assign it to the checklist itself.
+                        if (!$declaredtime->cmid) {
+                            $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
+                            $declaredtime->cmid = $cklcm->id;
+                        }
+
+                        if (!empty($ltcconfig->strict_declared)) {
+                            // If strict declared, do override time even if real time is higher.
+                            $diff = $declaredtime->declaredtime - $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
+                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
+                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
 
                             // Fix the global aggregators accordingly.
                             @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                             @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                             @$aggregate['section'][$sectionid]->elapsed += $diff;
                         } else {
-                            if (!empty($credittime->credittime)) {
-                                $aggregate[$credittime->modname][$credittime->cmid]->credit = $credittime->credittime;
-                            }
-                        }
-                    } else {
-                        if ($credittime->ismarked) {
-
                             // This processes validated modules that although have no logs.
-                            if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
-                                // Initiate value.
-                                $diff = $credittime->credittime;
-                                $aggregate[$credittime->modname][$credittime->cmid] = new StdClass;
-                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = 0;
-                                $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
+                            if (!isset($aggregate[$declaredtime->modname][$declaredtime->cmid])) {
+                                $diff = $declaredtime->declaredtime;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid] = new StdClass;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = 0;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->events = 0;
                                 $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
-                                $aggregate[$credittime->modname][$credittime->cmid]->firstaccess = $fa;
-                                $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess = $fa;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
 
                                 // Fix the global aggregators accordingly.
                                 @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                 @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                                 @$aggregate['section'][$sectionid]->elapsed += $diff;
                             }
-
-                            if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
-                                // Override value if not enough spent time.
-                                $diff = $credittime->credittime - $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
-                                $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
-                                $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
+                            if ($aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed <= $declaredtime->declaredtime) {
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
                                 $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
-                                $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
+                                $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
 
                                 // Fix the global aggregators accordingly.
                                 @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
@@ -782,55 +796,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     }
                 }
             }
-
-            if ($declarativetimes = learningtimecheck_get_declaredtimes($ckl->id, 0, $currentuser)) {
-                foreach ($declarativetimes as $declaredtime) {
-
-                    // If declared time is assigned to NULL course module, we assign it to the checklist itself.
-                    if (!$declaredtime->cmid) {
-                        $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
-                        $declaredtime->cmid = $cklcm->id;
-                    }
-
-                    if (!empty($ltcconfig->strict_declared)) {
-                        // If strict declared, do override time even if real time is higher.
-                        $diff = $declaredtime->declaredtime - $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
-                        $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
-                        $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
-
-                        // Fix the global aggregators accordingly.
-                        @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
-                        @$aggregate['activities'][$ckl->course]->elapsed += $diff;
-                        @$aggregate['section'][$sectionid]->elapsed += $diff;
-                    } else {
-                        // This processes validated modules that although have no logs.
-                        if (!isset($aggregate[$declaredtime->modname][$declaredtime->cmid])) {
-                            $diff = $declaredtime->declaredtime;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid] = new StdClass;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = 0;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->events = 0;
-                            $fa = @$aggregate[$credittime->modname][$credittime->cmid]->firstaccess;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess = $fa;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
-
-                            // Fix the global aggregators accordingly.
-                            @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
-                            @$aggregate['activities'][$ckl->course]->elapsed += $diff;
-                            @$aggregate['section'][$sectionid]->elapsed += $diff;
-                        }
-                        if ($aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed <= $declaredtime->declaredtime) {
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
-                            $fa = @$aggregate[$credittime->modname][$credittime->cmid]->lastaccess;
-                            $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
-
-                            // Fix the global aggregators accordingly.
-                            @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
-                            @$aggregate['activities'][$ckl->course]->elapsed += $diff;
-                            @$aggregate['section'][$sectionid]->elapsed += $diff;
-                        }
-                    }
-                }
+        } else {
+            if (function_exists('debug_trace')) {
+                debug_trace("Trainingsessions : No checklist found ");
             }
         }
     }
@@ -1291,7 +1259,7 @@ function block_use_stats_render_aggregate(&$aggregate) {
         echo '<h3>'.$key.'</h3>';
         echo '<table width="100%">';
         foreach ($subs as $cmid => $cmtotal) {
-            if (!in_array($key, array('section', 'outoftargetcourse'))) {
+            if (!in_array($key, array('realsection', 'section', 'outoftargetcourse'))) {
                 $instanceid = $DB->get_field('course_modules', 'instance', array('id' => $cmid));
                 $instancename = $DB->get_field($key, 'name', array('id' => $instanceid));
                 echo '<tr>';
@@ -1374,4 +1342,53 @@ function block_use_stats_get_sql_params() {
     }
 
     return $params;
+}
+
+function use_stats_fix_last_course_access($userid, $courseid) {
+    global $DB;
+
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers(use_stats_get_reader());
+    $reader = reset($readers);
+
+    if (empty($reader)) {
+        return false; // No log reader found.
+    }
+
+    if ($reader instanceof \logstore_standard\log\store) {
+        $table = '{logstore_standard_log}';
+        $courseparam = 'courseid';
+        $timeparam = 'timecreated';
+    } else if ($reader instanceof \logstore_legacy\log\store) {
+        $table = '{log}';
+        $courseparam = 'course';
+        $timeparam = 'time';
+    } else {
+        return;
+    }
+
+    $sql = "
+        SELECT
+            MAX($timeparam) as lastdate
+        FROM
+            $table
+        WHERE
+            userid = ? AND
+            $courseparam = ?
+    ";
+
+    if ($lastdaterec = $DB->get_record_sql($sql, [$userid, $courseid])) {
+        if (!is_null($lastdaterec->lastdate)) {
+            if ($oldrec = $DB->get_record('user_lastaccess', ['userid' => $userid, 'courseid' => $courseid])) {
+                $oldrec->timeaccess = $lastdaterec->lastdate;
+                $DB->update_record('user_lastaccess', $oldrec);
+            } else {
+                $newrec = new StdClass;
+                $newrec->userid = $userid;
+                $newrec->courseid = $courseid;
+                $newrec->timeaccess = $lastdaterec->lastdate;
+                $DB->insert_record('user_lastaccess', $newrec);
+            }
+        }
+    }
 }
