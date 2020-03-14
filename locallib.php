@@ -640,6 +640,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     if (file_exists($CFG->dirroot.'/mod/learningtimecheck/xlib.php')) {
         include_once($CFG->dirroot.'/mod/learningtimecheck/xlib.php');
         $checklists = learningtimecheck_get_instances($currentcourse->id, true); // Get timecredit enabled ones.
+
         if ($checklists) {
             foreach ($checklists as $ckl) {
                 if ($currentuser == 0) {
@@ -796,7 +797,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             }
         } else {
-            debug_trace("Trainingsessions : No checklist found ");
+            if (function_exists('debug_trace')) {
+                debug_trace("Trainingsessions : No checklist found ");
+            }
         }
     }
 
@@ -1256,7 +1259,7 @@ function block_use_stats_render_aggregate(&$aggregate) {
         echo '<h3>'.$key.'</h3>';
         echo '<table width="100%">';
         foreach ($subs as $cmid => $cmtotal) {
-            if (!in_array($key, array('section', 'outoftargetcourse'))) {
+            if (!in_array($key, array('realsection', 'section', 'outoftargetcourse'))) {
                 $instanceid = $DB->get_field('course_modules', 'instance', array('id' => $cmid));
                 $instancename = $DB->get_field($key, 'name', array('id' => $instanceid));
                 echo '<tr>';
@@ -1339,4 +1342,53 @@ function block_use_stats_get_sql_params() {
     }
 
     return $params;
+}
+
+function use_stats_fix_last_course_access($userid, $courseid) {
+    global $DB;
+
+    $logmanager = get_log_manager();
+    $readers = $logmanager->get_readers(use_stats_get_reader());
+    $reader = reset($readers);
+
+    if (empty($reader)) {
+        return false; // No log reader found.
+    }
+
+    if ($reader instanceof \logstore_standard\log\store) {
+        $table = '{logstore_standard_log}';
+        $courseparam = 'courseid';
+        $timeparam = 'timecreated';
+    } else if ($reader instanceof \logstore_legacy\log\store) {
+        $table = '{log}';
+        $courseparam = 'course';
+        $timeparam = 'time';
+    } else {
+        return;
+    }
+
+    $sql = "
+        SELECT
+            MAX($timeparam) as lastdate
+        FROM
+            $table
+        WHERE
+            userid = ? AND
+            $courseparam = ?
+    ";
+
+    if ($lastdaterec = $DB->get_record_sql($sql, [$userid, $courseid])) {
+        if (!is_null($lastdaterec->lastdate)) {
+            if ($oldrec = $DB->get_record('user_lastaccess', ['userid' => $userid, 'courseid' => $courseid])) {
+                $oldrec->timeaccess = $lastdaterec->lastdate;
+                $DB->update_record('user_lastaccess', $oldrec);
+            } else {
+                $newrec = new StdClass;
+                $newrec->userid = $userid;
+                $newrec->courseid = $courseid;
+                $newrec->timeaccess = $lastdaterec->lastdate;
+                $DB->insert_record('user_lastaccess', $newrec);
+            }
+        }
+    }
 }
