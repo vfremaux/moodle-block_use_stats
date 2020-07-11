@@ -276,6 +276,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             }
 
+            $isactionlogin = block_use_stats_is_login_event($log->action);
+            $isnextactionlogin = block_use_stats_is_login_event(@$lognext->action);
+
             // Fix session breaks over the threshold time.
             $sessionpunch = false;
             if ($lap > $threshold) {
@@ -288,7 +291,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     $lap = $lastpingcredit - ($endtime - $now);
                 }
 
-                if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
+                if ($lognext && !$isnextactionlogin) {
                     $sessionpunch = true;
                 }
             }
@@ -319,7 +322,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             }
 
             // This is the most usual case...
-            if ($dimension == 'module' && (!block_use_stats_is_login_event($log->action))) {
+            if ($dimension == 'module' && !$isactionlogin) {
                 $continue = false;
                 if (!empty($config->capturemodules) && !in_array($log->$dimension, $modulelist)) {
                     // If not eligible module for aggregation, just add the intermediate laps.
@@ -340,7 +343,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
 
                 if ($continue) {
-                    if ($lognext && block_use_stats_is_login_event(@$lognext->action)) {
+                    if ($lognext && $isnextactionlogin) {
                         // We are the last action before a new login.
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap + $memlap;
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap + $memlap;
@@ -379,7 +382,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             @$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course;
             // If "one session per course" option is on, then there should be only one item here.
 
-            if (!block_use_stats_is_login_event($log->action) && block_use_stats_is_login_event(@$lognext->action)) {
+            if (!$isactionlogin && $isnextactionlogin) {
                 // We are the last action before a new login.
                 @$aggregate['sessions'][$sessionid]->elapsed += $lap;
                 @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
@@ -388,9 +391,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             } else {
                 // All other cases : login or non login.
-                if (block_use_stats_is_login_event($log->action)) {
+                if ($isactionlogin) {
                     // We are explicit login.
-                    if ($lognext && !block_use_stats_is_login_event($lognext->action)) {
+                    if ($lognext && !$isnextactionlogin) {
                         if (!$preinit || $sessionid) {
                             // Not session 0, must increment.
                             if ($automatondebug || $backdebug) {
@@ -428,7 +431,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             $logbuffer .= " ... (P) session punch in : {$lognext->action} ";
                         }
                     }
-                    if ($sessionpunch || !$lognext || block_use_stats_is_login_event($lognext->action)) {
+                    if ($sessionpunch || !$lognext || $isnextactionlogin) {
                         // This record is the last one of the current session.
                         @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
                         @$aggregate['sessions'][$sessionid]->elapsed += $lap;
@@ -436,7 +439,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             $logbuffer .= " ... before a login, finish session ";
                         }
                         if ($sessionpunch &&
-                                (!block_use_stats_is_login_event(@$lognext->action) &&
+                                (!$isnextactionlogin &&
                                         (@$lognext->action != 'failed'))) {
                             $sessionid++;
                             @$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
@@ -483,16 +486,26 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     @$aggregate['course'][$log->course]->lastaccess = $log->time;
                 }
             } else {
+
+                // 'Real' counters WILL NOT be affected by LTC reports.
+
                 if (array_key_exists(''.$log->$dimension, $aggregate) &&
                         array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events += 1;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed += $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events += 1;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 } else {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events = 1;
                     @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed = $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events = 1;
+                    @$aggregate['realmodule'][$log->cmid]->firstaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 }
             }
 
