@@ -18,12 +18,12 @@ cache:
     - $HOME/.npm
 
 php:
- - 7.2
+ - 7.3
 
 env:
  global:
-  - MOODLE_BRANCH=MOODLE_35_STABLE
-  - PLUGINS_BRANCH=MOODLE_35_WORKING
+  - MOODLE_BRANCH=MOODLE_39_STABLE
+  - PLUGINS_BRANCH=MOODLE_39_WORKING
  matrix:
   - DB=pgsql
   - DB=mariadb
@@ -37,7 +37,6 @@ before_install:
   - export PATH="$(cd ci/bin; pwd):$(cd ci/vendor/bin; pwd):$PATH"
 
 install:
-
   - moodle-plugin-ci install
 
 script:
