@@ -110,7 +110,7 @@ foreach ($distinctusers as $uid) {
                 }
             }
             $done = round($i / $total * $scale);
-            $donepercent = round($i / $total * 100;
+            $donepercent = round($i / $total * 100);
             echo str_repeat('*', $done).str_repeat('-', $scale - $done)." ($donepercent %)\r";
         }
     }
