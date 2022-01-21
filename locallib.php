@@ -486,16 +486,26 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     @$aggregate['course'][$log->course]->lastaccess = $log->time;
                 }
             } else {
+
+                // 'Real' counters WILL NOT be affected by LTC reports.
+
                 if (array_key_exists(''.$log->$dimension, $aggregate) &&
                         array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events += 1;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed += $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events += 1;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 } else {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events = 1;
                     @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed = $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events = 1;
+                    @$aggregate['realmodule'][$log->cmid]->firstaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 }
             }
 
