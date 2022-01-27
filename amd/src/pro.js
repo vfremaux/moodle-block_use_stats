@@ -21,7 +21,7 @@ define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
         component: 'block_use_stats',
         shortcomponent: 'block_use_stats',
-        componentpath: '/blocks/use_stats',
+        componentpath: 'blocks/use_stats',
 
         init: function() {
 
