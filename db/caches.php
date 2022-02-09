@@ -26,5 +26,8 @@ defined('MOODLE_INTERNAL') || die();
 $definitions = array(
     'aggregate' => array(
         'mode' => cache_store::MODE_APPLICATION
+    ),
+    'pro' => array(
+        'mode' => cache_store::MODE_APPLICATION
     )
 );

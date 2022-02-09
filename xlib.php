@@ -29,3 +29,18 @@ require_once($CFG->dirroot.'/blocks/use_stats/block_use_stats.php');
 function block_use_stats_get_coursetable(&$aggregate, &$fulltotal, &$fullevents) {
     return block_use_stats::prepare_coursetable($aggregate, $fulltotal, $fullevents);
 }
+
+/**
+ * Compact function to get full time calculation of a user in a course.
+ * @param int $courseid
+ * @param int $userid
+ */
+function block_use_stats_get_user_course_time($courseid, $userid) {
+    use_stats_fix_last_course_access($userid, $courseid);
+    $logs = use_stats_extract_logs(0, time(), $userid, $courseid);
+    return use_stats_aggregate_logs($logs, 0, time());
+}
+
+function block_use_stats_x_format_time($timevalue) {
+    return block_use_stats_format_time($timevalue);
+}
