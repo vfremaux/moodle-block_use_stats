@@ -44,8 +44,13 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
          */
         $supports = [
             'pro' => [
+                'data' => ['multidimensionnal', 'activetracking', 'keepalive'],
+                'api' => ['ws'],
+                'view' => ['detail'],
+                'format' => ['xls', 'csv', 'pdf']
             ],
             'community' => [
+            	'format' => ['csv']
             ],
         ];
     }
@@ -81,6 +86,18 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
 
     if (!in_array($subfeat, $supports[$versionkey][$feat])) {
         return false;
+    }
+
+    if (in_array($feat, $supports['community'])) {
+        if (in_array($subfeat, $supports['community'][$feat])) {
+            // If community exists, default path points community code.
+            if (isset($prefer[$feat][$subfeat])) {
+                // Configuration tells which location to prefer if explicit.
+                $versionkey = $prefer[$feat][$subfeat];
+            } else {
+                $versionkey = 'community';
+            }
+        }
     }
 
     return $versionkey;

@@ -25,6 +25,8 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session_manager.class.php');
+
 if (!function_exists('debug_trace')) {
     // Protect foreign implementations of missing tracing tools.
     function debug_trace() {
@@ -187,16 +189,22 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $currentcourse = $COURSE;
     }
 
+    $config = get_config('block_use_stats');
+    $logbuffer = '';
+
     $backdebug = 0;
     $dimension = 'module';
+    $sessionmanager = \block_use_stats\engine\session_manager::instance();
+    $sessionmanager->set_log_buffer($logbuffer);
+    if ($config->onesessionpercourse) {
+        $sessionmanager->set_mode('single');
+    } else {
+        $sessionmanager->set_mode('multiple');
+    }
 
-    $config = get_config('block_use_stats');
     if (file_exists($CFG->dirroot.'/mod/learningtimecheck/xlib.php')) {
         $ltcconfig = get_config('learningtimecheck');
     }
-
-    // Will record session aggregation state as current session ordinal.
-    $sessionid = 0;
 
     if (!empty($config->capturemodules)) {
         $modulelist = explode(',', $config->capturemodules);
@@ -215,14 +223,13 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     $automatondebug = optional_param('debug', 0, PARAM_BOOL) && (is_siteadmin() || !empty($USER->realuser));
 
     $aggregate = array();
-    $aggregate['sessions'] = array();
 
     $logmanager = get_log_manager();
     $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
-    $logbuffer = '';
     $lastcourseid  = 0;
+    $now = time();
 
     if (!empty($logs)) {
         $logs = array_values($logs);
@@ -234,6 +241,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         if ($logsize > 15000) {
             raise_memory_limit(MEMORY_EXTRA);
         }
+
+        // Log records loop.
 
         for ($i = 0; $i < $logsize; $i = $nexti) {
 
@@ -257,7 +266,6 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             } else {
                 // Cap the lastpingcredit to "passed" time only.
                 $endtime = $log->time + $lastpingcredit;
-                $now = time();
                 if ($endtime < $now) {
                     $lap = $lastpingcredit;
                 } else {
@@ -278,50 +286,31 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
             $isactionlogin = block_use_stats_is_login_event($log->action);
             $isnextactionlogin = block_use_stats_is_login_event(@$lognext->action);
+            $isovertimed = $lap > $threshold;
 
             // Fix session breaks over the threshold time.
-            $sessionpunch = false;
-            if ($lap > $threshold) {
-
+            if ($isovertimed) {
                 $endtime = $log->time + $lastpingcredit;
-                $now = time();
                 if ($endtime < $now) {
                     $lap = $lastpingcredit;
                 } else {
                     $lap = $lastpingcredit - ($endtime - $now);
                 }
-
-                if ($lognext && !$isnextactionlogin) {
-                    $sessionpunch = true;
-                }
-            }
-
-            if ($automatondebug || $backdebug) {
-                if ($log->module != 'course') {
-                    $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
-                } else {
-                    $logbuffer .= "[S-$sessionid/$log->id:course>{$log->course}:";
-                }
-                $logbuffer .= "{$log->action}] (".date('Y-m-d H:i:s', $log->time)." | $lap) ";
             }
 
             // Discard unsignificant cases.
             if (block_use_stats_is_logout_event($log->action)) {
-                @$aggregate['sessions'][$sessionid]->elapsed += $memlap;
-                @$aggregate['sessions'][$sessionid]->sessionend = $log->time;
-                $memlap = 0;
-                if ($automatondebug || $backdebug) {
-                    $logbuffer .= " ... (X) finish session on clean loggout\n";
-                }
-                continue;
-            }
-
-            if ($log->$dimension == 'system' and $log->action == 'failed') {
                 $memlap = 0;
                 continue;
             }
 
-            // This is the most usual case...
+            if ($log->$dimension == 'system' && $log->action == 'failed') {
+                // Failed login. Non significant.
+                $memlap = 0;
+                continue;
+            }
+
+            // This is the most usual case... not a login.
             if ($dimension == 'module' && !$isactionlogin) {
                 $continue = false;
                 if (!empty($config->capturemodules) && !in_array($log->$dimension, $modulelist)) {
@@ -343,133 +332,22 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
 
                 if ($continue) {
-                    if ($lognext && $isnextactionlogin) {
-                        // We are the last action before a new login.
-                        @$aggregate['sessions'][$sessionid]->elapsed += $lap + $memlap;
-                        @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap + $memlap;
-                        $memlap = 0;
-                        if ($automatondebug || $backdebug) {
-                            $logbuffer .= " ... (X) finish session. Implicit logout on non elligible : Next is $lognext->action\n";
-                        }
-                    }
                     continue;
                 }
             }
 
-            $lap = $lap + $memlap;
-            $memlap = 0;
-
             if (!empty($dimension) && !isset($log->$dimension)) {
-                echo $OUTPUT->notification('unknown dimension');
+                $logbuffer .= " Unkown dimension $dimension \n";;
             }
 
-            // Per login session aggregation.
-
-            // Repair inconditionally first visible session track that has no login.
-            $preinit = false;
-            if ($sessionid == 0) {
-                if (!isset($aggregate['sessions'][0]->sessionstart)) {
-                    if ($automatondebug || $backdebug) {
-                        $logbuffer .= 'Initiating session 0 / First record repair ';
-                    }
-                    @$aggregate['sessions'][0]->sessionstart = $logs[0]->time;
-                    $preinit = true;
-                }
-            }
-
-            // Next visible log is a login. So current session ends.
-            // This will collect all visited course ids during this session.
-            @$aggregate['sessions'][$sessionid]->courses[$log->course] = $log->course;
-            // If "one session per course" option is on, then there should be only one item here.
-
-            if (!$isactionlogin && $isnextactionlogin) {
-                // We are the last action before a new login.
-                @$aggregate['sessions'][$sessionid]->elapsed += $lap;
-                @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
-                if ($automatondebug || $backdebug) {
-                    $logbuffer .= " ... (X) finish session. Implicit logout. next : {$lognext->action}\n";
-                }
+            if ($isactionlogin) {
+                // We are explicit login.
+                $memlap = 0;
+                $sessionmanager->start_session($log->userid, $log->time, $log->course);
             } else {
-                // All other cases : login or non login.
-                if ($isactionlogin) {
-                    // We are explicit login.
-                    if ($lognext && !$isnextactionlogin) {
-                        if (!$preinit || $sessionid) {
-                            // Not session 0, must increment.
-                            if ($automatondebug || $backdebug) {
-                                $logbuffer .= " ... increment ... ";
-                            }
-                            $preinit = false;
-                            $sessionid++;
-                        }
-                        @$aggregate['sessions'][$sessionid]->elapsed = $lap;
-                        @$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-                        if ($automatondebug || $backdebug) {
-                            $logbuffer .= " ... (O) login. Next : {$lognext->action}. Start session\n";
-                        }
-                    } else {
-                        if ($automatondebug || $backdebug) {
-                            $logbuffer .= " ... (O) not true session next : {$lognext->action}. ignoring\n";
-                        }
-                        continue;
-                    }
-                } else {
-                    // All other cases.
-
-                    /*
-                     * Adding Sadge's proposal of per course punching.
-                     * Check "one session per course" option and punch if changing course
-                     */
-                    if (!empty($config->onesessionpercourse)) {
-                        if ($lastcourseid && ($lastcourseid != $log->course)) {
-                            $sessionpunch = true;
-                        }
-                    }
-
-                    if ($automatondebug || $backdebug) {
-                        if ($sessionpunch) {
-                            $logbuffer .= " ... (P) session punch in : {$lognext->action} ";
-                        }
-                    }
-                    if ($sessionpunch || !$lognext || $isnextactionlogin) {
-                        // This record is the last one of the current session.
-                        @$aggregate['sessions'][$sessionid]->sessionend = $log->time + $lap;
-                        @$aggregate['sessions'][$sessionid]->elapsed += $lap;
-                        if ($automatondebug || $backdebug) {
-                            $logbuffer .= " ... before a login, finish session ";
-                        }
-                        if ($sessionpunch &&
-                                (!$isnextactionlogin &&
-                                        (@$lognext->action != 'failed'))) {
-                            $sessionid++;
-                            @$aggregate['sessions'][$sessionid]->sessionstart = $lognext->time;
-                            @$aggregate['sessions'][$sessionid]->elapsed = 0;
-                            if ($automatondebug || $backdebug) {
-                                $logbuffer .= " ... start simulated session.\n";
-                            }
-                        } else {
-                            if ($automatondebug || $backdebug) {
-                                $logbuffer .= "\n";
-                            }
-                        }
-                    } else {
-                        if (!isset($aggregate['sessions'][$sessionid])) {
-                            @$aggregate['sessions'][$sessionid]->sessionstart = $log->time;
-                            @$aggregate['sessions'][$sessionid]->elapsed = $lap;
-                            if ($automatondebug || $backdebug) {
-                                $logbuffer .= " ... first session record\n";
-                            }
-                        } else {
-                            $printabletime = block_use_stats_format_time(0 + @$aggregate['sessions'][$sessionid]->elapsed);
-                            @$aggregate['sessions'][$sessionid]->elapsed += $lap;
-                            if ($automatondebug || $backdebug) {
-                                $logbuffer .= " ... simple record adding $lap >> ".$printabletime."\n";
-                            }
-                        }
-                    }
-                    // Register course in sesssion. This will serve when registering session in DB cache.
-                    @$aggregate['sessions'][$sessionid]->courses[$log->course] = 1;
-                }
+                // All other cases.
+                $lap = $lap + $memlap;
+                $sessionmanager->register_event($log->userid, $log->time, $log->course);
             }
 
             // Standard global lap aggregation.
@@ -486,16 +364,26 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     @$aggregate['course'][$log->course]->lastaccess = $log->time;
                 }
             } else {
+
+                // 'Real' counters WILL NOT be affected by LTC reports.
+
                 if (array_key_exists(''.$log->$dimension, $aggregate) &&
                         array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events += 1;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed += $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events += 1;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 } else {
                     @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
                     @$aggregate[$log->$dimension][$log->cmid]->events = 1;
                     @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
                     @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->elapsed = $lap;
+                    @$aggregate['realmodule'][$log->cmid]->events = 1;
+                    @$aggregate['realmodule'][$log->cmid]->firstaccess = $log->time;
+                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 }
             }
 
@@ -575,63 +463,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     }
 
     if (!$nosessions) {
-
-        $params = array('userid' => $currentuser);
-        $sessionsids = array();
-        $usersessions = array();
-        if ($allsessions = $DB->get_records('block_use_stats_session', $params, 'sessionstart', 'id,sessionstart,sessionend')) {
-            foreach ($allsessions as $sess) {
-                $usersessions[] = $sess->sessionstart;
-                $sessionsids[$sess->sessionstart] = $sess;
-            }
-        }
-
-        // Finish last session.
-        if (!empty($aggregate['sessions'])) {
-            $lastkey = @array_pop(array_keys($aggregate['sessions']));
-            if (!empty($lastkey)) {
-                @$aggregate['sessions'][$lastkey]->sessionend = $log->time + $lap;
-            }
-        }
-
-        // Explicit session dates.
-        if (!empty($aggregate['sessions'])) {
-            foreach ($aggregate['sessions'] as $sessid => $session) {
-                $aggregate['sessions'][$sessid]->start = date('Y-m-d H:i:s', 0 + @$session->sessionstart);
-                $aggregate['sessions'][$sessid]->end = date('Y-m-d H:i:s', 0 + @$session->sessionend);
-                $dt = block_use_stats_format_time(@$session->sessionend - @$session->sessionstart);
-                $aggregate['sessions'][$sessid]->duration = $dt;
-            }
-
-            // Store sessions in base.
-            foreach ($aggregate['sessions'] as $session) {
-                if (empty($session->sessionstart)) {
-                    continue;
-                }
-
-                $transaction = $DB->start_delegated_transaction();
-                $params = array('sessionstart' => 0 + $session->sessionstart,
-                                'sessionend' => 0 + @$session->sessionend,
-                                'userid' => $currentuser);
-                $oldrec = $DB->get_record('block_use_stats_session', $params, '*', IGNORE_MULTIPLE);
-                if (empty($oldrec)) {
-                    $rec = new StdClass;
-                    $rec->userid = $currentuser;
-                    $rec->sessionstart = $session->sessionstart;
-                    $rec->sessionend = 0 + @$session->sessionend;
-                    if (!empty($session->courses)) {
-                        $rec->courses = implode(',', array_keys($session->courses));
-                    }
-                    $DB->insert_record('block_use_stats_session', $rec);
-                } else {
-                    if (!empty($session->sessionend) && ($session->sessionend > @$sessionsids[$session->sessionstart]->sessionend)) {
-                        $oldrec->sessionend = $session->sessionend;
-                        $DB->update_record('block_use_stats_session', $oldrec);
-                    }
-                }
-                $transaction->allow_commit();
-            }
-        }
+        $sessionmanager->save();
+        $sessionmanager->aggregate($aggregate);
     }
 
     // This is our last change to guess a user when no logs available.
