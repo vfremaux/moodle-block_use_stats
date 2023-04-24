@@ -27,12 +27,12 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->version   = 2021101100;        // The current plugin version (Date: YYYYMMDDXX).
-$plugin->requires  = 2022041200;        // Requires this Moodle version.
+$plugin->requires  = 2022112801;        // Requires this Moodle version.
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '4.0.0 (build 2021101100)';
-$plugin->supported = [40,40];
+$plugin->release = '4.1.0 (build 2021101100)';
+$plugin->supported = [40,41];
 
 // Non Moodle attributes.
-$plugin->codeincrement = '4.0.0015';
+$plugin->codeincrement = '4.1.0016';
 $plugin->privacy = 'dualrelease';
