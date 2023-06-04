@@ -96,22 +96,26 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $inparams = array();
 
     if (!empty($config->enrolmentfilter)) {
-        // We search first enrol time still active for this user.
+        // We search last enrol period before "to".
+        // This is supposed as being the last "valid" working time, other workign time being
+        // in past sessions.
         $sql = "
             SELECT
-                MIN(timestart) as timestart
+                MAX(timestart) as timestart
             FROM
                 {enrol} e,
                 {user_enrolments} ue
             WHERE
                 $courseenrolclause
                 e.id = ue.enrolid AND
-                (ue.timeend = 0 OR ue.timeend > ".time().")
+                ue.timestart < ".$to." AND
+                ue.status = 0
                 $userclause
         ";
-        $firstenrol = $DB->get_record_sql($sql, $inparams);
-
-        $from = max($from, $firstenrol->timestart);
+        $lastenrolbeforenow = $DB->get_record_sql($sql, $inparams);
+        if ($lastenrolbeforenow) {
+            $from = max($from, $lastenrolbeforenow->timestart);
+        }
     }
 
     if ($reader instanceof \logstore_standard\log\store) {
@@ -231,12 +235,14 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     $currentuser = 0;
     $automatondebug = optional_param('debug', 0, PARAM_BOOL) && (is_siteadmin() || !empty($USER->realuser));
 
-    $aggregate = array();
+    $aggregate = [];
+    $aggregate['sessions'] = [];
 
     $logmanager = get_log_manager();
     $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
+    $logbuffer = '';
     $lastcourseid  = 0;
     $now = time();
 
@@ -526,6 +532,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
                             $credittime->cmid = $cklcm->id;
                         }
+                        if (!array_key_exists($credittime->cmid, $CMSECTIONS)) {
+                            $CMSECTIONS[$credittime->cmid] = $DB->get_field('course_modules', 'section', array('id' => $credittime->cmid));
+                        }
                         $sectionid = @$CMSECTIONS[$credittime->cmid];
 
                         $cond = 0;
@@ -538,6 +547,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                              */
                             if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
                                 if ($ltcconfig->strictcredits == 1) {
+                                    // if credit is over real time, apply credit.
                                     $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
                                                 !empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
                                 } else if ($ltcconfig->strictcredits == 2) {
@@ -748,6 +758,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         echo '<h2>Aggregator output</h2>';
         block_use_stats_render_aggregate($aggregate);
     }
+
+    // Pass compilation boundaries for further use.
+    $aggregate['from'] = $from;
+    $aggregate['to'] = $to;
 
     return $aggregate;
 }
