@@ -33,7 +33,7 @@ jobs:
       EVENT_INFO: ${{ toJSON(github.event) }}
 
     steps:
-      - name: Check the event
+      - name: Check the event info
         id: check-event
         run: |
           echo $EVENT_INFO
