@@ -8,8 +8,8 @@ name: Releasing in the Plugins directory
 
 on:
   push:
-    branches:
-      - '*_STABLE'
+    tags:
+      - '3.9.*'
 
   workflow_dispatch:
     inputs:
@@ -30,8 +30,14 @@ jobs:
       ENDPOINT: https://moodle.org/webservice/rest/server.php
       TOKEN: ${{ secrets.MOODLE_ORG_TOKEN }}
       FUNCTION: local_plugins_add_version
+      EVENT_INPUTS: ${{ toJSON( github.event.inputs) }}
 
     steps:
+      - name: check event
+        if: check-event
+        run: |
+          echo $EVENT_INPUTS 
+
       - name: Call the service function
         id: add-version
         run: |
