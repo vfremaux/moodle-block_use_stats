@@ -108,8 +108,8 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
             WHERE
                 $courseenrolclause
                 e.id = ue.enrolid AND
-                ue.timestart < ".$to.") AND
-                ue.status = 0 AND
+                ue.timestart < ".$to." AND
+                ue.status = 0
                 $userclause
         ";
         $lastenrolbeforenow = $DB->get_record_sql($sql, $inparams);
