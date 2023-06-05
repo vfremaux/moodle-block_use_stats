@@ -34,5 +34,5 @@ $plugin->supported = [39,311];
 $plugin->release = '3.9.0 (build 2023060400)';
 
 // Non Moodle attributes.
-$plugin->codeincrement = '3.9.0026';
+$plugin->codeincrement = '3.9.0027';
 $plugin->privacy = 'dualrelease';
