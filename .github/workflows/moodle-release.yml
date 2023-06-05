@@ -30,11 +30,13 @@ jobs:
       ENDPOINT: https://moodle.org/webservice/rest/server.php
       TOKEN: ${{ secrets.MOODLE_ORG_TOKEN }}
       FUNCTION: local_plugins_add_version
+      EVENT_INPUTS: ${{ toJSON(github.event.inputs) }}
 
     steps:
       - name: Call the service function
         id: add-version
         run: |
+          echo $EVENT_INPUTS
           if [[ ! -z "${{ github.event.inputs.tag }}" ]]; then
             TAGNAME="${{ github.event.inputs.tag }}"
           elif [[ $GITHUB_REF = refs/tags/* ]]; then
