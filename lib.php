@@ -28,23 +28,35 @@ defined('MOODLE_INTERNAL') || die();
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
  */
-function block_use_stats_supports_feature($feature) {
+function block_use_stats_supports_feature($feature = null, $getsupported = false) {
+    global $CFG;
     static $supports;
 
-    $config = get_config('block_use_stats');
+    if (!during_initial_install()) {
+        $config = get_config('block_use_stats');
+    }
 
     if (!isset($supports)) {
-        $supports = array(
-            'pro' => array(
-                'format' => array('xls', 'csv', 'pdf'),
-                'data' => array('multidimensionnal', 'activetracking'),
-                'view' => array('detail'),
-                'api' => array('ws'),
-            ),
-            'community' => array(
-                'format' => array('xls', 'csv'),
-            ),
-        );
+        /*
+         * Give here descriptors of feature/subfeatures of pro vs. community
+         *
+         * eg : 'feature1' => ['subfeature1', 'subfeature2', etc.]
+         */
+        $supports = [
+            'pro' => [
+                'data' => ['multidimensionnal', 'activetracking', 'keepalive'],
+                'api' => ['ws'],
+                'view' => ['detail'],
+                'format' => ['xls', 'csv', 'pdf']
+            ],
+            'community' => [
+            	'format' => ['csv']
+            ],
+        ];
+    }
+
+    if ($getsupported) {
+        return $supports;
     }
 
     // Check existance of the 'pro' dir in plugin.
@@ -59,6 +71,11 @@ function block_use_stats_supports_feature($feature) {
         }
     } else {
         $versionkey = 'community';
+    }
+
+    if (empty($feature)) {
+        // Just return version.
+        return $versionkey;
     }
 
     list($feat, $subfeat) = explode('/', $feature);

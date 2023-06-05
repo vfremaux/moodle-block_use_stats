@@ -82,8 +82,6 @@ $string['denyrule'] = 'Allow sending unless matching rule';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
 $string['displaycoursetime'] = 'Course real time (all time spend in all contexts of the course)';
-$string['emulatecommunity'] = 'Emulate community version';
-$string['emulatecommunity_desc'] = 'If enabled, the plugin will behave as the public community version. This might loose features !';
 $string['errornorecords'] = 'No tracking information';
 $string['eventscount'] = 'Hits';
 $string['eventusestatskeepalive'] = 'Session keep alive';
@@ -95,17 +93,12 @@ $string['go'] = 'Go!';
 $string['hidecourselist'] = 'Hide course times';
 $string['isfiltered'] = 'Only time above {$a} secs are displayed';
 $string['keepuseralive'] = 'User {$a} is still in session';
-$string['licenseprovider'] = 'Pro License provider';
-$string['licenseprovider_desc'] = 'Input here your provider key';
-$string['licensekey'] = 'Pro license key';
-$string['licensekey_desc'] = 'Input here the product license key you got from your provider';
 $string['loganalysisparams'] = 'Log analysis parameters';
 $string['modulename'] = 'Activity tracking';
 $string['noavailablelogs'] = 'No logs available';
 $string['onthismoodlefrom'] = ' here since ';
 $string['other'] = 'Other out of course presence';
 $string['othershort'] = 'OTHER';
-$string['plugindist'] = 'Plugin distribution';
 $string['pluginname'] = 'Use Stats';
 $string['pluginname_desc'] = 'A block that compiles session times';
 $string['printpdf'] = 'Print PDF';
@@ -126,8 +119,12 @@ $string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @
 $string['youspent'] = 'You spent&ensp;';
 $string['warningusestateenrolfilter'] = 'The enrolment checker is on in the Use Stats bloc. This may have effects on reports if the user\'s activity falls before the latest enrolment start date.';
 
+<<<<<<< HEAD
 $string['plugindist_desc'] = '<p>This plugin is the community version and is published for anyone to use as is and check the plugin\'s
 core application. A "pro" version of this plugin exists and is distributed under conditions to feed the life cycle, upgrade, documentation
 and improvement effort.</p>
 <p>Please contact one of our distributors to get "Pro" version support.</p>
 <ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=en">ActiveProLearn SAS</a></li></ul>';
+=======
+include(__DIR__.'/pro_additional_strings.php');
+>>>>>>> MOODLE_41_STABLE

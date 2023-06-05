@@ -74,8 +74,6 @@ $string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
 $string['dimensionitem'] = 'Classes observables';
 $string['displayactivitiestime'] = 'Uniquement le temps passés dans les activités formalisées du cours.';
 $string['displaycoursetime'] = 'Temps complet du cours (tous les temps assignables au cours et à ses sous-contextes)';
-$string['emulatecommunity'] = 'Emuler la version communautaire';
-$string['emulatecommunity_desc'] = 'Si elle est activée, cette option force le composant à fonctionner en version communautaire. Certaines fonctionnalités ne seront plus disponibles.';
 $string['errornorecords'] = 'Aucune donnée de tracking';
 $string['eventscount'] = 'Nombre de hits';
 $string['eventusestatskeepalive'] = 'Maintien de session de formation';
@@ -85,17 +83,12 @@ $string['go'] = 'Go!';
 $string['hidecourselist'] = 'Cacher les temps des cours';
 $string['isfiltered'] = 'Seuls les cours avec un temps au dessus de {$a} secondes sont affichés';
 $string['keepuseralive'] = 'L\'utilisateur {$a} est toujours en session';
-$string['licenseprovider'] = 'Fournisseur version Pro';
-$string['licenseprovider_desc'] = 'Entrez la clef de votre distributeur.';
-$string['licensekey'] = 'Clef de license pro';
-$string['licensekey_desc'] = 'Entrez ici la clef de produit que vous avez reçu de votre distributeur.';
 $string['loganalysisparams'] = 'Réglages de l\'analyseur d\'historiques';
 $string['modulename'] = 'Mesure d\'activité';
 $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthismoodlefrom'] = '&ensp;depuis&ensp;';
 $string['other'] = 'Autres zones hors cours';
 $string['othershort'] = 'Hors cours';
-$string['plugindist'] = 'Distribution du plugin';
 $string['pluginname'] = 'Mesure d\'activité';
 $string['printpdf'] = 'Exporter en PDF';
 $string['profilefieldcontrol'] = 'sur champ de profil';
@@ -114,8 +107,12 @@ $string['youspent'] = 'Cumul&nbsp;:&ensp;';
 $string['warningusestateenrolfilter'] = 'La vérification des dates d\'inscription est activée dans le bloc "Mesure d\'activité". Ceci peut avoir un effet de filtrage innatendu pour des utiisateurs ayant eu des
 activités AVANT la date d\'inscription la plus récente constatée dans le cours.';
 
+<<<<<<< HEAD
 $string['plugindist_desc'] = '<p>Ce plugin est distribué dans la communauté Moodle pour l\'évaluation de ses fonctions centrales
 correspondant à une utilisation courante du plugin. Une version "professionnelle" de ce plugn existe et est distribuée
 sous certaines conditions, afin de soutenir l\'effort de développement, amélioration; documentation et suivi des versions.</p>
 <p>Contactez un distributeur pour obtenir la version "Pro" et son support.</p>
 <ul><li><a href="http://www.activeprolearn.com/plugin.php?plugin=block_use_stats&lang=fr">ActiveProLearn SAS</a></li></ul>';
+=======
+include(__DIR__.'/pro_additional_strings.php');
+>>>>>>> MOODLE_41_STABLE
