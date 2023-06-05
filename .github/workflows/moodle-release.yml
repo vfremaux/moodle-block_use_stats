@@ -9,7 +9,7 @@ name: Releasing in the Plugins directory
 on:
   push:
     tags:
-      - '3.9.*'
+      - 3.9.*
 
   workflow_dispatch:
     inputs:
