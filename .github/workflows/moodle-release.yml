@@ -34,7 +34,7 @@ jobs:
 
     steps:
       - name: Check the event
-        if: check-context
+        id: check-context
         run: |
           echo $EVENT_INPUTS
       - name: Call the service function
