@@ -8,8 +8,8 @@ name: Releasing in the Plugins directory
 
 on:
   push:
-    branches:
-      - '*_STABLE'
+    tags:
+      - '3.9.*'
 
   workflow_dispatch:
     inputs:
