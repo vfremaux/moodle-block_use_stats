@@ -28,8 +28,17 @@ defined('MOODLE_INTERNAL') || die();
 require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session_manager.class.php');
 
 if (!function_exists('debug_trace')) {
-    // Protect foreign implementations of missing tracing tools.
-    function debug_trace() {
+    @include_once($CFG->dirroot.'/local/advancedperfs/debugtools.php');
+    if (!function_exists('debug_trace')) {
+        function debug_trace($msg, $tracelevel = 0, $label = '', $backtracelevel = 1) {
+            // Fake this function if not existing in the target moodle environment.
+            assert(1);
+        }
+        define('TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
+        define('TRACE_NOTICE', 3); // Notices are important notices in normal execution.
+        define('TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
+        define('TRACE_DATA', 8); // Data level is when requiring to see data structures content.
+        define('TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
     }
 }
 
@@ -45,7 +54,7 @@ function use_stats_get_reader() {
  * @param int $from
  * @param int $to
  * @param mixed $for a user ID or an array of user IDs
- * @param int $course a course object or array of courses
+ * @param int $course a course object or array of courses // Not used anymore.
  */
 function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     global $USER, $DB;
@@ -87,22 +96,26 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $inparams = array();
 
     if (!empty($config->enrolmentfilter)) {
-        // We search first enrol time still active for this user.
+        // We search last enrol period before "to".
+        // This is supposed as being the last "valid" working time, other workign time being
+        // in past sessions.
         $sql = "
             SELECT
-                MIN(timestart) as timestart
+                MAX(timestart) as timestart
             FROM
                 {enrol} e,
                 {user_enrolments} ue
             WHERE
                 $courseenrolclause
                 e.id = ue.enrolid AND
-                (ue.timeend = 0 OR ue.timeend > ".time().")
+                ue.timestart < ".$to." AND
+                ue.status = 0
                 $userclause
         ";
-        $firstenrol = $DB->get_record_sql($sql, $inparams);
-
-        $from = max($from, $firstenrol->timestart);
+        $lastenrolbeforenow = $DB->get_record_sql($sql, $inparams);
+        if ($lastenrolbeforenow) {
+            $from = max($from, $lastenrolbeforenow->timestart);
+        }
     }
 
     if ($reader instanceof \logstore_standard\log\store) {
@@ -222,12 +235,14 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     $currentuser = 0;
     $automatondebug = optional_param('debug', 0, PARAM_BOOL) && (is_siteadmin() || !empty($USER->realuser));
 
-    $aggregate = array();
+    $aggregate = [];
+    $aggregate['sessions'] = [];
 
     $logmanager = get_log_manager();
     $readers = $logmanager->get_readers(use_stats_get_reader());
     $reader = reset($readers);
 
+    $logbuffer = '';
     $lastcourseid  = 0;
     $now = time();
 
@@ -246,11 +261,14 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
         for ($i = 0; $i < $logsize; $i = $nexti) {
 
+            $log = $logs[$i];
+
             if ($progress) {
                 $logbuffer .= "\r".str_replace('%%PROGRESS%%', '('.(0 + @$nexti).'/'.$logsize.')', $progress);
+            } else {
+                $logbuffer .= "Log id: {$log->id}\n";
             }
 
-            $log = $logs[$i];
             // We "guess" here the real identity of the log's owner.
             $currentuser = $log->userid;
 
@@ -282,6 +300,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     $log->module = 'outoftargetcourse';
                     $log->cmid = 0;
                 }
+            }
+
+            if ($automatondebug || $backdebug) {
+                if ($log->module != 'course') {
+                    $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
+                } else {
+                    $logbuffer .= "[S-$sessionid/$log->id:course>{$log->course}:";
+                }
+                $logbuffer .= "{$log->action}] (".date('Y-m-d H:i:s', $log->time)." | $lap) ";
             }
 
             $isactionlogin = block_use_stats_is_login_event($log->action);
@@ -337,17 +364,25 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             }
 
             if (!empty($dimension) && !isset($log->$dimension)) {
-                $logbuffer .= " Unkown dimension $dimension \n";;
+                if ($automatondebug || $backdebug) {
+                    $logbuffer .= " ...Unkown dimension $dimension \n";
+                }
             }
 
             if ($isactionlogin) {
                 // We are explicit login.
                 $memlap = 0;
+                if ($automatondebug || $backdebug) {
+                    $logbuffer .= " ...Starting session \n";
+                }
                 $sessionmanager->start_session($log->userid, $log->time, $log->course);
             } else {
                 // All other cases.
                 $lap = $lap + $memlap;
-                $sessionmanager->register_event($log->userid, $log->time, $log->course);
+                if ($automatondebug || $backdebug) {
+                    $logbuffer .= " ...Register in session \n";
+                }
+                $sessionmanager->register_event($log->userid, $log->time, $log->course, $lap);
             }
 
             // Standard global lap aggregation.
@@ -429,7 +464,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             if (array_key_exists('coursetotal', $aggregate) && array_key_exists($log->course, $aggregate['coursetotal'])) {
                 @$aggregate['coursetotal'][$log->course]->elapsed += $lap;
                 @$aggregate['coursetotal'][$log->course]->events += 1;
-                @$aggregate['coursetotal'][$log->course]->firstaccess = $log->time;
+                if (!isset($aggregate['coursetotal'][$log->course]->firstaccess)) {
+                    @$aggregate['coursetotal'][$log->course]->firstaccess = $log->time;
+                }
                 @$aggregate['coursetotal'][$log->course]->lastaccess = $log->time;
             } else {
                 @$aggregate['coursetotal'][$log->course]->elapsed = $lap;
@@ -495,6 +532,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
                             $credittime->cmid = $cklcm->id;
                         }
+                        if (!array_key_exists($credittime->cmid, $CMSECTIONS)) {
+                            $CMSECTIONS[$credittime->cmid] = $DB->get_field('course_modules', 'section', array('id' => $credittime->cmid));
+                        }
                         $sectionid = @$CMSECTIONS[$credittime->cmid];
 
                         $cond = 0;
@@ -507,6 +547,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                              */
                             if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
                                 if ($ltcconfig->strictcredits == 1) {
+                                    // if credit is over real time, apply credit.
                                     $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
                                                 !empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
                                 } else if ($ltcconfig->strictcredits == 2) {
@@ -717,6 +758,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         echo '<h2>Aggregator output</h2>';
         block_use_stats_render_aggregate($aggregate);
     }
+
+    // Pass compilation boundaries for further use.
+    $aggregate['from'] = $from;
+    $aggregate['to'] = $to;
 
     return $aggregate;
 }
@@ -1006,8 +1051,7 @@ function block_use_stats_format_time($timevalue) {
 }
 
 /**
- * Obsolete: unused function
- * @todo Remove this function.
+ * Used for debugging.
  */
 function block_use_stats_render_aggregate(&$aggregate) {
     global $DB;
@@ -1019,9 +1063,11 @@ function block_use_stats_render_aggregate(&$aggregate) {
         foreach ($aggregate['user'] as $courseid => $usertotal) {
             echo '<tr>';
             echo '<td width="40%"></td>';
-            echo '<td width="20%">'.$usertotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($usertotal->elapsed).'</td>';
-            echo '<td width="20%">'.$usertotal->events.'</td>';
+            echo '<td width="10%">'.$usertotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($usertotal->elapsed).'</td>';
+            echo '<td width="10%">'.$usertotal->events.'</td>';
+            echo '<td width="15%">'.userdate($usertotal->firstaccess).'</td>';
+            echo '<td width="15%">'.userdate($usertotal->lastaccess).'</td>';
             echo '</tr>';
         }
     }
@@ -1034,9 +1080,11 @@ function block_use_stats_render_aggregate(&$aggregate) {
             $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
             echo '<tr>';
             echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-            echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
-            echo '<td width="20%">'.$coursetotal->events.'</td>';
+            echo '<td width="10%">'.$coursetotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+            echo '<td width="10%">'.$coursetotal->events.'</td>';
+            echo '<td width="15%">'.userdate($coursetotal->firstaccess).'</td>';
+            echo '<td width="15%">'.userdate($coursetotal->lastaccess).'</td>';
             echo '</tr>';
         }
     }
@@ -1049,9 +1097,11 @@ function block_use_stats_render_aggregate(&$aggregate) {
             $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
             echo '<tr>';
             echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-            echo '<td width="20%">'.$coursetotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
-            echo '<td width="20%">'.$coursetotal->events.'</td>';
+            echo '<td width="10%">'.$coursetotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($coursetotal->elapsed).'</td>';
+            echo '<td width="10%">'.$coursetotal->events.'</td>';
+            echo '<td width="15%"></td>';
+            echo '<td width="15%"></td>';
             echo '</tr>';
         }
     }
@@ -1064,9 +1114,11 @@ function block_use_stats_render_aggregate(&$aggregate) {
             $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
             echo '<tr>';
             echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-            echo '<td width="20%">'.$activitytotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($activitytotal->elapsed).'</td>';
-            echo '<td width="20%">'.$activitytotal->events.'</td>';
+            echo '<td width="10%">'.$activitytotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($activitytotal->elapsed).'</td>';
+            echo '<td width="10%">'.$activitytotal->events.'</td>';
+            echo '<td width="15%"></td>';
+            echo '<td width="15%"></td>';
             echo '</tr>';
         }
     }
@@ -1079,15 +1131,17 @@ function block_use_stats_render_aggregate(&$aggregate) {
             $short = $DB->get_field('course', 'shortname', array('id' => $courseid));
             echo '<tr>';
             echo '<td width="40%">['.$courseid.'] '.$short.'</td>';
-            echo '<td width="20%">'.$othertotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($othertotal->elapsed).'</td>';
-            echo '<td width="20%">'.$othertotal->events.'</td>';
+            echo '<td width="10%">'.$othertotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($othertotal->elapsed).'</td>';
+            echo '<td width="10%">'.$othertotal->events.'</td>';
+            echo '<td width="15%"></td>';
+            echo '<td width="15%"></td>';
             echo '</tr>';
         }
     }
     echo '</table>';
 
-    $notdisplay = array('coursetotal', 'activities', 'other', 'sessions', 'user', 'course', 'system');
+    $notdisplay = array('coursetotal', 'activities', 'other', 'sessions', 'user', 'course', 'system', 'realmodule');
     foreach ($aggregate as $key => $subs) {
         if (in_array($key, $notdisplay)) {
             continue;
@@ -1106,9 +1160,25 @@ function block_use_stats_render_aggregate(&$aggregate) {
                 echo '<tr>';
                 echo '<td width="40%">SECTION'.$sectionsection.' '.$instancename.'</td>';
             }
-            echo '<td width="20%">'.$cmtotal->elapsed.'</td>';
-            echo '<td width="20%">'.block_use_stats_format_time($cmtotal->elapsed).'</td>';
-            echo '<td width="20%">'.$cmtotal->events.'</td>';
+            echo '<td width="10%">'.$cmtotal->elapsed.'</td>';
+            echo '<td width="10%">'.block_use_stats_format_time($cmtotal->elapsed).'</td>';
+            echo '<td width="10%">'.$cmtotal->events.'</td>';
+            echo '<td width="15%"></td>';
+            echo '<td width="15%"></td>';
+            echo '</tr>';
+        }
+        echo '</table>';
+    }
+
+    if (!empty($aggregate['sessions'])) {
+        echo '<h3>Sessions</h3>';
+        echo '<table width="100%">';
+        foreach ($aggregate['sessions'] as $session) {
+            echo '<tr>';
+            echo '<td>'.userdate($session->sessionstart).'</td>';
+            echo '<td>'.userdate($session->sessionend).'</td>';
+            echo '<td>'.(0 + $session->elapsed).' sec</td>';
+            echo '<td>'.(0 + $session->events).' events</td>';
             echo '</tr>';
         }
         echo '</table>';
@@ -1125,7 +1195,8 @@ function block_use_stats_is_logout_event($action) {
 }
 
 /**
- * Gets the significant log range for this user
+ * Gets the significant log range for this user.
+ * UPDATED : Try to use user's firstaccess and lastaccess for performance.
  * @param int $userid
  * @param int $from Unix timestamp
  * @param int $to Unix timestamp
@@ -1134,17 +1205,30 @@ function block_use_stats_is_logout_event($action) {
 function block_use_stats_get_log_range($userid, $from, $to) {
     global $DB;
 
+    $logrange = new StdClass;
+
+    /*
     if (!$params = block_use_stats_get_sql_params()) {
         return false;
     }
 
-    $logrange = new StdClass;
-    $field = 'MIN('.$params->timeparam.')';
-    $select = ' userid = ? AND '.$params->timeparam.' > ?';
-    $logrange->min = $DB->get_field_select($params->tablename, $field, $select, array($userid, $from));
+    // Ask cache for data.
+    $userstart = $rangecache->get('userstart');
+    if (!empty($userstart)) {
+        $logrange->min = $userstart;
+    } else {
+        // This may be a costful query in a loaded log table.
+        $field = 'MIN('.$params->timeparam.')';
+        $select = ' userid = ? AND '.$params->timeparam.' > ?';
+        $logrange->min = $DB->get_field_select($params->tablename, $field, $select, array($userid, $from));
+    }
+
     $field = 'MAX('.$params->timeparam.')';
     $select = ' userid = ? AND '.$params->timeparam.' < ?';
     $logrange->max = $DB->get_field_select($params->tablename, $field, $select, array($userid, $to));
+    */
+    $logrange->min = $DB->get_field('user', 'firstaccess', ['id' => $userid]);
+    $logrange->max = $DB->get_field('user', 'lastaccess', ['id' => $userid]);
 
     return $logrange;
 }
