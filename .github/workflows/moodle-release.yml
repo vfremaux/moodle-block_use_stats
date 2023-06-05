@@ -30,13 +30,13 @@ jobs:
       ENDPOINT: https://moodle.org/webservice/rest/server.php
       TOKEN: ${{ secrets.MOODLE_ORG_TOKEN }}
       FUNCTION: local_plugins_add_version
-      EVENT_INPUTS: ${{ toJSON(github.event.inputs) }}
+      EVENT_INFO: ${{ toJSON(github.event) }}
 
     steps:
       - name: Check the event
-        id: check-context
+        id: check-event
         run: |
-          echo $EVENT_INPUTS
+          echo $EVENT_INFO
       - name: Call the service function
         id: add-version
         run: |
