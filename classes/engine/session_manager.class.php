@@ -107,6 +107,20 @@ class session_manager {
     }
 
     /**
+     * Extends the last session event count.
+     */
+    protected function extend_events($events) {
+        $this->lastsession->extend_events($events);
+    }
+
+    /**
+     * Extends the last session elapsed time count.
+     */
+    protected function extend_elapsed($laptime) {
+        $this->lastsession->extend_elapsed($laptime);
+    }
+
+    /**
      * Adds a course id to last available session.
      */
     public function last_session_add_course($courseid) {
@@ -116,8 +130,12 @@ class session_manager {
     /**
      * Register an event in session. If mode is single, add course to course list within the same session object.
      * If mode is multiple, closes the current session and opens a new one.
+     * @param int $userid the event owner
+     * @param int $time the event timestamp
+     * @param int $courseid the concerned courseid
+     * @param int $laptime the time lap to previous event of the same user.
      */
-    public function register_event($userid, $time, $courseid) {
+    public function register_event($userid, $time, $courseid, $laptime) {
 
         // this may occur at start of the track.
         if (is_null($this->lastsession)) {
@@ -134,6 +152,8 @@ class session_manager {
             }
             $this->extend_last_session($time);
         }
+        $this->extend_events(1);
+        $this->extend_elapsed($laptime);
     }
 
     /**
@@ -177,6 +197,7 @@ class session_manager {
                 $obj->sessionend = $s->end;
                 $obj->elapsed = $s->elapsed;
                 $obj->events = $s->events;
+                $obj->courses = $s->courses;
                 $aggregate['sessions'][$i] = $obj;
                 $i++;
             }

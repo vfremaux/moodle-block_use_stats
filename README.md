@@ -53,3 +53,7 @@ information about feature sets and how to get "pro" versions. In our scope is al
 and keep very fine options to people that really needs them.
 
 Policy change will not affect the moodle version path of the plugin, data model remains unchanged, such as core bound definitions.
+
+2023060200 - Adding start and end enrol dates in reports
+========================================================
+
