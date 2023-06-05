@@ -33,10 +33,13 @@ jobs:
       EVENT_INPUTS: ${{ toJSON(github.event.inputs) }}
 
     steps:
+      - name: Check the event
+        id: check-event
+        run: |
+          echo $EVENT_INPUTS
       - name: Call the service function
         id: add-version
         run: |
-          echo $EVENT_INPUTS
           if [[ ! -z "${{ github.event.inputs.tag }}" ]]; then
             TAGNAME="${{ github.event.inputs.tag }}"
           elif [[ $GITHUB_REF = refs/tags/* ]]; then
