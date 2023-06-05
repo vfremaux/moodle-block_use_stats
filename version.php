@@ -30,7 +30,7 @@ $plugin->version   = 2021101100;        // The current plugin version (Date: YYY
 $plugin->requires  = 2022041900;        // Requires this Moodle version.
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
-$plugin->supported = [400, 41];
+$plugin->supported = [400, 401];
 $plugin->release = '4.0.0 (build 2021101100)';
 
 // Non Moodle attributes.
