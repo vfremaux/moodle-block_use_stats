@@ -38,6 +38,7 @@ if ($ADMIN->fulltree) {
                              '60' => '60 '.$daystr,
                              '90' => '90 '.$daystr,
                              '180' => '180 '.$daystr,
+                             '270' => '270 '.$daystr,
                              '365' => '365 '.$daystr,
                              );
 
