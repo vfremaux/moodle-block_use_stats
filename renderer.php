@@ -141,7 +141,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
                 $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
             }
             $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-            $str .= html_writer::select($usermenu, 'uid', $userid, 'choose', $attrs);
+            $str .= html_writer::select($usermenu, 'uid', $userid, get_string('choose', 'block_use_stats'), $attrs);
         }
 
         if (@$config->backtrackmode == 'sliding') {
@@ -152,7 +152,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
                 $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-                $str .= html_writer::select($timemenu, 'ts_from', floor(($to - $from) / DAYSECS), 'choose', $attrs);
+                $str .= html_writer::select($timemenu, 'ts_from', floor(($to - $from) / DAYSECS), get_string('choose', 'block_use_stats'), $attrs);
             }
         } else {
             if (@$config->backtracksource == 'studentchoice') {
@@ -188,7 +188,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
             }
         }
         if (is_siteadmin()) {
-            $str .= '<div class="admin-mode"><input type="checkbox" name="debug" value="1"> Debug mode</div>';
+            $str .= '<div class="admin-mode"><input type="checkbox" name="debug" value="1">'.get_string('debugmode', 'block_use_stats').'</div>';
         }
         $str .= '</form><br/>';
 
