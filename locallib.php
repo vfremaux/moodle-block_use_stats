@@ -192,7 +192,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * @param string $to
  * @param string $progress
  * @param string $nosessions
- * @param string $currentcourse // for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
+ * @param object $currentcourse // for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
  */
 function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false, $currentcourse = null) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
