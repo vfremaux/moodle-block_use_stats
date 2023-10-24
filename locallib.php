@@ -91,7 +91,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         $userclause = " AND userid = {$for} ";
     }
 
-    $courseclause = '';
+    $courseclause = ''; // not used any more. Get all logs of user.
     $courseenrolclause = '';
     $inparams = array();
 
@@ -1264,6 +1264,12 @@ function block_use_stats_get_sql_params() {
     return $params;
 }
 
+/**
+ * This function fixes missing user_lastaccess records. If record exists, than it ensures
+ * it has the correct date value.
+ * @param int $userid the user id to check
+ * @param int $userid the course id to check
+ */
 function use_stats_fix_last_course_access($userid, $courseid) {
     global $DB;
 
