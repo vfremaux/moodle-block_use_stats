@@ -33,7 +33,7 @@
         <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
       </KEYS>
       <INDEXES>
-        <INDEX NAME="ix_uniq_usersession" UNIQUE="true" FIELDS="userid,sessionstart,sessionend"/>
+        <INDEX NAME="ix_uniq_usersession" UNIQUE="false" FIELDS="userid,sessionstart,sessionend"/>
       </INDEXES>
     </TABLE>
     <TABLE NAME="block_use_stats_log" COMMENT="Prestores log gaptimes">

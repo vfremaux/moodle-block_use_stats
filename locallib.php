@@ -91,7 +91,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         $userclause = " AND userid = {$for} ";
     }
 
-    $courseclause = '';
+    $courseclause = ''; // not used any more. Get all logs of user.
     $courseenrolclause = '';
     $inparams = array();
 
@@ -245,6 +245,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     $logbuffer = '';
     $lastcourseid  = 0;
     $now = time();
+
+    $logbuffer .= "Compiling in course {$currentcourse->id} context \n";
 
     if (!empty($logs)) {
         $logs = array_values($logs);
@@ -404,21 +406,27 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                 if (array_key_exists(''.$log->$dimension, $aggregate) &&
                         array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
-                    @$aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
-                    @$aggregate[$log->$dimension][$log->cmid]->events += 1;
-                    @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
-                    @$aggregate['realmodule'][$log->cmid]->elapsed += $lap;
-                    @$aggregate['realmodule'][$log->cmid]->events += 1;
-                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
+                    $aggregate[$log->$dimension][$log->cmid]->elapsed += $lap;
+                    $aggregate[$log->$dimension][$log->cmid]->events += 1;
+                    $aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    $aggregate['realmodule'][$log->cmid]->elapsed += $lap;
+                    $aggregate['realmodule'][$log->cmid]->events += 1;
+                    $aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 } else {
-                    @$aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
-                    @$aggregate[$log->$dimension][$log->cmid]->events = 1;
-                    @$aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
-                    @$aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
-                    @$aggregate['realmodule'][$log->cmid]->elapsed = $lap;
-                    @$aggregate['realmodule'][$log->cmid]->events = 1;
-                    @$aggregate['realmodule'][$log->cmid]->firstaccess = $log->time;
-                    @$aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
+                	if (!array_key_exists(''.$log->$dimension, $aggregate)) {
+                		$aggregate[$log->$dimension] = [];
+                	}
+                	if (!array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
+                		$aggregate[$log->$dimension][$log->cmid] = new StdClass;
+                	}
+                    $aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
+                    $aggregate[$log->$dimension][$log->cmid]->events = 1;
+                    $aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
+                    $aggregate[$log->$dimension][$log->cmid]->lastaccess = $log->time;
+                    $aggregate['realmodule'][$log->cmid]->elapsed = $lap;
+                    $aggregate['realmodule'][$log->cmid]->events = 1;
+                    $aggregate['realmodule'][$log->cmid]->firstaccess = $log->time;
+                    $aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 }
             }
 
@@ -1264,6 +1272,12 @@ function block_use_stats_get_sql_params() {
     return $params;
 }
 
+/**
+ * This function fixes missing user_lastaccess records. If record exists, than it ensures
+ * it has the correct date value.
+ * @param int $userid the user id to check
+ * @param int $userid the course id to check
+ */
 function use_stats_fix_last_course_access($userid, $courseid) {
     global $DB;
 
