@@ -413,12 +413,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     $aggregate['realmodule'][$log->cmid]->events += 1;
                     $aggregate['realmodule'][$log->cmid]->lastaccess = $log->time;
                 } else {
-                	if (!array_key_exists(''.$log->$dimension, $aggregate)) {
-                		$aggregate[$log->$dimension] = [];
-                	}
-                	if (!array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
-                		$aggregate[$log->$dimension][$log->cmid] = new StdClass;
-                	}
+                    if (!array_key_exists(''.$log->$dimension, $aggregate)) {
+                        $aggregate[$log->$dimension] = [];
+                    }
+                    if (!array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
+                        $aggregate[$log->$dimension][$log->cmid] = new StdClass;
+                    }
+                    if (!array_key_exists($log->cmid, $aggregate['realmodule'])) {
+                        $aggregate['realmodule'][$log->cmid] = new StdClass;
+                    }
                     $aggregate[$log->$dimension][$log->cmid]->elapsed = $lap;
                     $aggregate[$log->$dimension][$log->cmid]->events = 1;
                     $aggregate[$log->$dimension][$log->cmid]->firstaccess = $log->time;
