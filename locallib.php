@@ -403,6 +403,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             } else {
 
                 // 'Real' counters WILL NOT be affected by LTC reports.
+                if (!array_key_exists('realmodule', $aggregate)) {
+                    $aggregate['realmodule'] = [];
+                }
 
                 if (array_key_exists(''.$log->$dimension, $aggregate) &&
                         array_key_exists($log->cmid, $aggregate[$log->$dimension])) {
