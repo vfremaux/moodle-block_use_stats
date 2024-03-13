@@ -726,7 +726,6 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                 $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
 
                                 // Fix the global aggregators accordingly.
-                                debug_trace("Fixing globals ltccutunder {$ckl->course}: ".$diff);
                                 @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                 $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                 @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -742,7 +741,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
 
                                     // Fix the global aggregators accordingly.
-                                    debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
+                                    // debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
                                     @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                     $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -754,7 +753,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
 
                                     // Fix the global aggregators accordingly.
-                                    debug_trace("Fixing globals declared cutunder no logs {$ckl->course}: ".$diff);
+                                    // debug_trace("Fixing globals declared cutunder no logs {$ckl->course}: ".$diff);
                                     @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                     $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['section'][$sectionid]->elapsed += $diff;
