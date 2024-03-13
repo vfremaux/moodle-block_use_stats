@@ -22,9 +22,9 @@
  * @version Moodle 2.7
  * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
  */
-defined('MOODLE_INTERNAL') || die();
-
 namespace block_use_stats;
+
+defined('MOODLE_INTERNAL') || die();
 
 class compat {
 
