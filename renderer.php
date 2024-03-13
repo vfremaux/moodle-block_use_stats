@@ -25,6 +25,10 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
+require_once($CFG->dirroot.'/blocks/use_stats/compatlib.php');
+
+use block_use_stats\compat;
+
 class block_use_stats_renderer extends plugin_renderer_base {
 
     public function per_course(&$aggregate, &$fulltotal) {
@@ -107,8 +111,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $str .= '<input type="hidden" name="id" value="'.$id.'" />';
 
+        $fields = compat::get_user_fields();
+
         if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
-            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', 'id,'.get_all_user_name_fields(true, ''));
+            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', implode(',', $fields));
         } else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
             $users = get_enrolled_users($coursecontext);
@@ -121,9 +127,12 @@ class block_use_stats_renderer extends plugin_renderer_base {
             }
 
             $users = array();
+
             // Get all users in my groups.
+
+            $fields = compat::get_user_fields('u');
             foreach ($mygroups as $mygroupid) {
-                $members = groups_get_members($mygroupid, 'u.id,'.get_all_user_name_fields(true, 'u'));
+                $members = groups_get_members($mygroupid, $fields);
                 if ($members) {
                     $users = $users + $members;
                 }
