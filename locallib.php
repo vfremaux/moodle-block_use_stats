@@ -563,18 +563,22 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 echo "Bad sumcheck on events for course $courseid <br/>";
             }
 
-            $ct = $aggregate['course'][$courseid]->elapsed;
-            $at = $aggregate['activities'][$courseid]->elapsed;
-            $ot = $aggregate['other'][$courseid]->elapsed;
+            $ct = $aggregate['course'][$courseid]->elapsed ?? 0;
+            $at = $aggregate['activities'][$courseid]->elapsed ?? 0;
+            $ot = $aggregate['other'][$courseid]->elapsed ?? 0;
 
-            if ($aggregate['coursetotal'][$courseid]->elapsed != ($ct + $at + $ot)) {
+            $tot = $aggregate['coursetotal'][$courseid]->elapsed ?? 0;
+
+            if ($tot != ($ct + $at + $ot)) {
                 echo "Bad sumcheck on time for course $courseid <br/>";
             }
 
             // Sum of section times should be activity time. this is valid for single course... 
             $st = 0;
-            foreach ($aggregate['coursesection'][$courseid] as $s) {
-                $st += $s->elapsed;
+            if (array_key_exists('coursesection', $aggregate) && array_key_exists($courseid, $aggregate['coursesection'])) {
+                foreach ($aggregate['coursesection'][$courseid] as $s) {
+                    $st += $s->elapsed;
+                }
             }
             if ($st != $at) {
                 throw new Exception("Bad sumcheck on section time for course $courseid : section time is $st / activities time is $at <br/>");

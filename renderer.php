@@ -111,10 +111,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
 
         $str .= '<input type="hidden" name="id" value="'.$id.'" />';
 
-        $fields = compat::get_user_fields();
+        $fields = compat::get_user_fields('');
 
         if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
-            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', implode(',', $fields));
+            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', $fields);
         } else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
             $users = get_enrolled_users($coursecontext);
