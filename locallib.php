@@ -493,7 +493,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     }
                     if (is_numeric($sectionid)) {
                         if (!array_key_exists($log->course, $aggregate['coursesection'])) {
-                            $aggregate['coursesection'][$courseid] = [];
+                            $aggregate['coursesection'][$log->course] = [];
                         }
 
                         if (!array_key_exists($sectionid, $aggregate['coursesection'][$log->course])) {
