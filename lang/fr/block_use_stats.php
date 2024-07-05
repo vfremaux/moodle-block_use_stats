@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Lang file for fr
+ *
+ * @package   block_use_stats
+ * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 // Capabilities.
 $string['use_stats:addinstance'] = 'Peut ajouter une instance'; // Is a @DYNAKEY.
 $string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée'; // Is a @DYNAKEY.
@@ -101,7 +109,9 @@ $string['task_cleanup'] = 'Nettoyage des temps intercalaires';
 $string['task_compile'] = 'Compilation des temps intercalaires';
 $string['timeelapsed'] = 'Temps passé';
 $string['to'] = '&ensp;au&ensp;';
-$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs du serveur distant.<br/>'; // @DYNAKEY.
+$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques 
+ des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs
+  du serveur distant.<br/>'; // Is a @DYNAKEY.
 $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // Is a @DYNAKEY.

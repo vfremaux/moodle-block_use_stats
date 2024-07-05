@@ -15,31 +15,32 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Mnet declarations for use_stats block
+ *
  * @package   block_use_stats
- * @category  blocks
  * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$publishes = array(
-    'use_stats' => array(
+$publishes = [
+    'use_stats' => [
         'servicename' => 'use_stats',
         'description' => get_string('use_stats_rpc_service_name', 'block_use_stats'),
         'apiversion' => 1,
         'classname'  => '',
         'filename'   => 'rpclib.php',
-        'methods'    => array(
+        'methods'    => [
             'use_stats_rpc_get_stats',
-            'use_stats_rpc_get_scores'
-        ),
-    ),
-);
+            'use_stats_rpc_get_scores',
+        ],
+    ],
+];
 
-$subscribes = array(
-    'use_stats' => array(
+$subscribes = [
+    'use_stats' => [
         'use_stats_rpc_get_stats' => 'blocks/use_stats/rpclib.php/use_stats_rpc_get_stats',
         'use_stats_rpc_get_scores' => 'blocks/use_stats/rpclib.php/use_stats_rpc_get_scores',
-    ),
-);
+    ],
+];

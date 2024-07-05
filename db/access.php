@@ -15,90 +15,91 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Capability declarations for use_stats block
+ *
  * @package   block_use_stats
- * @category  blocks
- * @copyright 2006 Valery Fremaux
+ * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 defined('MOODLE_INTERNAL') || die();
 
-$capabilities = array(
+$capabilities = [
 
-    'block/use_stats:view' => array(
+    'block/use_stats:view' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
-            'student' => CAP_ALLOW
-        )
-    ),
+            'student' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:addinstance' => array(
+    'block/use_stats:addinstance' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:myaddinstance' => array(
+    'block/use_stats:myaddinstance' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'user' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
+            'manager' => CAP_ALLOW,
+        ],
     ),
 
-    'block/use_stats:seesitedetails' => array(
+    'block/use_stats:seesitedetails' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
-            'manager' => CAP_ALLOW
-        )
-    ),
+        'archetypes' => [
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:seecoursedetails' => array(
+    'block/use_stats:seecoursedetails' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'editingteacher' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:seegroupdetails' => array(
+    'block/use_stats:seegroupdetails' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'teacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:seeowndetails' => array(
+    'block/use_stats:seeowndetails' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'student' => CAP_ALLOW,
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    ),
+            'manager' => CAP_ALLOW,
+        ],
+    ],
 
-    'block/use_stats:export' => array(
+    'block/use_stats:export' => [
         'captype' => 'read',
         'contextlevel' => CONTEXT_BLOCK,
-        'archetypes' => array(
+        'archetypes' => [
             'teacher' => CAP_ALLOW,
             'editingteacher' => CAP_ALLOW,
-            'manager' => CAP_ALLOW
-        )
-    )
-);
+            'manager' => CAP_ALLOW,
+        ],
+    ],
+];

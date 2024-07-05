@@ -14,6 +14,14 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
+/**
+ * Lang file for en
+ *
+ * @package   block_use_stats
+ * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 // Capabilities.
 $string['use_stats:addinstance'] = 'Can add an instance'; // Is a @DYNAKEY.
 $string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // Is a @DYNAKEY.
@@ -121,4 +129,4 @@ $string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @
 $string['youspent'] = 'You spent&ensp;';
 $string['warningusestateenrolfilter'] = 'The enrolment checker is on in the Use Stats bloc. This may have effects on reports if the user\'s activity falls before the latest enrolment start date.';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');

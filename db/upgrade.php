@@ -15,13 +15,12 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Upgrade script for use stats block
+ *
  * @package   block_use_stats
- * @category  blocks
  * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Standard uprade callback.
@@ -65,8 +64,8 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                 $table->add_field('customtag6', XMLDB_TYPE_CHAR, '30', null, null, null, null, null, '');
 
                 // Adding keys to table use_stats.
-                $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
-                $table->add_key('ix_logid_unique', XMLDB_KEY_UNIQUE, array('logid'));
+                $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
+                $table->add_key('ix_logid_unique', XMLDB_KEY_UNIQUE, ['logid']);
 
                 // Launch create table for use_stats.
                 $dbman->create_table($table);
@@ -84,8 +83,8 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
         }
 
         // Feed the table with log gaps.
-        $previouslog = array();
-        $rs = $DB->get_recordset('log', array(), 'time', 'id,time,userid,course');
+        $previouslog = [];
+        $rs = $DB->get_recordset('log', [], 'time', 'id,time,userid,course');
         if ($rs) {
 
             $r = 0;
@@ -110,18 +109,18 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
                             $customsql = str_replace('<%%USERID%%>', $log->userid, $customsql);
                             $customsql = str_replace('<%%COURSEID%%>', $log->course, $customsql);
                             $customsql = str_replace('<%%CMID%%>', $log->cmid, $customsql);
-                            $gaprec->$key = $DB->get_field_sql($customsql, array());
+                            $gaprec->$key = $DB->get_field_sql($customsql, []);
                         }
                     }
                 }
 
                 $gaprec->gap = 0;
-                if (!$DB->record_exists('block_use_stats_log', array('logid' => $log->id))) {
+                if (!$DB->record_exists('block_use_stats_log', ['logid' => $log->id])) {
                     $DB->insert_record('block_use_stats_log', $gaprec);
                 }
                 if (array_key_exists($log->userid, $previouslog)) {
                     $value = $log->time - $previouslog[$log->userid]->time;
-                    $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => $previouslog[$log->userid]->id));
+                    $DB->set_field('block_use_stats_log', 'gap', $value, ['logid' => $previouslog[$log->userid]->id]);
                 }
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
@@ -179,42 +178,42 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
 
         // Define index ix_logid (unique) to be added to block_use_stats_log.
         $table = new xmldb_table('block_use_stats_log');
-        $index = new xmldb_index('ix_logid', XMLDB_INDEX_UNIQUE, array('logid'));
+        $index = new xmldb_index('ix_logid', XMLDB_INDEX_UNIQUE, ['logid']);
 
         // Conditionally launch add index ix_logid.
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $index = new xmldb_index('ix_userid', XMLDB_INDEX_NOTUNIQUE, array('userid'));
+        $index = new xmldb_index('ix_userid', XMLDB_INDEX_NOTUNIQUE, ['userid']);
 
         // Conditionally launch add index ix_userid.
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $index = new xmldb_index('ix_course', XMLDB_INDEX_NOTUNIQUE, array('course'));
+        $index = new xmldb_index('ix_course', XMLDB_INDEX_NOTUNIQUE, ['course']);
 
         // Conditionally launch add index ix_course.
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $index = new xmldb_index('ix_customtag1', XMLDB_INDEX_NOTUNIQUE, array('customtag1'));
+        $index = new xmldb_index('ix_customtag1', XMLDB_INDEX_NOTUNIQUE, ['customtag1']);
 
         // Conditionally launch add index ix_customtag1.
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $index = new xmldb_index('ix_customtag2', XMLDB_INDEX_NOTUNIQUE, array('customtag2'));
+        $index = new xmldb_index('ix_customtag2', XMLDB_INDEX_NOTUNIQUE, ['customtag2']);
 
         // Conditionally launch add index ix_customtag2.
         if (!$dbman->index_exists($table, $index)) {
             $dbman->add_index($table, $index);
         }
 
-        $index = new xmldb_index('ix_customtag3', XMLDB_INDEX_NOTUNIQUE, array('customtag3'));
+        $index = new xmldb_index('ix_customtag3', XMLDB_INDEX_NOTUNIQUE, ['customtag3']);
 
         // Conditionally launch add index ix_customtag3.
         if (!$dbman->index_exists($table, $index)) {
@@ -250,7 +249,7 @@ function xmldb_block_use_stats_upgrade($oldversion = 0) {
             $table->add_field('courses', XMLDB_TYPE_TEXT, 'small', null, null, null, null, null, null);
 
             // Adding keys to table use_stats.
-            $table->add_key('primary', XMLDB_KEY_PRIMARY, array('id'));
+            $table->add_key('primary', XMLDB_KEY_PRIMARY, ['id']);
 
             // Launch create table for use_stats.
             $dbman->create_table($table);
