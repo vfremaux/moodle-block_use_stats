@@ -18,7 +18,6 @@
  * Master block class for use_stats compiler
  *
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -35,8 +34,14 @@ if (block_use_stats_supports_feature('data/multidimensionnal')) {
     include_once($CFG->dirroot.'/blocks/use_stats/pro/lib.php');
 }
 
+/**
+ * The block instance class
+ */
 class block_use_stats extends block_base {
 
+    /**
+     * Standard block init
+     */
     public function init() {
         $this->title = get_string('blockname', 'block_use_stats');
         $this->content_type = BLOCK_TYPE_TEXT;
@@ -62,7 +67,7 @@ class block_use_stats extends block_base {
      * In which course format can we see and add the block.
      */
     public function applicable_formats() {
-        return array('all' => true);
+        return ['all' => true];
     }
 
     /**
@@ -125,9 +130,11 @@ class block_use_stats extends block_base {
 
         list($from, $to) = $this->get_range();
 
-        $capabilities = array('block/use_stats:seesitedetails',
-                              'block/use_stats:seecoursedetails',
-                              'block/use_stats:seegroupdetails');
+        $capabilities = [
+            'block/use_stats:seesitedetails',
+            'block/use_stats:seecoursedetails',
+            'block/use_stats:seegroupdetails',
+        ];
         if (has_any_capability($capabilities, $context, $USER->id)) {
             $userid = optional_param('uid', $USER->id, PARAM_INT);
         } else {
@@ -164,7 +171,7 @@ class block_use_stats extends block_base {
 
             // Update keys for this user.
             if (empty($userkeys)) {
-                $userkeys = array();
+                $userkeys = [];
             }
             if (!in_array($cachekey, $userkeys)) {
                 $userkeys[] = $cachekey;
@@ -205,13 +212,19 @@ class block_use_stats extends block_base {
             $this->content->text .= '</div>';
 
             if (block_use_stats_supports_feature('view/detail')) {
-                $capabilities = array('block/use_stats:seeowndetails',
-                                      'block/use_stats:seesitedetails',
-                                      'block/use_stats:seecoursedetails',
-                                      'block/use_stats:seegroupdetails');
+                $capabilities = [
+                    'block/use_stats:seeowndetails',
+                    'block/use_stats:seesitedetails',
+                    'block/use_stats:seecoursedetails',
+                    'block/use_stats:seegroupdetails'
+                ];
                 if (has_any_capability($capabilities, $context, $USER->id)) {
                     $showdetailstr = get_string('showdetails', 'block_use_stats');
-                    $params = array('id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id);
+                    $params = [
+                        'id' => $this->instance->id,
+                        'userid' => $userid,
+                        'course' => $COURSE->id
+                    ];
                     if (!empty($fromwhen)) {
                          $params['ts_from'] = $fromwhen;
                     }
@@ -306,7 +319,7 @@ class block_use_stats extends block_base {
             }
             $from = $now - $daystocompilelogs;
         }
-        return array($from, $to);
+        return [$from, $to];
     }
 
     /**
@@ -343,7 +356,7 @@ class block_use_stats extends block_base {
         mtrace("\n".'... Compiling gaps from : '.$config->lastcompiled);
 
         // Feed the table with log gaps.
-        $previouslog = array();
+        $previouslog = [];
         if ($reader instanceof \logstore_standard\log\store) {
             $sql = "
                 SELECT
@@ -361,9 +374,9 @@ class block_use_stats extends block_base {
                 ORDER BY
                     timecreated
             ";
-            $rs = $DB->get_recordset_sql($sql, array($config->lastcompiled));
+            $rs = $DB->get_recordset_sql($sql, [$config->lastcompiled]);
         } else if ($reader instanceof \logstore_legacy\log\store) {
-            $params = array($config->lastcompiled);
+            $params = [$config->lastcompiled];
             $fields = 'id,time,userid,course,cmid';
             $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
         } else {
@@ -391,26 +404,26 @@ class block_use_stats extends block_base {
                 }
 
                 $gaprec->gap = 0;
-                if (!$DB->record_exists('block_use_stats_log', array('logid' => $log->id))) {
+                if (!$DB->record_exists('block_use_stats_log', ['logid' => $log->id])) {
                     $DB->insert_record('block_use_stats_log', $gaprec);
                 }
                 // Is there a last log found before actual compilation session ?
                 if (!array_key_exists($log->userid, $previouslog)) {
                     if ($reader instanceof \logstore_standard\log\store) {
                         $select = ' timecreated < ? ';
-                        $params = array($config->lastcompiled);
+                        $params = [$config->lastcompiled];
                         $maxlasttime = $DB->get_field_select('logstore_standard_log', 'MAX(timecreated)', $select, $params);
-                        $params = array('timecreated' => $maxlasttime);
+                        $params = ['timecreated' => $maxlasttime];
                         $lastlog = $DB->get_records('logstore_standard_log', $params, 'id DESC', '*', 0, 1);
                     } else if ($reader instanceof \logstore_legacy\log\store) {
-                        $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', array($config->lastcompiled));
-                        $lastlog = $DB->get_records('log', array('time' => $maxlasttime), 'id DESC', '*', 0, 1);
+                        $maxlasttime = $DB->get_field_select('log', 'MAX(time)', ' time < ? ', [$config->lastcompiled]);
+                        $lastlog = $DB->get_records('log', ['time' => $maxlasttime], 'id DESC', '*', 0, 1);
                     }
                     $lastlogs = array_values($lastlog);
                     $previouslog[$log->userid] = array_shift($lastlogs);
                 }
                 $value = $log->time - (0 + @$previouslog[$log->userid]->time);
-                $DB->set_field('block_use_stats_log', 'gap', $value, array('logid' => @$previouslog[$log->userid]->id));
+                $DB->set_field('block_use_stats_log', 'gap', $value, ['logid' => @$previouslog[$log->userid]->id]);
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
                 $r++;
@@ -460,7 +473,7 @@ class block_use_stats extends block_base {
                 lastaccess < ?
         ";
 
-        $onlineusers = $DB->get_records_sql($sql, array($timeminusthirty));
+        $onlineusers = $DB->get_records_sql($sql, [$timeminusthirty]);
 
         foreach (array_keys($onlineusers) as $userid) {
             $userkeys = unserialize($cache->get('user'.$userid));
@@ -522,10 +535,10 @@ class block_use_stats extends block_base {
 
         $config = get_config('block_use_stats');
 
-        $courseelapsed = array();
-        $courseshort = array();
-        $coursefull = array();
-        $courseevents = array();
+        $courseelapsed = [];
+        $courseshort = [];
+        $coursefull = [];
+        $courseevents = [];
 
         $fulltotal = 0;
         $fullevents = 0;
@@ -536,7 +549,7 @@ class block_use_stats extends block_base {
 
                 if ($courseid) {
                     $fields = 'id,shortname,idnumber,fullname';
-                    $course = $DB->get_record('course', array('id' => $courseid), $fields);
+                    $course = $DB->get_record('course', ['id' => $courseid], $fields);
                 } else {
                     $course = new StdClass();
                     $course->shortname = get_string('othershort', 'block_use_stats');
@@ -585,14 +598,16 @@ class block_use_stats extends block_base {
             $displaycourses = array_reverse($displaycourses, true);
         }
 
-        return array($displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents);
+        return [$displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents];
     }
 
     private function _seeother() {
         $context = context_block::instance($this->instance->id);
-        $capabilities = array('block/use_stats:seesitedetails',
-                              'block/use_stats:seecoursedetails',
-                              'block/use_stats:seegroupdetails');
+        $capabilities = [
+            'block/use_stats:seesitedetails',
+            'block/use_stats:seecoursedetails',
+            'block/use_stats:seegroupdetails',
+        ];
         return has_any_capability($capabilities, $context);
     }
 

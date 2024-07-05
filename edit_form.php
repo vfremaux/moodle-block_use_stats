@@ -17,13 +17,11 @@
 /**
  * Form for editing HTML block instances.
  *
- * @package   blocks_use_stats
- * @category blocks
+ * @package   block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Form for editing Random glossary entry block instances.
@@ -33,6 +31,10 @@ defined('MOODLE_INTERNAL') || die();
  */
 class block_use_stats_edit_form extends block_edit_form {
 
+    /**
+     * Specific definition.
+     * @param object $mform the moodleform
+     */
     protected function specific_definition($mform) {
 
         // Fields for editing HTML block title and contents.

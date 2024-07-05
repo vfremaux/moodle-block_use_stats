@@ -27,6 +27,7 @@ defined('MOODLE_INTERNAL') || die();
  * Tells wether a feature is supported or not. Gives back the
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
+ * @param bool $getsupported if true, returns the list of supported features.
  */
 function block_use_stats_supports_feature($feature = null, $getsupported = false) {
     global $CFG;
@@ -103,6 +104,9 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
     return $versionkey;
 }
 
+/**
+ * ??
+ */
 function block_use_stats_setup_theme_notification() {
     global $CFG;
 

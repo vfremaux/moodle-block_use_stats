@@ -109,9 +109,9 @@ $string['task_cleanup'] = 'Nettoyage des temps intercalaires';
 $string['task_compile'] = 'Compilation des temps intercalaires';
 $string['timeelapsed'] = 'Temps passé';
 $string['to'] = '&ensp;au&ensp;';
-$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques 
+$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques
  des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs
-  du serveur distant.<br/>'; // Is a @DYNAKEY.
+ du serveur distant.<br/>'; // Is a @DYNAKEY.
 $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // Is a @DYNAKEY.
@@ -119,4 +119,4 @@ $string['youspent'] = 'Cumul&nbsp;:&ensp;';
 $string['warningusestateenrolfilter'] = 'La vérification des dates d\'inscription est activée dans le bloc "Mesure d\'activité". Ceci peut avoir un effet de filtrage innatendu pour des utiisateurs ayant eu des
 activités AVANT la date d\'inscription la plus récente constatée dans le cours.';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');

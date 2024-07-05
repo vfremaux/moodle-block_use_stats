@@ -17,15 +17,12 @@
 /**
  * Master block class for use_stats compiler
  *
- * @package    blocks_use_stats
- * @category   blocks
+ * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\engine;
-
-defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use StdClass;
@@ -36,12 +33,24 @@ use StdClass;
  */
 class session {
 
+    /** 
+     * Session's owner
+     */
     public $userid;
 
+    /** 
+     * Courses the session traverses
+     */
     public $courses;
 
+    /** 
+     * First timestamp
+     */
     public $start;
 
+    /** 
+     * Last timestamp
+     */
     public $end;
 
     /**
@@ -54,6 +63,12 @@ class session {
      */
     public $events;
 
+    /**
+     * Builds a session on a first event.
+     *
+     * @param int $userid
+     * @param int $starttime
+     */
     public function __construct($userid, $starttime) {
         $this->userid = $userid;
         $this->start = $starttime;
@@ -64,7 +79,9 @@ class session {
     }
 
     /**
-     * Pushes end time up to $endtime
+     * Pushes end time up to 
+     *
+     * @param int $endtime
      */
     public function extend_endtime($endtime) {
         if ($endtime > $this->end) {
@@ -74,13 +91,16 @@ class session {
 
     /**
      * Add elapsed
+     *
+     * @param int $elapsed
      */
     public function extend_elapsed($elapsed) {
         $this->elapsed += $elapsed;
     }
 
     /**
-     * Add elapsed
+     * Extends events
+     * @param int $events
      */
     public function extend_events($events) {
         $this->events += $events;
@@ -88,6 +108,7 @@ class session {
 
     /**
      * Add a course to list.
+     * @param int $courseid
      */
     public function add_course($courseid) {
         if (!in_array($courseid, $this->courses)) {
@@ -132,7 +153,7 @@ class session {
         $transaction->allow_commit();
     }
 
-    /** 
+    /**
      * Export data as an unclassed simple standard object structure.
      */
     public function export() {

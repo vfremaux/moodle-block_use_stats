@@ -16,15 +16,12 @@
 
 /**
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace block\use_stats;
-
-defined('MOODLE_INTERNAL') || die;
 
 /**
  * Time selector
@@ -46,11 +43,13 @@ class admin_setting_configdatetime extends \admin_setting {
 
         $datearr = getdate($result);
 
-        $data = array('h' => $datearr['hours'],
+        $data = [
+            'h' => $datearr['hours'],
             'm' => $datearr['minutes'],
             'y' => $datearr['year'],
             'M' => $datearr['mon'],
-            'd' => $datearr['mday']);
+            'd' => $datearr['mday'],
+        ];
         return $data;
     }
 

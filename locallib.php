@@ -26,6 +26,14 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session_manager.class.php');
 
+/**
+ * Wraps the external debug trace.
+ *
+ * @param string $msg
+ * @params int $tracelevel
+ * @param string $label tag for grouping trace outputs
+ * @param int $backtracelevel 
+ */
 function block_use_stats_debug_trace($msg, $tracelevel = 0, $label = '', $backtracelevel = 1) {
     if (function_exists('debug_trace')) {
         debug_trace($msg, $tracelevel, $label, $backtracelevel);
@@ -40,7 +48,8 @@ function use_stats_get_reader() {
 }
 
 /**
- * Extracts a log thread from the first accessible logstore
+ * Extracts a log thread from the first accessible logstore.
+ *
  * @param int $from
  * @param int $to
  * @param mixed $for a user ID or an array of user IDs
@@ -86,9 +95,11 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
     $inparams = [];
 
     if (!empty($config->enrolmentfilter)) {
-        // We search last enrol period before "to".
-        // This is supposed as being the last "valid" working time, other workign time being
-        // in past sessions.
+        /*
+         * We search last enrol period before "to".
+         * This is supposed as being the last "valid" working time, other workign time being
+         * in past sessions.
+         */
         $sql = "
             SELECT
                 MAX(timestart) as timestart
@@ -177,14 +188,14 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
 }
 
 /**
- * given an array of log records, make a displayable aggregate. Needs a single
+ * Given an array of log records, make a displayable aggregate. Needs a single
  * user log extraction. User will be guessed out from log records.
  * @param array $logs
  * @param string $from
  * @param string $to
  * @param string $progress
  * @param string $nosessions
- * @param object $currentcourse // for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
+ * @param object $currentcourse for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
  */
 function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false, $currentcourse = null) {
     global $CFG, $DB, $OUTPUT, $USER, $COURSE;
@@ -1078,7 +1089,7 @@ function use_stats_render($sessions) {
  * module from context when context of the trace (event) is inside a course module.
  * this unifies the perception of the use_stats when using either logging method.
  * loggedin event is bound to old login action.
- * @param object $log a log record
+ * @param objectref &$log a log record
  */
 function use_stats_add_module_from_context(&$log) {
     global $DB;
@@ -1279,10 +1290,18 @@ function block_use_stats_render_aggregate(&$aggregate) {
     echo '</div>';
 }
 
+/**
+ * Checks if a log action is a login event.
+ * @param string $action
+ */
 function block_use_stats_is_login_event($action) {
     return (($action == 'login') || ($action == 'loggedin'));
 }
 
+/**
+ * Checks if a log action is a logout event.
+ * @param string $action
+ */
 function block_use_stats_is_logout_event($action) {
     return (($action == 'logout') || ($action == 'loggedout'));
 }
@@ -1299,27 +1318,6 @@ function block_use_stats_get_log_range($userid, $from, $to) {
     global $DB;
 
     $logrange = new StdClass;
-
-    /*
-    if (!$params = block_use_stats_get_sql_params()) {
-        return false;
-    }
-
-    // Ask cache for data.
-    $userstart = $rangecache->get('userstart');
-    if (!empty($userstart)) {
-        $logrange->min = $userstart;
-    } else {
-        // This may be a costful query in a loaded log table.
-        $field = 'MIN('.$params->timeparam.')';
-        $select = ' userid = ? AND '.$params->timeparam.' > ?';
-        $logrange->min = $DB->get_field_select($params->tablename, $field, $select, [$userid, $from]);
-    }
-
-    $field = 'MAX('.$params->timeparam.')';
-    $select = ' userid = ? AND '.$params->timeparam.' < ?';
-    $logrange->max = $DB->get_field_select($params->tablename, $field, $select, [$userid, $to]);
-    */
     $logrange->min = $DB->get_field('user', 'firstaccess', ['id' => $userid]);
     $logrange->max = $DB->get_field('user', 'lastaccess', ['id' => $userid]);
 

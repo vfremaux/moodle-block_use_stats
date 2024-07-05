@@ -16,8 +16,8 @@
 
 /**
  * @package     block_use_stats
- * @category    blocks
  * @author      Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  *
  * This file is a proxy class to the "pro" real implementation of moodle web services.
@@ -28,8 +28,14 @@ defined('MOODLE_INTERNAL') || die;
 require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
 
+/**
+ * Standard WS definition.
+ */
 class block_use_stats_external extends external_api {
 
+    /**
+     * Parameters for get user stats
+     */
     public static function get_user_stats_parameters() {
 
         return new external_function_parameters (
@@ -45,6 +51,16 @@ class block_use_stats_external extends external_api {
         );
     }
 
+    /**
+     * Gets user's stats
+     * @param string $uidsource
+     * @param mixed $uid
+     * @param string $cidsource
+     * @param mixed $cid
+     * @param int $from
+     * @param int $to
+     * @param int $score
+     */
     public static function get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score = 0) {
         global $DB, $CFG;
 
@@ -56,38 +72,41 @@ class block_use_stats_external extends external_api {
         throw new moodle_exception('WS Not available in this distribution');
     }
 
+    /**
+     * Returns definition
+     */
     public static function get_user_stats_returns() {
         return new external_single_structure(
-            array(
+            [
                 'user' => new external_single_structure(
-                    array(
+                    [
                         'id' => new external_value(PARAM_INT, 'User id'),
                         'idnumber' => new external_value(PARAM_TEXT, 'User idnumber'),
                         'username' => new external_value(PARAM_TEXT, 'User username'),
-                    )
+                    ]
                 ),
 
                 'query' => new external_single_structure(
-                    array(
+                    [
                         'from' => new external_value(PARAM_INT, 'From date'),
                         'to' => new external_value(PARAM_INT, 'To date'),
-                    )
+                    ]
                 ),
 
                 'sessions' => new external_single_structure(
-                    array(
+                    [
                         'sessions' => new external_value(PARAM_INT, 'Number of sessions', VALUE_OPTIONAL, 0, true),
                         'firstsession' => new external_value(PARAM_INT, 'First session date', VALUE_OPTIONAL, 0, true),
                         'lastsession' => new external_value(PARAM_INT, 'Last session date', VALUE_OPTIONAL, 0, true),
                         'sessionmin' => new external_value(PARAM_INT, 'Min session duration', VALUE_OPTIONAL, 0, true),
                         'sessionmax' => new external_value(PARAM_INT, 'Max session duration', VALUE_OPTIONAL, 0, true),
                         'meansession' => new external_value(PARAM_INT, 'Mean session duration', VALUE_OPTIONAL, 0, true),
-                    )
+                    ]
                 ),
 
                 'courses' => new external_multiple_structure(
                     new external_single_structure(
-                        array(
+                        [
                             'id' => new external_value(PARAM_INT, 'Course id'),
                             'idnumber' => new external_value(PARAM_TEXT, 'Course idnumber'),
                             'shortname' => new external_value(PARAM_TEXT, 'Course shortname'),
@@ -98,10 +117,10 @@ class block_use_stats_external extends external_api {
                             'othertime' => new external_value(PARAM_INT, 'Elapsed time in system areas'),
                             'sitecoursetime' => new external_value(PARAM_INT, 'Elapsed time in site course during session'),
                             'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
-                       )
+                       ]
                     )
                 ),
-            )
+            ]
         );
     }
 
@@ -115,6 +134,16 @@ class block_use_stats_external extends external_api {
         return self::get_users_stats_parameters();
     }
 
+    /**
+     * Get stats for a course
+     * @param string $uidsource
+     * @param mixed $uids
+     * @param string $cidsource
+     * @param mixed $cid
+     * @param int $from
+     * @param int $to
+     * àparam int $score
+     */
     public static function get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
         global $CFG;
 
@@ -126,6 +155,9 @@ class block_use_stats_external extends external_api {
         throw new moodle_exception('WS Not available in this distribution');
     }
 
+    /**
+     * Return description for course stats.
+     */
     public static function get_users_course_stats_returns() {
         return new external_multiple_structure(
             self::get_user_course_stats_returns()
@@ -134,12 +166,15 @@ class block_use_stats_external extends external_api {
 
     /* *************************** Bulk data ************************* */
 
+    /**
+     * Parameters description for multiple users stats.
+     */
     public static function get_users_stats_parameters() {
 
         $statsfields = 'elapsed,events,courseelapsed,courseevents,otherelapsed,otherevents';
 
         return new external_function_parameters (
-            array(
+            [
                 'uidsource' => new external_value(PARAM_ALPHA, 'The source for user identifier'),
                 'uids' => new external_multiple_structure(
                      new external_value(PARAM_TEXT, 'an uid')
@@ -149,10 +184,20 @@ class block_use_stats_external extends external_api {
                 'from' => new external_value(PARAM_INT, 'period start timestamp', VALUE_DEFAULT, 0, true),
                 'to' => new external_value(PARAM_INT, 'period end timestamp', VALUE_DEFAULT, 0, true),
                 'score' => new external_value(PARAM_BOOL, 'Get course score bask', VALUE_DEFAULT, true, true),
-            )
+            ]
         );
     }
 
+    /**
+     * Returns stats for a bunch of users. This might be costfull
+     * @param string $uidsource
+     * @param mixed $uids
+     * @param string $cidsource
+     * @param mixed $cid
+     * @param int $from
+     * @param int $to
+     * @param int $score
+     */
     public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
         global $CFG;
 
@@ -164,6 +209,9 @@ class block_use_stats_external extends external_api {
         throw new moodle_exception('WS Not available in this distribution');
     }
 
+    /**
+     * Return description for multiple users stats.
+     */
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
             self::get_user_stats_returns()
@@ -172,9 +220,12 @@ class block_use_stats_external extends external_api {
 
     /* *************** Common functions ******************* */
 
+    /**
+     * Return description for multiple user_course stats
+     */
     protected static function get_user_course_stats_returns() {
         return new external_single_structure(
-            array(
+            [
                 'user' => new external_single_structure(
                     array(
                         'id' => new external_value(PARAM_INT, 'User id'),
@@ -184,7 +235,7 @@ class block_use_stats_external extends external_api {
                 ),
 
                 'coursedata' => new external_single_structure(
-                    array(
+                    [
                         'id' => new external_value(PARAM_INT, 'Course id'),
                         'idnumber' => new external_value(PARAM_TEXT, 'Course idnumber'),
                         'shortname' => new external_value(PARAM_TEXT, 'Course shortname'),
@@ -197,9 +248,9 @@ class block_use_stats_external extends external_api {
                         'firstsession' => new external_value(PARAM_INT, 'First session date', VALUE_OPTIONAL),
                         'lastsession' => new external_value(PARAM_INT, 'Last session date', VALUE_OPTIONAL),
                         'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
-                    )
+                    ]
                 ),
-            )
+            ]
         );
     }
 }

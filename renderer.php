@@ -15,10 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Master block ckass for use_stats compiler
+ * Master plugin renderer for use_stats compiler
  *
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -31,6 +30,11 @@ use block_use_stats\compat;
 
 class block_use_stats_renderer extends plugin_renderer_base {
 
+    /**
+     * Per course output
+     * @param arrayref &$aggregate
+     * @param arrayref &$fulltotal
+     */
     public function per_course(&$aggregate, &$fulltotal) {
 
         $config = get_config('block_use_stats');
@@ -46,10 +50,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $url = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         $currentnameurl = new moodle_url($url);
-        $currentnameurl->params(array('usestatsorder' => 'name'));
+        $currentnameurl->params(['usestatsorder' => 'name']);
 
         $currenttimeurl = new moodle_url($url);
-        $currenttimeurl->params(array('usestatsorder' => 'time'));
+        $currenttimeurl->params(['usestatsorder' => 'time']);
 
         $str = '<div class="usestats-coursetable">';
         $label = get_string('byname', 'block_use_stats');
@@ -114,19 +118,19 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $fields = compat::get_user_fields('');
 
         if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
-            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', $fields);
+            $users = $DB->get_records('user', ['deleted' => '0'], 'lastname', $fields);
         } else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
             $users = get_enrolled_users($coursecontext);
         } else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
             $mygroupings = groups_get_user_groups($COURSE->id);
 
-            $mygroups = array();
+            $mygroups = [];
             foreach ($mygroupings as $grouping) {
                 $mygroups = $mygroups + $grouping;
             }
 
-            $users = array();
+            $users = [];
 
             // Get all users in my groups.
 
@@ -139,11 +143,11 @@ class block_use_stats_renderer extends plugin_renderer_base {
             }
         }
         if (!empty($users)) {
-            $usermenu = array();
+            $usermenu = [];
             foreach ($users as $user) {
                 $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
             }
-            $attrs = array('onchange' => 'document.ts_changeParms.submit();');
+            $attrs = ['onchange' => 'document.ts_changeParms.submit();'];
             $str .= html_writer::select($usermenu, 'uid', $userid, get_string('choose', 'block_use_stats'), $attrs);
         }
 
@@ -151,10 +155,10 @@ class block_use_stats_renderer extends plugin_renderer_base {
             if (@$config->backtracksource == 'studentchoice') {
                 $str .= ' ';
                 $str .= get_string('from', 'block_use_stats');
-                foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
+                foreach ([5, 15, 30, 60, 90, 180, 365] as $interval) {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
-                $attrs = array('onchange' => 'document.ts_changeParms.submit();');
+                $attrs = ['onchange' => 'document.ts_changeParms.submit();'];
                 $str .= html_writer::select($timemenu, 'ts_from', floor(($to - $from) / DAYSECS), get_string('choose', 'block_use_stats'), $attrs);
             }
         } else {
@@ -198,6 +202,11 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
         return $str;
     }
 
+    /**
+     * @param type $htmlkey
+     * @param type $value
+     * @return HTML code for a calendar.
+     */
     protected function calendar($htmlkey, $value) {
 
         $valuestr = date('Y-m-d', $value);

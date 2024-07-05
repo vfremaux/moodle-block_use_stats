@@ -15,16 +15,13 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The mod_assign feedback viewed event.
+ * The use_stats keepalive event.
  *
  * @package    block_use_stats
- * @category   blocks
- * @copyright  2014 Mark Nelson <markn@moodle.com>
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\event;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The class for registering a keepalive event.
@@ -47,7 +44,7 @@ class block_use_stats_keepalive extends \core\event\base {
     public static function create_from_cm($cm) {
         global $USER, $COURSE;
 
-        $data = array();
+        $data = [];
 
         if (!is_null($cm)) {
             $data['objectid'] = $cm->id;
