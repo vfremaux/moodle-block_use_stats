@@ -32,6 +32,9 @@ $plugin->component = 'block_use_stats'; // Full name of the plugin (used for dia
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '4.1.0 (build 2023060503)';
 $plugin->supported = [401, 402];
+if (function_exists('block_use_stats_supports_feature') && block_use_stats_supports_feature() === 'pro') {
+    $plugin->dependencies = ['local_vfcore' => 2024053100];
+}
 
 // Non Moodle attributes.
 $plugin->codeincrement = '4.1.0028';
