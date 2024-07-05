@@ -887,7 +887,7 @@ function use_stats_fetch_ahead(&$logs, $i, $reader) {
 /**
  * this new function uses the log storage enhancement with precalculated gaps
  * in order to extract multicourse time aggregations
- * @param object ref $result to be filled in
+ * @param objectref &$result to be filled in
  * @param string $from
  * @param string $to
  * @param string $users
@@ -1122,6 +1122,7 @@ function use_stats_add_module_from_context(&$log) {
 /**
  * special time formating,
  * @see report/trainingsessions/locallib.php§report_trainingsessions_format_time();
+ * @param int $timevalue
  */
 function block_use_stats_format_time($timevalue) {
     if ($timevalue) {
@@ -1143,6 +1144,7 @@ function block_use_stats_format_time($timevalue) {
 
 /**
  * Used for debugging.
+ * @param arrayref &$aggregate
  */
 function block_use_stats_render_aggregate(&$aggregate) {
     global $DB;
@@ -1359,7 +1361,7 @@ function block_use_stats_get_sql_params() {
  * This function fixes missing user_lastaccess records. If record exists, than it ensures
  * it has the correct date value.
  * @param int $userid the user id to check
- * @param int $userid the course id to check
+ * @param int $courseid the course id to check
  */
 function use_stats_fix_last_course_access($userid, $courseid) {
     global $DB;

@@ -26,6 +26,7 @@
  * Standard uprade callback.
  * This function does anything necessary to upgrade
  * older versions to match current functionality
+ * @param int $oldversion
  */
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
     global $CFG, $DB;

@@ -30,14 +30,11 @@ require_once($CFG->dirroot.'/report/trainingsessions/xlib.php');
 class block_use_stats_pro_renderer {
 
     /**
-     * @global type $OUTPUT
-     * @global type $COURSE
-     * @global type $USER
-     * @param type $userid
-     * @param type $from
-     * @param type $to
-     * @param type $context
-     * @return type
+     * @param int $userid
+     * @param int $from
+     * @param int $to
+     * @param object $context
+     * @return string
      */
     public function button_pdf($userid, $from, $to, $context) {
         global $OUTPUT, $COURSE, $USER;

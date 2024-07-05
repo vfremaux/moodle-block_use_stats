@@ -32,7 +32,7 @@ final class local_pro_manager {
     private static $componentpath = 'blocks/use_stats';
 
     /**
-     * this adds additional settings to the component settings (generic part of the prolib system).
+     * This adds additional settings to the component settings (generic part of the prolib system).
      * @param objectref &$admin
      * @param objectref &$settings
      */
