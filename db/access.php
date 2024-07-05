@@ -53,7 +53,7 @@ $capabilities = [
             'user' => CAP_ALLOW,
             'manager' => CAP_ALLOW,
         ],
-    ),
+    ],
 
     'block/use_stats:seesitedetails' => [
         'captype' => 'read',
