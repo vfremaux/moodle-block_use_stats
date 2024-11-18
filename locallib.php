@@ -18,7 +18,6 @@
  * Master block class for use_stats compiler
  *
  * @package    blocks_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,20 +26,11 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session_manager.class.php');
 
-if (!function_exists('debug_trace')) {
-    @include_once($CFG->dirroot.'/local/advancedperfs/debugtools.php');
-    if (!function_exists('debug_trace')) {
-        function debug_trace($msg, $tracelevel = 0, $label = '', $backtracelevel = 1) {
-            // Fake this function if not existing in the target moodle environment.
-            assert(1);
-        }
-        define('TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
-        define('TRACE_NOTICE', 3); // Notices are important notices in normal execution.
-        define('TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
-        define('TRACE_DATA', 8); // Data level is when requiring to see data structures content.
-        define('TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
-    }
-}
+define('BLOCK_USESTATS_TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
+define('BLOCK_USESTATS_TRACE_NOTICE', 3); // Notices are important notices in normal execution.
+define('BLOCK_USESTATS_TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
+define('BLOCK_USESTATS_TRACE_DATA', 8); // Data level is when requiring to see data structures content.
+define('BLOCK_USESTATS_TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
 
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
@@ -493,7 +483,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     }
                     if (is_numeric($sectionid)) {
                         if (!array_key_exists($log->course, $aggregate['coursesection'])) {
-                            $aggregate['coursesection'][$courseid] = [];
+                            $aggregate['coursesection'][$log->course] = [];
                         }
 
                         if (!array_key_exists($sectionid, $aggregate['coursesection'][$log->course])) {
@@ -563,18 +553,22 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 echo "Bad sumcheck on events for course $courseid <br/>";
             }
 
-            $ct = $aggregate['course'][$courseid]->elapsed;
-            $at = $aggregate['activities'][$courseid]->elapsed;
-            $ot = $aggregate['other'][$courseid]->elapsed;
+            $ct = $aggregate['course'][$courseid]->elapsed ?? 0;
+            $at = $aggregate['activities'][$courseid]->elapsed ?? 0;
+            $ot = $aggregate['other'][$courseid]->elapsed ?? 0;
 
-            if ($aggregate['coursetotal'][$courseid]->elapsed != ($ct + $at + $ot)) {
+            $tot = $aggregate['coursetotal'][$courseid]->elapsed ?? 0;
+
+            if ($tot != ($ct + $at + $ot)) {
                 echo "Bad sumcheck on time for course $courseid <br/>";
             }
 
             // Sum of section times should be activity time. this is valid for single course... 
             $st = 0;
-            foreach ($aggregate['coursesection'][$courseid] as $s) {
-                $st += $s->elapsed;
+            if (array_key_exists('coursesection', $aggregate) && array_key_exists($courseid, $aggregate['coursesection'])) {
+                foreach ($aggregate['coursesection'][$courseid] as $s) {
+                    $st += $s->elapsed;
+                }
             }
             if ($st != $at) {
                 throw new Exception("Bad sumcheck on section time for course $courseid : section time is $st / activities time is $at <br/>");
@@ -661,7 +655,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     @$aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
 
                                     // Fix the global aggregators accordingly.
-                                    debug_trace("Fixing globals ltccutover {$ckl->course}: ".$diff);
+                                    block_use_stats_debug_trace("Fixing globals ltccutover {$ckl->course}: ".$diff,
+                                            BLOCK_USESTATS_TRACE_DEBUG);
                                     @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['activities'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -685,7 +680,12 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                         $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
 
                                         // Fix the global aggregators accordingly.
-                                        debug_trace("Fixing globals ltccutover no logs {$ckl->course}: ".$diff);
+                                        block_use_stats_debug_trace("Fixing globals ltccutover no logs {$ckl->course}: ".$diff);
+                                        if (!array_key_exists($ckl->course, $aggregate['activities'])) {
+                                            $aggregate['activities'][$ckl->course] = new StdClass;
+                                            $aggregate['activities'][$ckl->course]->elapsed = 0;
+                                            $aggregate['activities'][$ckl->course]->events = 0;
+                                        }
                                         @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                         $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                         @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -700,7 +700,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                         $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = $fa;
 
                                         // Fix the global aggregators accordingly.
-                                        // debug_trace("Fixing globals ltccutunder no logs {$ckl->course}: ".$diff);
+                                        block_use_stats_debug_trace("Fixing globals ltccutunder no logs {$ckl->course}: ".$diff,
+                                                BLOCK_USESTATS_TRACE_DEBUG);
                                         @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                         $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                         @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -741,7 +742,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
 
                                     // Fix the global aggregators accordingly.
-                                    // debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
+                                    block_use_stats_debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
                                     @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                     $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -753,7 +754,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
 
                                     // Fix the global aggregators accordingly.
-                                    // debug_trace("Fixing globals declared cutunder no logs {$ckl->course}: ".$diff);
+                                    block_use_stats_debug_trace("Fixing globals declared cutunder no logs {$ckl->course}: ".$diff,
+                                            BLOCK_USESTATS_TRACE_DEBUG);
                                     @$aggregate['coursetotal'][$ckl->course]->elapsed += $diff;
                                     $aggregate['activities'][$ckl->course]->elapsed += $diff;
                                     @$aggregate['section'][$sectionid]->elapsed += $diff;
@@ -764,7 +766,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             } else {
                 if (function_exists('debug_trace')) {
-                    debug_trace("Trainingsessions : No checklist found ");
+                    block_use_stats_debug_trace("Trainingsessions : No checklist found ", TRACE_NOTICE);
                 }
             }
         }
@@ -774,26 +776,56 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
     if (array_key_exists('scorm', $aggregate)) {
         foreach (array_keys($aggregate['scorm']) as $cmid) {
-            if ($cm = $DB->get_record('course_modules', array('id' => $cmid))) {
+            if ($cm = $DB->get_record('course_modules', ['id' => $cmid])) {
                 // These are all scorms.
 
                 // Scorm activities have their accurate recorded time.
                 $realtotaltime = 0;
                 $select = "
-                    element = 'cmi.core.total_time' AND
-                    scormid = $cm->instance AND
-                    userid = $currentuser
+                    element = 'cmi.session_time' AND
+                    scormid = ? AND
+                    userid = ?
                 ";
+                $params = [$cm->instance, $currentuser];
                 if ($from) {
-                    $select .= " AND timemodified >= $from ";
+                    $select .= " AND timemodified >= ? ";
+                    $params[] = $from;
                 }
                 if ($to) {
-                    $select .= " AND timemodified <= $to ";
+                    $select .= " AND timemodified <= ? ";
+                    $params[] = $to;
                 }
-                if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, array(), 'id, element, value')) {
+                if (function_exists('debug_trace')) {
+                    debug_trace($params, TRACE_DEBUG);
+                }
+                if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, $params, 'id, element, value')) {
                     foreach ($realtimes as $rt) {
-                        preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
+                        block_use_stats_debug_trace("Scorm session value : $rt->value", TRACE_DEBUG);
+                        preg_match("/PT(\d+)H(\d+)M(\d+)(\.\d+)?S/", $rt->value, $matches);
                         $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                    }
+                } else {
+                    // When no session time is recorded. Find id another way.
+                    $select = "
+                        element = 'cmi.core.total_time' AND
+                        scormid = ? AND
+                        userid = ?
+                    ";
+                    $params = [$cm->instance, $currentuser];
+                    if ($from) {
+                        $select .= " AND timemodified >= ? ";
+                        $params[] = $from;
+                    }
+                    if ($to) {
+                        $select .= " AND timemodified <= ? ";
+                        $params[] = $to;
+                    }
+                    if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, $params, 'id, element, value')) {
+                        foreach ($realtimes as $rt) {
+                            block_use_stats_debug_trace("Scorm session value : $rt->value", TRACE_DEBUG);
+                            preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
+                            $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                        }
                     }
                 }
                 if ($aggregate['scorm'][$cmid]->elapsed < $realtotaltime) {
@@ -839,7 +871,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     }
 
     if ($backdebug) {
-        debug_trace($logbuffer);
+        block_use_stats_debug_trace($logbuffer);
     }
     if ($automatondebug) {
         echo '<pre>';
@@ -1409,5 +1441,18 @@ function use_stats_fix_last_course_access($userid, $courseid) {
                 $DB->insert_record('user_lastaccess', $newrec);
             }
         }
+    }
+}
+
+/**
+ * A wrapper to APL debug. Do not use trace constants here because they may be not installed.
+ * @param string $msg
+ * @param int $level
+ * @param string $label
+ * @param int $backtracelevel
+ */
+function block_use_stats_debug_trace($msg, $level = BLOCK_USESTATS_TRACE_NOTICE, $label = '', $backtracelevel = 1) {
+    if (function_exists('debug_trace')) {
+        debug_trace($msg, $level, $label, $backtracelevel);
     }
 }

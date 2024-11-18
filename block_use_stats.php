@@ -69,10 +69,11 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     public function get_content() {
-        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION;
+        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION, $ME;
 
         $config = get_config('block_use_stats');
         $debug = optional_param('debug', false, PARAM_BOOL);
+        $adminoverride = optional_param('adminoverride', false, PARAM_BOOL);
 
         $renderer = $PAGE->get_renderer('block_use_stats');
 
@@ -132,6 +133,14 @@ class block_use_stats extends block_base {
             $userid = optional_param('uid', $USER->id, PARAM_INT);
         } else {
             $userid = $USER->id;
+        }
+
+        if (is_siteadmin() && !$adminoverride) {
+            $this->content->text = $OUTPUT->notification(get_string('admininfo', 'block_use_stats'));
+            $overridebutton = $OUTPUT->single_button($ME.'&adminovverride=1', get_string('adminovveride', 'block_use_stats'));
+            $this->content->text .= '<center>'.$overridebutton.'</center>';
+            $this->content->footer = '';
+            return $this->content;
         }
 
         $cache = cache::make('block_use_stats', 'aggregate');

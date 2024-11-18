@@ -27,6 +27,9 @@ $string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)
 // Privacy.
 $string['privacy:metadata'] = "The Use Stats Block does not directely store any data belonging to users";
 
+$string['admininfo'] = 'Administrators have usually a very lot of activity in Moodle. Use stat report will have a lot
+of data to compile and may provoque degraded performances of this page. You can by the way ovverride this catch by clicking the button above';
+$string['adminoverride'] = 'Override admin catch';
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
 $string['allowrule'] = 'Allow sending when matching rule';
