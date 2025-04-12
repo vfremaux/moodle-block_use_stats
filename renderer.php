@@ -43,13 +43,13 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $tbl = block_use_stats::prepare_coursetable($aggregate, $fulltotal, $eventsunused, $usestatsorder);
         list($displaycourses, $courseshort, $coursefull, $courseelapsed) = $tbl;
 
-        $url = "http://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
+        $url = "https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 
         $currentnameurl = new moodle_url($url);
-        $currentnameurl->params(array('usestatsorder' => 'name'));
+        $currentnameurl->params(['usestatsorder' => 'name']);
 
         $currenttimeurl = new moodle_url($url);
-        $currenttimeurl->params(array('usestatsorder' => 'time'));
+        $currenttimeurl->params(['usestatsorder' => 'time']);
 
         $str = '<div class="usestats-coursetable">';
         $label = get_string('byname', 'block_use_stats');
@@ -102,14 +102,16 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @param type $userid
      * @return string
      */
-    public function change_params_form($context, $id, $from, $to, $userid) {
+    public function change_params_form($context, $id, $from, $to, $userid, $block) {
         global $USER, $DB, $COURSE, $SESSION;
 
         $config = get_config('block_use_stats');
+        $override = optional_param('adminoverride', false, PARAM_BOOL);
 
         $str = ' <form style="display:inline" name="ts_changeParms" method="post" action="#">';
 
         $str .= '<input type="hidden" name="id" value="'.$id.'" />';
+        $str .= '<input type="hidden" name="adminoverride" value="'.$override.'" />';
 
         $fields = compat::get_user_fields('');
 
@@ -121,12 +123,12 @@ class block_use_stats_renderer extends plugin_renderer_base {
         } else if (has_capability('block/use_stats:seegroupdetails', $context, $USER->id)) {
             $mygroupings = groups_get_user_groups($COURSE->id);
 
-            $mygroups = array();
+            $mygroups = [];
             foreach ($mygroupings as $grouping) {
                 $mygroups = $mygroups + $grouping;
             }
 
-            $users = array();
+            $users = [];
 
             // Get all users in my groups.
 
@@ -139,7 +141,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
             }
         }
         if (!empty($users)) {
-            $usermenu = array();
+            $usermenu = [];
             foreach ($users as $user) {
                 $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
             }
@@ -154,8 +156,9 @@ class block_use_stats_renderer extends plugin_renderer_base {
                 foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
+                $tsfrom = optional_param('ts_from'.$block->instance->id, '', PARAM_TEXT);
                 $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-                $str .= html_writer::select($timemenu, 'ts_from', floor(($to - $from) / DAYSECS), get_string('choose', 'block_use_stats'), $attrs);
+                $str .= html_writer::select($timemenu, 'ts_from'.$block->instance->id, $tsfrom, get_string('choose', 'block_use_stats'), $attrs);
             }
         } else {
             if (@$config->backtracksource == 'studentchoice') {
@@ -191,7 +194,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
             }
         }
         if (is_siteadmin()) {
-            $str .= '<div class="admin-mode"><input type="checkbox" name="debug" value="1">'.get_string('debugmode', 'block_use_stats').'</div>';
+            $str .= $this->render_admin_mode();
         }
         $str .= '</form><br/>';
 
@@ -233,5 +236,182 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
             return $prorenderer->button_pdf($userid, $from, $to, $context);
         }
         return '';
+    }
+
+    public function render_admin_mode() {
+        $template = new StdClass;
+        $debug = optional_param('debug', 0, PARAM_INT);
+        $template->debug0selected = ($debug == 0) ? 'checked' : '';
+        $template->debug1selected = ($debug == 1) ? 'checked' : '';
+        $template->debug2selected = ($debug == 2) ? 'checked' : '';
+        return $this->output->render_from_template('block_use_stats/admin_mode', $template);
+    }
+
+    /**
+     * Renders a nice shaped aggregate content for debugging.
+     */
+    public function render_aggregate($aggregate, $currentcourse) {
+        global $DB;
+
+        $template = new StdClass;
+        $template->genid = uniqid();
+        $template->course = $currentcourse;
+
+        if (array_key_exists('user', $aggregate)) {
+            $template->hasuser = true;
+            foreach ($aggregate['user'] as $courseid => $usertotaltpl) {
+                $usertotaltpl->textelapsed = block_use_stats_format_time($usertotaltpl->elapsed);
+                $usertotaltpl->textfirstaccess = userdate($usertotaltpl->firstaccess);
+                $usertotaltpl->textlastaccess = userdate($usertotaltpl->lastaccess).'</td>';
+                $template->user[] = $usertotaltpl;
+            }
+        }
+
+        if (array_key_exists('coursetotal', $aggregate)) {
+            $template->hascourses = true;
+            $sumtime = 0;
+            $sumevents = 0;
+            foreach ($aggregate['coursetotal'] as $courseid => $coursetotaltpl) {
+                if ($courseid == $currentcourse->id) {
+                    $coursetotaltpl->iscurrent = 'current';
+                } else {
+                    $coursetotaltpl->iscurrent = '';
+                }
+                $coursetotaltpl->courseid = $courseid;
+                $coursetotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
+                $coursetotaltpl->textelapsed = block_use_stats_format_time($coursetotaltpl->elapsed);
+                $coursetotaltpl->textfirstaccess = userdate($coursetotaltpl->firstaccess);
+                $coursetotaltpl->textlastaccess = userdate($coursetotaltpl->lastaccess);
+
+                if ($courseid > 0) {
+                    $sumtime += $coursetotaltpl->elapsed;
+                    $sumevents += $coursetotaltpl->events;
+                }
+                $template->courses[] = $coursetotaltpl;
+            }
+            $template->totalelapsed = $sumtime; 
+            $template->texttotalelapsed = block_use_stats_format_time($sumtime); 
+            $template->totalevents = $sumevents; 
+        }
+
+        if (array_key_exists('coursetotalraw', $aggregate)) {
+            $template->hascoursesraw = true;
+            $sumtime = 0;
+            $sumevents = 0;
+            foreach ($aggregate['coursetotalraw'] as $courseid => $coursetotaltpl) {
+                if ($courseid == $currentcourse->id) {
+                    $coursetotaltpl->iscurrent = 'current';
+                } else {
+                    $coursetotaltpl->iscurrent = '';
+                }
+                $coursetotaltpl->courseid = $courseid;
+                $coursetotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
+                $coursetotaltpl->textelapsed = block_use_stats_format_time($coursetotaltpl->elapsed);
+                $coursetotaltpl->textfirstaccess = userdate($coursetotaltpl->firstaccess);
+                $coursetotaltpl->textlastaccess = userdate($coursetotaltpl->lastaccess);
+
+                if ($courseid > 0) {
+                    $sumtime += $coursetotaltpl->elapsed;
+                    $sumevents += $coursetotaltpl->events;
+                }
+                $template->coursesraw[] = $coursetotaltpl;
+            }
+            $template->rawtotalelapsed = $sumtime; 
+            $template->rawtexttotalelapsed = block_use_stats_format_time($sumtime); 
+            $template->rawtotalevents = $sumevents; 
+        }
+
+        if (array_key_exists('course', $aggregate)) {
+            $template->hasincourses = true;
+            foreach ($aggregate['course'] as $courseid => $coursetotaltpl) {
+                if ($courseid == $currentcourse->id) {
+                    $coursetotaltpl->iscurrent = 'current';
+                } else {
+                    $coursetotaltpl->iscurrent = '';
+                }
+                $coursetotaltpl->courseid = $courseid;
+                $coursetotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
+                $coursetotaltpl->textelapsed = block_use_stats_format_time($coursetotaltpl->elapsed);
+                $template->incourses[] = $coursetotaltpl;
+            }
+        }
+
+        if (array_key_exists('activities', $aggregate)) {
+            $template->hasactivities = true;
+            foreach ($aggregate['activities'] as $courseid => $activitytotaltpl) {
+                if ($courseid == $currentcourse->id) {
+                    $activitytotaltpl->iscurrent = 'current';
+                } else {
+                    $activitytotaltpl->iscurrent = '';
+                }
+                $activitytotaltpl->courseid = $courseid;
+                $activitytotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
+                $activitytotaltpl->textelapsed = block_use_stats_format_time($activitytotaltpl->elapsed);
+                $template->activities[] = $activitytotaltpl;
+            }
+        }
+
+        if (array_key_exists('other', $aggregate)) {
+            $template->hasother = true;
+            foreach ($aggregate['other'] as $courseid => $othertotaltpl) {
+                if ($courseid == $currentcourse->id) {
+                    $othertotaltpl->iscurrent = 'current';
+                } else {
+                    $othertotaltpl->iscurrent = '';
+                }
+                $othertotaltpl->courseid = $courseid;
+                $othertotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
+                $othertotaltpl->textelapsed = block_use_stats_format_time($activitytotaltpl->elapsed);
+                $template->other[] = $othertotaltpl;
+            }
+        }
+
+        $notdisplay = [
+            'coursetotal',
+            'coursetotalraw',
+            'activities',
+            'other',
+            'sessions',
+            'user',
+            'course',
+            'courseraw',
+            'system',
+            'realmodule',
+            'coursesection',
+        ];
+        foreach ($aggregate as $key => $subs) {
+            if (in_array($key, $notdisplay)) {
+                continue;
+            }
+            $keytpl = new StdClass;
+            $keytpl->key = $key;
+            foreach ($subs as $cmid => $cmtotaltpl) {
+                $cmtotaltpl->cmid = $cmid;
+                if (!in_array($key, ['realsection', 'section', 'outoftargetcourse'])) {
+                    $cmtotaltpl->issection = false;
+                    $cmtotaltpl->instanceid = $DB->get_field('course_modules', 'instance', ['id' => $cmid]);
+                    $cmtotaltpl->instancename = $DB->get_field($key, 'name', ['id' => $cmtotaltpl->instanceid]);
+                } else {
+                    $cmtotaltpl->issection = true;
+                    $cmtotaltpl->instancename = $DB->get_field('course_sections', 'name', ['id' => $cmid]);
+                    $cmtotaltpl->sectionsection = $DB->get_field('course_sections', 'section', ['id' => $cmid]);
+                }
+                $cmtotaltpl->textelapsed = block_use_stats_format_time($cmtotal->elapsed);
+                $keytpl->elements[] = $cmtotaltpl;
+            }
+            $template->keys[] = $keytpl;
+        }
+
+        if (!empty($aggregate['sessions'])) {
+            $template->hassessions = true;
+            foreach ($aggregate['sessions'] as $sessiontpl) {
+                $sessiontpl->textelapsed = block_use_stats_format_time($sessiontpl->elapsed);
+                $sessiontpl->textstart = userdate($sessiontpl->sessionstart);
+                $sessiontpl->textend = userdate($sessiontpl->sessionend);
+                $template->sessions[] = $sessiontpl;
+            }
+        }
+
+        return $this->output->render_from_template('block_use_stats/aggregator_output', $template);
     }
 }

@@ -24,6 +24,9 @@ $string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilis
 $string['use_stats:view'] = 'Peut voir les statistiques'; // Is a @DYNAKEY.
 $string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)'; // Is a @DYNAKEY.
 
+$string['admininfo'] = 'Les administrateurs de site ont habituellement beaucoup d\'activité sur Moodle. Le rapport d\'activité aura beaucoup de données
+à traiter et la performance de cette page peut être significativement dégradée. Vous pouvez outrepasser cette sécurité en cliquant sur le bouton ci-dessous.';
+$string['adminoverride'] = 'Outrepasser la sécurité administrateur';
 $string['activetrackingparams'] = 'Réglage du tracking actif';
 $string['activities'] = 'Activités';
 $string['allowrule'] = 'Envoie si la règle est vérifiée';
@@ -73,6 +76,9 @@ $string['credittime'] = '(LTC) ';
 $string['datacubing'] = 'Données multidimensionnelles';
 $string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
 $string['debugmode'] = 'Mode debug';
+$string['debugno'] = 'Aucun';
+$string['debugaggregate'] = 'Voir les agrégats';
+$string['debugdetails'] = 'Voir les détails des événements';
 $string['dimensionitem'] = 'Classes observables';
 $string['displayactivitiestime'] = 'Uniquement le temps passés dans les activités formalisées du cours.';
 $string['displaycoursetime'] = 'Temps complet du cours (tous les temps assignables au cours et à ses sous-contextes)';
