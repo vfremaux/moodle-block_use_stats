@@ -1,0 +1,215 @@
+
+
+<!-- block_use_stats/aggregator_output -->
+<div class="usestats-data-aggregator" style="background-color:#f0f0f0;padding:10px;border:1px solid #c0c0c0;border-radius:5px">
+
+    <h2>Base course : [{{course.id}}] {{course.shortname}} </h2>
+
+    <h3>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#use-stats-users-{{genid}}" aria-expanded="true" aria-controls="use-stats-users-{{genid}}">
+    v
+    </button>
+    User</h3>
+    <div id="use-stats-users-{{genid}}" class="collapse show">
+    {{#hasuser}}
+    <table width="100%">
+        {{#user}}
+        <tr>
+            <td width="40%"></td>
+            <td width="10%">{{elapsed}} sec.</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}} ev.</td>
+            <td width="15%">{{textfirstaccess}}</td>
+            <td width="15%">{{textlastaccess}}</td>
+        </tr>
+        {{/user}}
+    </table>
+    {{/hasuser}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#use-stats-courses-{{genid}}" aria-expanded="true" aria-controls="use-stats-courses-{{genid}}">
+    v
+    </button>
+    Course total</h3>
+    <div id="use-stats-courses-{{genid}}" class="collapse show">
+    {{#hascourses}}
+    <table width="100%">
+        {{#courses}}
+        <tr class="{{iscurrent}}">
+            <td width="40%">[{{courseid}}] {{short}}</td>
+            <td width="10%">{{elapsed}} sec.</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}} ev.</td>
+            <td width="15%">{{textfirstaccess}}</td>
+            <td width="15%">{{textlastaccess}}</td>
+        </tr>
+        {{/courses}}
+
+        <tr>
+            <td>TOT</td>
+            <td>{{totalelapsed}} sec.</td>
+            <td>{{texttotalelapsed}}</td>
+            <td>{{totalevents}} ev.</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    {{/hascourses}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary" type="button" data-toggle="collapse" data-target="#use-stats-coursesraw-{{genid}}" aria-expanded="false" aria-controls="use-stats-coursesraw-{{genid}}">
+    v
+    </button>
+    Course total (raw, before time fixes)</h3>
+    <div id="use-stats-coursesraw-{{genid}}" class="collapse">
+    {{#hascoursesraw}}
+    <table width="100%">
+        {{#coursesraw}}
+        <tr class="{{iscurrent}}">
+            <td width="40%">[{{courseid}}] {{short}}</td>
+            <td width="10%">{{elapsed}} sec.</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}} ev.</td>
+            <td width="15%">{{textfirstaccess}}</td>
+            <td width="15%">{{textlastaccess}}</td>
+        </tr>
+        {{/coursesraw}}
+
+        <tr>
+            <td>TOT</td>
+            <td>{{rawtotalelapsed}} sec.</td>
+            <td>{{rawtexttotalelapsed}}</td>
+            <td>{{rawtotalevents}} ev.</td>
+            <td></td>
+            <td></td>
+        </tr>
+    </table>
+    {{/hascoursesraw}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-incourses-{{genid}}" aria-expanded="false" aria-controls="use-stats-incourses-{{genid}}">
+    v
+    </button>
+    In course</h3>
+    <div id="use-stats-incourses-{{genid}}" class="collapse">
+    {{#hasincourses}}
+    <table width="100%">
+        {{#incourses}}
+        <tr class="{{iscurrent}}">
+            <td width="40%">[{{courseid}}] {{short}}</td>
+            <td width="10%">{{elapsed}} sec.</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}} ev.</td>
+            <td width="15%"></td>
+            <td width="15%"></td>
+        </tr>
+        {{/incourses}}
+    </table>
+    {{/hasincourses}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-activities-{{genid}}" aria-expanded="false" aria-controls="use-stats-activities-{{genid}}">
+    v
+    </button>
+    Activities</h3>
+    <div id="use-stats-activities-{{genid}}" class="collapse">
+    {{#hasactivities}}
+    <table width="100%">
+        {{#activities}}
+        <tr class="{{iscurrent}}">
+            <td width="40%">[{{courseid}}] {{short}}</td>
+            <td width="10%">{{elapsed}} sec.</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}} ev.</td>
+            <td width="15%"></td>
+            <td width="15%"></td>
+        </tr>
+        {{/activities}}
+    </table>
+    {{/hasactivities}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-other-{{genid}}" aria-expanded="false" aria-controls="use-stats-other-{{genid}}">
+    v
+    </button>
+    Other</h3>
+    <div id="use-stats-other-{{genid}}" class="collapse">
+    {{#hasother}}
+    <table width="100%">
+        {{#other}}
+        <tr class="{{iscurrent}}">
+            <td width="40%">[{{courseid}}] {{short}}</td>
+            <td width="10%">{{elapsed}}</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}}</td>
+            <td width="15%"></td>
+            <td width="15%"></td>
+        </tr>
+        {{/other}}
+    </table>
+    {{/hasother}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-details-{{genid}}" aria-expanded="false" aria-controls="use-stats-details-{{genid}}">
+    v
+    </button>
+    Details</h3>
+
+    <div id="use-stats-details-{{genid}}" class="collapse">
+    {{#keys}}
+    <h4>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-k{{key}}-{{genid}}" aria-expanded="false" aria-controls="use-stats-k{{key}}-{{genid}}">
+    v
+    </button>
+    {{key}}</h4>
+    <div id="use-stats-k{{key}}-{{genid}}" class="collapse">
+    <table width="100%">
+        {{#elements}}
+        <tr>
+            {{^issection}}
+            <td width="40%">[CM{{cmid}}] {{instancename}}</td>
+            {{/issection}}
+            {{#issection}}
+            <td width="40%">[SECTION{{sectionsection}}] {{instancename}}</td>
+            {{/issection}}
+
+            <td width="10%">{{elapsed}}</td>
+            <td width="10%">{{textelapsed}}</td>
+            <td width="10%">{{events}}</td>
+            <td width="15%"></td>
+            <td width="15%"></td>
+        </tr>
+        {{/elements}}
+    </table>
+    </div>
+    {{/keys}}
+    </div>
+
+    <h3>
+    <button class="btn btn-primary collapsed" type="button" data-toggle="collapse" data-target="#use-stats-sessions-{{genid}}" aria-expanded="false" aria-controls="use-stats-sessions-{{genid}}">
+    v
+    </button>
+    Sessions</h3>
+    <div id="use-stats-sessions-{{genid}}" class="collapse">
+    {{#hassessions}}
+    <table width="100%">
+        {{#sessions}}
+        <tr>
+            <td>{{textsessionstart}}</td>
+            <td>{{textsessionend}}</td>
+            <td>{{textelapsed}} sec</td>
+            <td>{{events}} events</td>
+        </tr>
+        {{/sessions}}
+    </table>
+    {{/hassessions}}
+    </div>
+
+</div>
+<!-- /block_use_stats/aggregator_output -->

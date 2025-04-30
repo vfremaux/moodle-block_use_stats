@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-/**
- * Lang file for en
- *
- * @package   block_use_stats
- * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
 // Capabilities.
 $string['use_stats:addinstance'] = 'Can add an instance'; // Is a @DYNAKEY.
 $string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // Is a @DYNAKEY.
@@ -35,6 +27,9 @@ $string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)
 // Privacy.
 $string['privacy:metadata'] = "The Use Stats Block does not directely store any data belonging to users";
 
+$string['admininfo'] = 'Administrators have usually a very lot of activity in Moodle. Use stat report will have a lot
+of data to compile and may provoque degraded performances of this page. You can by the way ovverride this catch by clicking the button above';
+$string['adminoverride'] = 'Override admin catch';
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
 $string['allowrule'] = 'Allow sending when matching rule';
@@ -89,6 +84,9 @@ $string['datacubing'] = 'Data cubing';
 $string['declaredtime'] = 'Declared time'; // Is a @DYNAKEY.
 $string['denyrule'] = 'Allow sending unless matching rule';
 $string['debugmode'] = 'Debug mode';
+$string['debugno'] = 'None';
+$string['debugaggregate'] = 'Show Aggregates';
+$string['debugdetails'] = 'Show log details';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
 $string['displaycoursetime'] = 'Course real time (all time spend in all contexts of the course)';
@@ -129,4 +127,4 @@ $string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @
 $string['youspent'] = 'You spent&ensp;';
 $string['warningusestateenrolfilter'] = 'The enrolment checker is on in the Use Stats bloc. This may have effects on reports if the user\'s activity falls before the latest enrolment start date.';
 
-require(__DIR__.'/pro_additional_strings.php');
+include(__DIR__.'/pro_additional_strings.php');

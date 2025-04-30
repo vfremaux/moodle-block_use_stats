@@ -74,10 +74,11 @@ class block_use_stats extends block_base {
      * Produce content for the bloc
      */
     public function get_content() {
-        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION;
+        global $USER, $CFG, $COURSE, $PAGE, $OUTPUT, $SESSION, $ME;
 
         $config = get_config('block_use_stats');
         $debug = optional_param('debug', false, PARAM_BOOL);
+        $adminoverride = optional_param('adminoverride', false, PARAM_BOOL);
 
         $renderer = $PAGE->get_renderer('block_use_stats');
 
@@ -141,6 +142,22 @@ class block_use_stats extends block_base {
             $userid = $USER->id;
         }
 
+        if (is_siteadmin() && !$adminoverride) {
+            $this->content->text = $OUTPUT->notification(get_string('admininfo', 'block_use_stats'));
+            $params = [
+                'id' => $COURSE->id,
+                'adminoverride' => 1
+            ];
+            if ($page = optional_param('page', '', PARAM_INT)) {
+                $params['page'] = $page;
+            };
+            $reloadurl = new moodle_url('/course/view.php', $params);
+            $overridebutton = $OUTPUT->single_button($reloadurl, get_string('adminoverride', 'block_use_stats'));
+            $this->content->text .= '<center>'.$overridebutton.'</center>';
+            $this->content->footer = '';
+            return $this->content;
+        }
+
         $cache = cache::make('block_use_stats', 'aggregate');
 
         /*
@@ -190,7 +207,7 @@ class block_use_stats extends block_base {
             $this->content->text .= "<!-- $from / $to -->";
             $this->content->text .= '<div class="usestats-message '.$cachestate.' '.$shadowclass.'">';
 
-            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid, $this);
 
             $strbuffer = $renderer->per_course($aggregate, $fulltotal);
 
@@ -243,18 +260,23 @@ class block_use_stats extends block_base {
             $this->content->text = '<div class="message">';
             $this->content->text .= $OUTPUT->notification(get_string('noavailablelogs', 'block_use_stats'));
             $this->content->text .= '<br/>';
-            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid);
+            $this->content->text .= $renderer->change_params_form($context, $id, $from, $to, $userid, $this);
             $this->content->text .= '</div>';
         }
 
         return $this->content;
     }
 
+    /**
+     * Get time range.
+     */
     protected function get_range() {
         global $COURSE, $SESSION, $USER;
 
         $config = get_config('block_use_stats');
         $context = context_block::instance($this->instance->id);
+
+        $to = time() + 120; // Get latest moves.
 
         if ($config->backtrackmode == 'fixeddate') {
 
@@ -264,7 +286,6 @@ class block_use_stats extends block_base {
             } else {
                 $from = $COURSE->startdate;
             }
-            $to = time();
 
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsfromwhen)) {
@@ -297,6 +318,7 @@ class block_use_stats extends block_base {
             }
 
         } else {
+            // From TS gives a number of days to track back.
             $to = time();
 
             // This config only for slidingrange.
@@ -307,17 +329,18 @@ class block_use_stats extends block_base {
 
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsfromwhen)) {
-                $SESSION->usestatsfromwhen = $config->fromwhen;
+                $SESSION->usestatsfromwhen = $config->fromwhen * DAYSECS;
             }
 
             $fromwhen = $config->fromwhen;
             $daystocompilelogs = $fromwhen * DAYSECS;
             $now = time();
-            if ($fromwhen = optional_param('ts_from', $SESSION->usestatsfromwhen, PARAM_INT)) {
+            if ($fromwhen = optional_param('ts_from'.$context->id, $SESSION->usestatsfromwhen, PARAM_INT)) {
                 $daystocompilelogs = $fromwhen * DAYSECS;
                 $to = $now;
+                $SESSION->usestatsfromwhen = $daystocompilelogs;
             }
-            $from = $now - $daystocompilelogs;
+            $from = $to - $daystocompilelogs;
         }
         return [$from, $to];
     }
