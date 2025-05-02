@@ -28,3 +28,7 @@
     -moz-opacity: 0.6;
     opacity: 0.6;
 }
+
+.usestats-data-aggregator .current {
+    background-color: #fff;
+}

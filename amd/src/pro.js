@@ -60,9 +60,9 @@ define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
                 $.get(url, function(data) {
                     if (data.match(/(SET|CHECK) OK/)) {
-                        if (data.match(/-\d+.*$/)) {
+                        if (var found = data.match(/-\d+.*$/)) {
                             $(licensekeyid + ' + img').remove();
-                            $(licensekeyid).after(cautionicon);
+                            $(licensekeyid).after(cautionicon + ' <span class="error">Warning : Expiration in ' + found[1] + ' days</span>');
                         } else {
                             $(licensekeyid + ' + img').remove();
                             $(licensekeyid).after(validicon);

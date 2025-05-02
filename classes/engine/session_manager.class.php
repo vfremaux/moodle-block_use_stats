@@ -203,4 +203,8 @@ class session_manager {
             }
         }
     }
+
+    public function get_last_id() {
+        return count($this->sessions);
+    }
 }
