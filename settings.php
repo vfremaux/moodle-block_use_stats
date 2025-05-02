@@ -119,6 +119,16 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configlastcompiled_desc', 'block_use_stats');
     $settings->add(new admin_setting_configdatetime($key, $label, $desc, ''));
 
+    $key = 'block_use_stats/ignoremodules';
+    $label = get_string('configignoremodules', 'block_use_stats');
+    $desc = get_string('configignoremodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, ''));
+
+    $key = 'block_use_stats/capturemodules';
+    $label = get_string('configcapturemodules', 'block_use_stats');
+    $desc = get_string('configcapturemodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, 'learningtimecheck'));
+
     if (block_use_stats_supports_feature('emulate/community') == 'pro') {
         // This will accept any.
         include_once($CFG->dirroot.'/blocks/use_stats/pro/prolib.php');
