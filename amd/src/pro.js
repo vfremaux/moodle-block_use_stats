@@ -43,10 +43,10 @@ define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
             var calculated = blockusestatspro.checksum(payload);
 
-            var validicon = ' <img class="icon" src="' + cfg.wwwroot + '/pix/i/valid.svg' + '">';
-            var cautionicon = ' <img class="icon" src="' + cfg.wwwroot + '/pix/i/warning.svg' + '">';
-            var invalidicon = ' <img class="icon" src="' + cfg.wwwroot + '/pix/i/invalid.svg' + '">';
-            var waiticon = ' <img class="icon" src="' + cfg.wwwroot + '/pix/i/loading.svg' + '">';
+            var validicon = ' <img src="' + cfg.wwwroot + '/pix/i/valid.png' + '">';
+            var cautionicon = ' <img src="' + cfg.wwwroot + '/pix/i/warning.png' + '">';
+            var invalidicon = ' <img src="' + cfg.wwwroot + '/pix/i/invalid.png' + '">';
+            var waiticon = ' <img src="' + cfg.wwwroot + '/pix/i/ajaxloader.gif' + '">';
 
             if (crc === calculated) {
                 var url = cfg.wwwroot + '/' + blockusestatspro.componentpath + '/pro/ajax/services.php?';
@@ -60,9 +60,9 @@ define(['jquery', 'core/log', 'core/config'], function($, log, cfg) {
 
                 $.get(url, function(data) {
                     if (data.match(/(SET|CHECK) OK/)) {
-                        if (data.match(/-\d+.*$/)) {
+                        if (var found = data.match(/-\d+.*$/)) {
                             $(licensekeyid + ' + img').remove();
-                            $(licensekeyid).after(cautionicon);
+                            $(licensekeyid).after(cautionicon + ' <span class="error">Warning : Expiration in ' + found[1] + ' days</span>');
                         } else {
                             $(licensekeyid + ' + img').remove();
                             $(licensekeyid).after(validicon);

@@ -73,7 +73,8 @@ class block_use_stats extends block_base {
 
         $config = get_config('block_use_stats');
         $debug = optional_param('debug', false, PARAM_BOOL);
-        $adminoverride = optional_param('adminoverride', false, PARAM_BOOL);
+        $adminoverride = optional_param('adminoverride', $SESSION->use_stats_adminoverride, PARAM_BOOL);
+        $SESSION->use_stats_adminoverride = $adminoverride;
 
         $renderer = $PAGE->get_renderer('block_use_stats');
 
@@ -144,7 +145,9 @@ class block_use_stats extends block_base {
             if ($page = optional_param('page', '', PARAM_INT)) {
                 $params['page'] = $page;
             };
-            $reloadurl = new moodle_url('/course/view.php', $params);
+            // $reloadurl = new moodle_url('/course/view.php', $params);
+            $reloadurl = new moodle_url($ME);
+            $reloadurl->params($params);
             $overridebutton = $OUTPUT->single_button($reloadurl, get_string('adminoverride', 'block_use_stats'));
             $this->content->text .= '<center>'.$overridebutton.'</center>';
             $this->content->footer = '';
@@ -181,7 +184,7 @@ class block_use_stats extends block_base {
 
             // Update keys for this user.
             if (empty($userkeys)) {
-                $userkeys = array();
+                $userkeys = [];
             }
             if (!in_array($cachekey, $userkeys)) {
                 $userkeys[] = $cachekey;
@@ -275,7 +278,7 @@ class block_use_stats extends block_base {
             }
 
             // Memorize in session for tracking changes.
-            if (!isset($SESSION->usestatsfromwhen)) {
+            if (!isset($SESSION->usestatsfrom)) {
                 $SESSION->usestatsfrom = $from;
             }
 
@@ -288,6 +291,7 @@ class block_use_stats extends block_base {
                 $htmlkey = 'ts_from'.$context->id;
                 if ($tsfrom = optional_param($htmlkey, '', PARAM_TEXT)) {
                     $from = strtotime($tsfrom);
+                    $SESSION->usestatswhen = $from; // Actualize session.
                 }
 
                 $htmlkey = 'ts_to'.$context->id;
