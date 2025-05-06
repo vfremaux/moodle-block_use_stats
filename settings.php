@@ -55,9 +55,9 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configbacktrackmode_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 'sliding', $backtrackmodeoptions));
 
-    $backtracksourceoptions = array('studentchoice' => get_string('studentchoice', 'block_use_stats'),
+    $backtracksourceoptions = ['studentchoice' => get_string('studentchoice', 'block_use_stats'),
         'fixedchoice' => get_string('fixedchoice', 'block_use_stats')
-     );
+     ];
     $key = 'block_use_stats/backtracksource';
     $label = get_string('configbacktracksource', 'block_use_stats');
     $desc = get_string('configbacktracksource_desc', 'block_use_stats');
@@ -73,20 +73,24 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configdisplayothertime_desc', 'block_use_stats');
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 1));
 
-    $displayopts = array(DISPLAY_FULL_COURSE => get_string('displaycoursetime', 'block_use_stats'),
-                         DISPLAY_TIME_ACTIVITIES => get_string('displayactivitiestime', 'block_use_stats'));
+    $displayopts = [
+        DISPLAY_FULL_COURSE => get_string('displaycoursetime', 'block_use_stats'),
+        DISPLAY_TIME_ACTIVITIES => get_string('displayactivitiestime', 'block_use_stats')
+    ];
 
     $key = 'block_use_stats/displayactivitytimeonly';
     $label = get_string('configdisplayactivitytimeonly', 'block_use_stats');
     $desc = get_string('configdisplayactivitytimeonly_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $displayopts));
 
-    $options = array('dhx_web' => 'web',
-                     'dhx_blue' => 'blue',
-                     'dhx_black' => 'black',
-                     'dhx_skyblue' => 'skyblue',
-                     'dhx_terrace' => 'terrace',
-                     'omega' => 'omega');
+    $options = [
+        'dhx_web' => 'web',
+        'dhx_blue' => 'blue',
+        'dhx_black' => 'black',
+        'dhx_skyblue' => 'skyblue',
+        'dhx_terrace' => 'terrace',
+        'omega' => 'omega',
+    ];
     $key = 'block_use_stats/calendarskin';
     $label = get_string('configcalendarskin', 'block_use_stats');
     $desc = get_string('configcalendarskin_desc', 'block_use_stats');
@@ -118,6 +122,16 @@ if ($ADMIN->fulltree) {
     $label = get_string('configlastcompiled', 'block_use_stats');
     $desc = get_string('configlastcompiled_desc', 'block_use_stats');
     $settings->add(new admin_setting_configdatetime($key, $label, $desc, ''));
+
+    $key = 'block_use_stats/ignoremodules';
+    $label = get_string('configignoremodules', 'block_use_stats');
+    $desc = get_string('configignoremodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, 80));
+
+    $key = 'block_use_stats/capturemodules';
+    $label = get_string('configcapturemodules', 'block_use_stats');
+    $desc = get_string('configcapturemodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, 'learningtimecheck', PARAM_TEXT, 80));
 
     if (block_use_stats_supports_feature('emulate/community') == 'pro') {
         // This will accept any.
