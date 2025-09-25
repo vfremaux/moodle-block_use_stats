@@ -361,7 +361,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                 }
                 $othertotaltpl->courseid = $courseid;
                 $othertotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
-                $othertotaltpl->textelapsed = block_use_stats_format_time($activitytotaltpl->elapsed);
+                $othertotaltpl->textelapsed = block_use_stats_format_time($othertotaltpl->elapsed);
                 $template->other[] = $othertotaltpl;
             }
         }
@@ -396,7 +396,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                     $cmtotaltpl->instancename = $DB->get_field('course_sections', 'name', ['id' => $cmid]);
                     $cmtotaltpl->sectionsection = $DB->get_field('course_sections', 'section', ['id' => $cmid]);
                 }
-                $cmtotaltpl->textelapsed = block_use_stats_format_time($cmtotal->elapsed);
+                $cmtotaltpl->textelapsed = block_use_stats_format_time($cmtotaltpl->elapsed);
                 $keytpl->elements[] = $cmtotaltpl;
             }
             $template->keys[] = $keytpl;

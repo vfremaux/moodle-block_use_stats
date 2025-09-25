@@ -57,3 +57,10 @@ Policy change will not affect the moodle version path of the plugin, data model 
 2023060200 - Adding start and end enrol dates in reports
 ========================================================
 
+X.X.00029
+========================================================
+Fixes the time report from LTC to use stats when a single log of 0s is detected in log trace.
+
+X.X.00030
+========================================================
+Fixes scorm time reporting avoiding counting latencies.

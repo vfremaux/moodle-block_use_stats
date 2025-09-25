@@ -31,7 +31,7 @@ $plugin->requires  = 2022112801;        // Requires this Moodle version.
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '4.5.0 (build 2025041200)';
-$plugin->supported = [402, 405];
+$plugin->supported = [403, 405];
 if (function_exists('block_use_stats_supports_feature') && block_use_stats_supports_feature() === 'pro') {
     $plugin->dependencies = ['local_vfcore' => 2024053100];
 }
