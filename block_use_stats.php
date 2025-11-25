@@ -73,7 +73,7 @@ class block_use_stats extends block_base {
 
         $config = get_config('block_use_stats');
         $debug = optional_param('debug', false, PARAM_BOOL);
-        $adminoverride = optional_param('adminoverride', $SESSION->use_stats_adminoverride, PARAM_BOOL);
+        $adminoverride = optional_param('adminoverride', $SESSION->use_stats_adminoverride ?? false, PARAM_BOOL);
         $SESSION->use_stats_adminoverride = $adminoverride;
 
         $renderer = $PAGE->get_renderer('block_use_stats');

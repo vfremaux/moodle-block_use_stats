@@ -83,7 +83,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
 
     $courseclause = ''; // not used any more. Get all logs of user.
     $courseenrolclause = '';
-    $inparams = array();
+    $inparams = [];
 
     if (!empty($config->enrolmentfilter)) {
         // We search last enrol period before "to".
@@ -212,8 +212,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $ltcconfig = get_config('learningtimecheck');
     }
 
+    $capturemodulelist = [];
     if (!empty($config->capturemodules)) {
-        $modulelist = explode(',', $config->capturemodules);
+        $capturemodulelist = explode(',', $config->capturemodules);
     }
 
     if (isset($config->ignoremodules)) {
@@ -348,7 +349,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             // This is the most usual case... not a login.
             if ($dimension == 'module' && !$isactionlogin) {
                 $continue = false;
-                if (!empty($config->capturemodules) && !in_array($log->$dimension, $modulelist)) {
+                if (!empty($config->capturemodules) && in_array($log->$dimension, $capturemodulelist)) {
                     // If not eligible module for aggregation, just add the intermediate laps.
                     $memlap = $memlap + $lap;
                     if (($automatondebug > 0) || $backdebug) {
@@ -358,10 +359,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
 
                 if (!empty($config->ignoremodules) && in_array($log->$dimension, $ignoremodulelist)) {
-                    // If ignored module for aggregations, just add the intermediate time.
-                    $memlap = $memlap + $lap;
+                    // If ignored module for aggregations, just ignore the intermediate time.
                     if (($automatondebug > 0) || $backdebug) {
-                        $logbuffer .= " ... (I) Ignored, time lapped \n";
+                        $logbuffer .= " ... (I) Ignored, time ignored \n";
                     }
                     $continue = true;
                 }
@@ -647,13 +647,13 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     if ($ltcconfig->strictcredits == 1) {
                                         // if credit is over real time, apply credit.
                                         $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
-                                                    !empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
+                                                    isset($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
                                     } else if ($ltcconfig->strictcredits == 2) {
                                         // if credit is under real time, apply credit.
                                         $cond = $credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
                                     } else {
                                         // Apply cedit anyway.
-                                        if (!empty($aggregate[$credittime->modname][$credittime->cmid]->elapsed)) {
+                                        if (isset($aggregate[$credittime->modname][$credittime->cmid]->elapsed)) {
                                             $cond = 1;
                                         }
                                     }
@@ -833,11 +833,16 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 if ($realtimes = $DB->get_records_select('scorm_scoes_track', $select, $params, 'id, element, value')) {
                     foreach ($realtimes as $rt) {
                         block_use_stats_debug_trace("Scorm session value : $rt->value", TRACE_DEBUG);
-                        preg_match("/PT(\d+)H(\d+)M(\d+)(\.\d+)?S/", $rt->value, $matches);
-                        $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                        if (preg_match("/PT(\d+)H(\d+)M(\d+)(\.\d+)?S/", $rt->value, $matches)) {
+                            $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + round($matches[3]);
+                        } else if (preg_match("/PT(\.\d+)?S/", $rt->value, $matches)) {
+                            // Special case with only seconds.
+                            $realtotaltime += round($matches[1]);
+                        }
                     }
                 } else {
                     // When no session time is recorded. Find id another way.
+                    /*
                     $select = "
                         element = 'cmi.core.total_time' AND
                         scormid = ? AND
@@ -858,6 +863,35 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                             preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
                             $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
                         }
+                    }
+                    */
+                    $select = "
+                        element LIKE 'cmi.interactions_%.time' AND
+                        scormid = ? AND
+                        userid = ?
+                    ";
+                    $params = [$cm->instance, $currentuser];
+                    if ($from) {
+                        $select .= " AND timemodified >= ? ";
+                        $params[] = $from;
+                    }
+                    if ($to) {
+                        $select .= " AND timemodified <= ? ";
+                        $params[] = $to;
+                    }
+                    $realtotaltime = 0;
+                    if ($realtime = $DB->get_field_select('scorm_scoes_track', 'MAX(value)', $select, $params, 'id, element, value')) {
+                        block_use_stats_debug_trace("Scorm session value : $realtime", TRACE_DEBUG);
+                        if (preg_match("/^(\d\d):(\d\d)$/", $realtime, $matches)) {
+                            $realtotaltime = $matches[1];
+                        }
+                        else if (preg_match("/^(\d\d):(\d\d):(\d\d)$/", $realtime, $matches)) {
+                            $realtotaltime = $matches[1] * 60 + $matches[2];
+                        }
+                        else if (preg_match("/^(\d\d):(\d\d):(\d\d):(\d\d)$/", $realtime, $matches)) {
+                            $realtotaltime = $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                        }
+                        block_use_stats_debug_trace("Calculated in interaction times : $realtotaltime for user {$user->id} CM {$cm->instance} ");
                     }
                 }
                 if ($aggregate['scorm'][$cmid]->elapsed < $realtotaltime) {

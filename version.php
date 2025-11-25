@@ -37,5 +37,5 @@ if (function_exists('block_use_stats_supports_feature') && block_use_stats_suppo
 }
 
 // Non Moodle attributes.
-$plugin->codeincrement = '4.1.0028';
+$plugin->codeincrement = '4.1.0030';
 $plugin->privacy = 'dualrelease';
