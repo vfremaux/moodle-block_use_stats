@@ -778,6 +778,10 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess = $fa;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
 
+                                    if (!array_key_exists($ckl->course, $aggregate['activities'])) {
+                                        $aggregate['activities'][$ckl->course] = new StdClass;
+                                    }
+
                                     // Fix the global aggregators accordingly.
                                     block_use_stats_debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
                                     $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
