@@ -15,17 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Master block class for use_stats compiler
+ * Defines a single session.
  *
- * @package    blocks_use_stats
- * @category   blocks
+ * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\engine;
-
-defined('MOODLE_INTERNAL') || die();
 
 use coding_exception;
 use StdClass;
@@ -36,24 +33,33 @@ use StdClass;
  */
 class session {
 
+    /** @var int $userid */
     public $userid;
 
+    /** @var array $courses courses passed through in the session */
     public $courses;
 
+    /** @var int $start time */
     public $start;
 
+    /** @var int $end time */
     public $end;
 
     /**
-     * real log time elapsed in session.
+     * @var int $elapsed real log time elapsed in session.
      */
     public $elapsed;
 
     /**
-     * real log events in session.
+     * @var array $events real log events in session.
      */
     public $events;
 
+    /**
+     * Constructor.
+     * @param int $userid
+     * @param int $starttime
+     */
     public function __construct($userid, $starttime) {
         $this->userid = $userid;
         $this->start = $starttime;
@@ -64,7 +70,8 @@ class session {
     }
 
     /**
-     * Pushes end time up to $endtime
+     * Pushes end time up to endtime
+     * @param int $endtime
      */
     public function extend_endtime($endtime) {
         if ($endtime > $this->end) {
@@ -74,13 +81,15 @@ class session {
 
     /**
      * Add elapsed
+     * @param int $elapsed
      */
     public function extend_elapsed($elapsed) {
         $this->elapsed += $elapsed;
     }
 
     /**
-     * Add elapsed
+     * Add events to the event log.
+     * @param array $events
      */
     public function extend_events($events) {
         $this->events += $events;
@@ -88,6 +97,7 @@ class session {
 
     /**
      * Add a course to list.
+     * @param int $courseid
      */
     public function add_course($courseid) {
         if (!in_array($courseid, $this->courses)) {
@@ -106,11 +116,11 @@ class session {
     }
 
     /**
-     *
+     * Detects empty session.
      */
-     public function is_null_session() {
+    public function is_null_session() {
         return $this->start == $this->end;
-     }
+    }
 
     /**
      * Saves a session record in database. Note that session timerange should NEVER overlap for a single user.
@@ -132,7 +142,7 @@ class session {
         $transaction->allow_commit();
     }
 
-    /** 
+    /**
      * Export data as an unclassed simple standard object structure.
      */
     public function export() {

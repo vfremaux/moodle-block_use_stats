@@ -15,16 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Admin adds-on.
+ *
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+namespace block_use_stats;
 
-namespace block\use_stats;
-
-defined('MOODLE_INTERNAL') || die;
+// phpcs:disable moodle.Commenting.ValidTags.Invalid
 
 /**
  * Time selector
@@ -46,11 +46,11 @@ class admin_setting_configdatetime extends \admin_setting {
 
         $datearr = getdate($result);
 
-        $data = array('h' => $datearr['hours'],
+        $data = ['h' => $datearr['hours'],
             'm' => $datearr['minutes'],
             'y' => $datearr['year'],
             'M' => $datearr['mon'],
-            'd' => $datearr['mday']);
+            'd' => $datearr['mday']];
         return $data;
     }
 
@@ -77,6 +77,8 @@ class admin_setting_configdatetime extends \admin_setting {
      * @param array $data Must be form 'h'=>xx, 'm'=>xx
      * @param string $query
      * @return string XHTML time select fields and wrapping div(s)
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function output_html($data, $query = '') {
         $default = $this->get_defaultsetting();

@@ -25,8 +25,8 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$tasks = array(
-    array(
+$tasks = [
+    [
         'classname' => 'block_use_stats\task\compile_task',
         'blocking' => 0,
         'minute' => '*',
@@ -35,9 +35,9 @@ $tasks = array(
         'month' => '*',
         'dayofweek' => '*',
         'disabled' => 1,
-    ),
+    ],
 
-    array(
+    [
         'classname' => 'block_use_stats\task\cleanup_task',
         'blocking' => 0,
         'minute' => '0',
@@ -46,15 +46,15 @@ $tasks = array(
         'month' => '*',
         'dayofweek' => '*',
         'disabled' => 1,
-    ),
+    ],
 
-    array(
+    [
         'classname' => 'block_use_stats\task\cache_ttl_task',
         'blocking' => 0,
         'minute' => '*/10',
         'hour' => '*',
         'day' => '*',
         'month' => '*',
-        'dayofweek' => '*'
-    )
-);
+        'dayofweek' => '*',
+    ],
+];

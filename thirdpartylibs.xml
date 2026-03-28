@@ -14,4 +14,11 @@
     <version></version>
     <licenseversion>3.0</licenseversion>
   </library>
+  <library>
+    <location>pro</location>
+    <name>Pro compiled sources</name>
+    <license>APL</license>
+    <version>1.0</version>
+    <licenseversion>APL V1</licenseversion>
+  </library>
 </libraries>

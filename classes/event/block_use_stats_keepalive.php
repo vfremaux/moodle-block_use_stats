@@ -18,13 +18,11 @@
  * The mod_assign feedback viewed event.
  *
  * @package    block_use_stats
- * @category   blocks
- * @copyright  2014 Mark Nelson <markn@moodle.com>
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (http://www.activeprolearn.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\event;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * The class for registering a keepalive event.
@@ -47,7 +45,7 @@ class block_use_stats_keepalive extends \core\event\base {
     public static function create_from_cm($cm) {
         global $USER, $COURSE;
 
-        $data = array();
+        $data = [];
 
         if (!is_null($cm)) {
             $data['objectid'] = $cm->id;
@@ -102,26 +100,6 @@ class block_use_stats_keepalive extends \core\event\base {
     }
 
     /**
-     * Return legacy data for add_to_log().
-     *
-     * @return array
-     */
-    protected function get_legacy_logdata() {
-        $logmessage = get_string('keepuseralive', 'block_use_stats', $this->relateduserid);
-        $this->set_legacy_logdata('keepalive', $logmessage);
-        return parent::get_legacy_logdata();
-    }
-
-    /**
-     * Set the legacy log data.
-     *
-     * @param array $legacylogdata
-     * @return void
-     */
-    public function set_legacy_logdata($legacylogdata, $msg) {
-    }
-
-    /**
      * Custom validation.
      *
      * @throws \coding_exception
@@ -135,6 +113,5 @@ class block_use_stats_keepalive extends \core\event\base {
         if (!isset($this->relateduserid)) {
             throw new \coding_exception('The \'relateduserid\' must be set.');
         }
-
     }
 }

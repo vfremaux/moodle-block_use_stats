@@ -1,8 +1,41 @@
+{{!
+    This file is part of Moodle - http://moodle.org/
 
+    Moodle is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
 
+    Moodle is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+}}
+{{!
+    @template block_use_stats/admin_mode
+
+    Admin mode template.
+
+    Context variables required for this template:
+    * debug0checked - Is debug mode 0 (no debug) checked.
+    * debug1checked - Is debug mode 1 (counters board) checked.
+    * debug2checked - Is debug mode 2 (all details) checked.
+
+    Example context (json):
+    {
+        "debug0checked": "",
+        "debug1checked": "",
+        "debug2checked": "checked"
+    }
+}}
+<!-- block_use_stats/admin_mode -->
 <div class="admin-mode">
     {{#str}}debugmode, block_use_stats{{/str}}
     <input type="radio" name="debug" value="0" {{{debug0checked}}}> {{#str}}debugno, block_use_stats{{/str}} 
     <input type="radio" name="debug" value="1" {{{debug1checked}}}> {{#str}}debugaggregate, block_use_stats{{/str}}
-    <input type="radio" name="debug" value="2" {{{debug2checked}}}> {{#str}}debugdetail, block_use_stats{{/str}}
+    <input type="radio" name="debug" value="2" {{{debug2checked}}}> {{#str}}debugdetails, block_use_stats{{/str}}
 </div>
+<!-- /block_use_stats/admin_mode -->

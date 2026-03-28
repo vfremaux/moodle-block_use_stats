@@ -15,8 +15,9 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Global settings declaration.
+ *
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -25,14 +26,14 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/blocks/use_stats/adminlib.php');
 
-use \block\use_stats\admin_setting_configdatetime;
+use block_use_stats\admin_setting_configdatetime;
 
 if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_heading('blockdisplay', get_string('blockdisplay', 'block_use_stats'), ''));
 
     $daystr = get_string('days');
-    $fromwhenoptions = array('5' => '5 '.$daystr,
+    $fromwhenoptions = ['5' => '5 '.$daystr,
                              '15' => '15 '.$daystr,
                              '30' => '30 '.$daystr,
                              '60' => '60 '.$daystr,
@@ -40,24 +41,24 @@ if ($ADMIN->fulltree) {
                              '180' => '180 '.$daystr,
                              '270' => '270 '.$daystr,
                              '365' => '365 '.$daystr,
-                             );
+                             ];
 
     $key = 'block_use_stats/fromwhen';
     $label = get_string('configfromwhen', 'block_use_stats');
     $desc = get_string('configfromwhen_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 60, $fromwhenoptions));
 
-    $backtrackmodeoptions = array('sliding' => get_string('sliding', 'block_use_stats'),
-        'fixeddate' => get_string('fixeddate', 'block_use_stats')
-     );
+    $backtrackmodeoptions = ['sliding' => get_string('sliding', 'block_use_stats'),
+        'fixeddate' => get_string('fixeddate', 'block_use_stats'),
+     ];
     $key = 'block_use_stats/backtrackmode';
     $label = get_string('configbacktrackmode', 'block_use_stats');
     $desc = get_string('configbacktrackmode_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 'sliding', $backtrackmodeoptions));
 
-    $backtracksourceoptions = array('studentchoice' => get_string('studentchoice', 'block_use_stats'),
-        'fixedchoice' => get_string('fixedchoice', 'block_use_stats')
-     );
+    $backtracksourceoptions = ['studentchoice' => get_string('studentchoice', 'block_use_stats'),
+        'fixedchoice' => get_string('fixedchoice', 'block_use_stats'),
+     ];
     $key = 'block_use_stats/backtracksource';
     $label = get_string('configbacktracksource', 'block_use_stats');
     $desc = get_string('configbacktracksource_desc', 'block_use_stats');
@@ -73,20 +74,24 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configdisplayothertime_desc', 'block_use_stats');
     $settings->add(new admin_setting_configcheckbox($key, $label, $desc, 1));
 
-    $displayopts = array(DISPLAY_FULL_COURSE => get_string('displaycoursetime', 'block_use_stats'),
-                         DISPLAY_TIME_ACTIVITIES => get_string('displayactivitiestime', 'block_use_stats'));
+    $displayopts = [
+        DISPLAY_FULL_COURSE => get_string('displaycoursetime', 'block_use_stats'),
+        DISPLAY_TIME_ACTIVITIES => get_string('displayactivitiestime', 'block_use_stats'),
+    ];
 
     $key = 'block_use_stats/displayactivitytimeonly';
     $label = get_string('configdisplayactivitytimeonly', 'block_use_stats');
     $desc = get_string('configdisplayactivitytimeonly_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 0, $displayopts));
 
-    $options = array('dhx_web' => 'web',
-                     'dhx_blue' => 'blue',
-                     'dhx_black' => 'black',
-                     'dhx_skyblue' => 'skyblue',
-                     'dhx_terrace' => 'terrace',
-                     'omega' => 'omega');
+    $options = [
+        'dhx_web' => 'web',
+        'dhx_blue' => 'blue',
+        'dhx_black' => 'black',
+        'dhx_skyblue' => 'skyblue',
+        'dhx_terrace' => 'terrace',
+        'omega' => 'omega',
+    ];
     $key = 'block_use_stats/calendarskin';
     $label = get_string('configcalendarskin', 'block_use_stats');
     $desc = get_string('configcalendarskin_desc', 'block_use_stats');
@@ -119,11 +124,21 @@ if ($ADMIN->fulltree) {
     $desc = get_string('configlastcompiled_desc', 'block_use_stats');
     $settings->add(new admin_setting_configdatetime($key, $label, $desc, ''));
 
+    $key = 'block_use_stats/ignoremodules';
+    $label = get_string('configignoremodules', 'block_use_stats');
+    $desc = get_string('configignoremodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, '', PARAM_TEXT, 80));
+
+    $key = 'block_use_stats/capturemodules';
+    $label = get_string('configcapturemodules', 'block_use_stats');
+    $desc = get_string('configcapturemodules_desc', 'block_use_stats');
+    $settings->add(new admin_setting_configtext($key, $label, $desc, 'learningtimecheck', PARAM_TEXT, 80));
+
     if (block_use_stats_supports_feature('emulate/community') == 'pro') {
         // This will accept any.
         include_once($CFG->dirroot.'/blocks/use_stats/pro/prolib.php');
         $promanager = block_use_stats\pro_manager::instance();
-        $promanager->add_settings($ADMIN, $settings);
+        $promanager->add_settings($settings);
     } else {
         $label = get_string('plugindist', 'block_use_stats');
         $desc = get_string('plugindist_desc', 'block_use_stats');

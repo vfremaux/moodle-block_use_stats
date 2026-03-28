@@ -18,7 +18,6 @@
  * Master block ckass for use_stats compiler
  *
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -27,10 +26,21 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/use_stats/compatlib.php');
 
+// phpcs:disable moodle.Commenting.ValidTags.Invalid
+
 use block_use_stats\compat;
 
+/**
+ * Plugin renderer
+ * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
+ */
 class block_use_stats_renderer extends plugin_renderer_base {
 
+    /**
+     * display use stats per course.
+     * @param object &$aggregate
+     * @param intref &$fulltotal
+     */
     public function per_course(&$aggregate, &$fulltotal) {
 
         $config = get_config('block_use_stats');
@@ -81,7 +91,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
             $pix = $this->output->pix_icon('i/warning', '');
             $str .= '<tr><td class="teacherstatsbycourse" title="'.$title.'">'.$pix.'</td>';
             $str .= '<td align="right" class="teacherstatsbycourse">';
-            if (@$config->displayactivitytimeonly != DISPLAY_FULL_COURSE) {
+            if (($config->displayactivitytimeonly ?? '') != DISPLAY_FULL_COURSE) {
                 $str .= '('.get_string('activities', 'block_use_stats').')';
             }
             $str .= '</td></tr>';
@@ -93,6 +103,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
     }
 
     /**
+     * Assemble form params to keep them alive.
+     *
      * @global type $USER
      * @global type $DB
      * @global type $COURSE
@@ -101,6 +113,8 @@ class block_use_stats_renderer extends plugin_renderer_base {
      * @param type $fromwhen
      * @param type $userid
      * @return string
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
      */
     public function change_params_form($context, $id, $from, $to, $userid, $block) {
         global $USER, $DB, $COURSE, $SESSION;
@@ -116,7 +130,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
         $fields = compat::get_user_fields('');
 
         if (has_capability('block/use_stats:seesitedetails', $context, $USER->id) && ($COURSE->id == SITEID)) {
-            $users = $DB->get_records('user', array('deleted' => '0'), 'lastname', $fields);
+            $users = $DB->get_records('user', ['deleted' => '0'], 'lastname', $fields);
         } else if (has_capability('block/use_stats:seecoursedetails', $context, $USER->id)) {
             $coursecontext = context_course::instance($COURSE->id);
             $users = get_enrolled_users($coursecontext);
@@ -145,7 +159,7 @@ class block_use_stats_renderer extends plugin_renderer_base {
             foreach ($users as $user) {
                 $usermenu[$user->id] = fullname($user, has_capability('moodle/site:viewfullnames', context_system::instance()));
             }
-            $attrs = array('onchange' => 'document.ts_changeParms.submit();');
+            $attrs = ['onchange' => 'document.ts_changeParms.submit();'];
             $str .= html_writer::select($usermenu, 'uid', $userid, get_string('choose', 'block_use_stats'), $attrs);
         }
 
@@ -153,15 +167,16 @@ class block_use_stats_renderer extends plugin_renderer_base {
             if (@$config->backtracksource == 'studentchoice') {
                 $str .= ' ';
                 $str .= get_string('from', 'block_use_stats');
-                foreach (array(5, 15, 30, 60, 90, 180, 365) as $interval) {
+                foreach ([5, 15, 30, 60, 90, 180, 365] as $interval) {
                     $timemenu[$interval] = $interval.' '.get_string('days');
                 }
                 $tsfrom = optional_param('ts_from'.$block->instance->id, '', PARAM_TEXT);
-                $attrs = array('onchange' => 'document.ts_changeParms.submit();');
-                $str .= html_writer::select($timemenu, 'ts_from'.$block->instance->id, $tsfrom, get_string('choose', 'block_use_stats'), $attrs);
+                $attrs = ['onchange' => 'document.ts_changeParms.submit();'];
+                $lbl = get_string('choose', 'block_use_stats');
+                $str .= html_writer::select($timemenu, 'ts_from'.$block->instance->id, $tsfrom, $lbl, $attrs);
             }
         } else {
-            if (@$config->backtracksource == 'studentchoice') {
+            if (($config->backtracksource ?? '') == 'studentchoice') {
 
                 $str .= '<br/>'.get_string('fromrange', 'block_use_stats');
                 $str .= $this->calendar('ts_from'.$context->id, $from);
@@ -201,6 +216,11 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
         return $str;
     }
 
+    /**
+     * Prints calendar form input.
+     * @param string $htmlkey
+     * @param int $value current timestamp
+     */
     protected function calendar($htmlkey, $value) {
 
         $valuestr = date('Y-m-d', $value);
@@ -221,6 +241,8 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
     }
 
     /**
+     * A button to print stats in pdf. (pro version)
+     *
      * @param type $userid
      * @param type $from
      * @param type $to
@@ -238,6 +260,9 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
         return '';
     }
 
+    /**
+     * Renders admin additions.
+     */
     public function render_admin_mode() {
         $template = new StdClass;
         $debug = optional_param('debug', 0, PARAM_INT);
@@ -249,6 +274,11 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
 
     /**
      * Renders a nice shaped aggregate content for debugging.
+     * @param array $aggregate stats data
+     * @param object $currentcourse
+     * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+     * @SuppressWarnings(PHPMD.NPathComplexity)
+     * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
      */
     public function render_aggregate($aggregate, $currentcourse) {
         global $DB;
@@ -289,9 +319,9 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                 }
                 $template->courses[] = $coursetotaltpl;
             }
-            $template->totalelapsed = $sumtime; 
-            $template->texttotalelapsed = block_use_stats_format_time($sumtime); 
-            $template->totalevents = $sumevents; 
+            $template->totalelapsed = $sumtime;
+            $template->texttotalelapsed = block_use_stats_format_time($sumtime);
+            $template->totalevents = $sumevents;
         }
 
         if (array_key_exists('coursetotalraw', $aggregate)) {
@@ -316,9 +346,9 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                 }
                 $template->coursesraw[] = $coursetotaltpl;
             }
-            $template->rawtotalelapsed = $sumtime; 
-            $template->rawtexttotalelapsed = block_use_stats_format_time($sumtime); 
-            $template->rawtotalevents = $sumevents; 
+            $template->rawtotalelapsed = $sumtime;
+            $template->rawtexttotalelapsed = block_use_stats_format_time($sumtime);
+            $template->rawtotalevents = $sumevents;
         }
 
         if (array_key_exists('course', $aggregate)) {
@@ -361,7 +391,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                 }
                 $othertotaltpl->courseid = $courseid;
                 $othertotaltpl->short = $DB->get_field('course', 'shortname', ['id' => $courseid]);
-                $othertotaltpl->textelapsed = block_use_stats_format_time($activitytotaltpl->elapsed);
+                $othertotaltpl->textelapsed = block_use_stats_format_time($othertotaltpl->elapsed);
                 $template->other[] = $othertotaltpl;
             }
         }
@@ -396,7 +426,7 @@ initusestatsto('.$context->id.', '.$state.',   \''.$date.'\');
                     $cmtotaltpl->instancename = $DB->get_field('course_sections', 'name', ['id' => $cmid]);
                     $cmtotaltpl->sectionsection = $DB->get_field('course_sections', 'section', ['id' => $cmid]);
                 }
-                $cmtotaltpl->textelapsed = block_use_stats_format_time($cmtotal->elapsed);
+                $cmtotaltpl->textelapsed = block_use_stats_format_time($cmtotaltpl->elapsed);
                 $keytpl->elements[] = $cmtotaltpl;
             }
             $template->keys[] = $keytpl;

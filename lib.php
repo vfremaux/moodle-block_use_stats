@@ -15,21 +15,26 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   block_use_stats
- * @category  blocks
- * @copyright 2012 Wafa Adham,, Valery Fremaux
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * General lib.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (http://www.activeprolearn.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-defined('MOODLE_INTERNAL') || die();
+
+// phpcs:disable moodle.Commenting.ValidTags.Invalid
 
 /**
  * This is part of the dual release distribution system.
  * Tells wether a feature is supported or not. Gives back the
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
  */
 function block_use_stats_supports_feature($feature = null, $getsupported = false) {
-    global $CFG;
     static $supports;
 
     if (!during_initial_install()) {
@@ -47,10 +52,10 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
                 'data' => ['multidimensionnal', 'activetracking', 'keepalive'],
                 'api' => ['ws'],
                 'view' => ['detail'],
-                'format' => ['xls', 'csv', 'pdf']
+                'format' => ['xls', 'csv', 'pdf'],
             ],
             'community' => [
-            	'format' => ['csv']
+                'format' => ['csv'],
             ],
         ];
     }
@@ -103,6 +108,9 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
     return $versionkey;
 }
 
+/**
+ * Add keepalive features to the current theme.
+ */
 function block_use_stats_setup_theme_notification() {
     global $CFG;
 
