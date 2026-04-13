@@ -15,19 +15,21 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * @package   block_use_stats
- * @category  blocks
- * @copyright 2006 Valery Fremaux
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * Cache definitions.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
-$definitions = array(
-    'aggregate' => array(
-        'mode' => cache_store::MODE_APPLICATION
-    ),
-    'pro' => array(
-        'mode' => cache_store::MODE_APPLICATION
-    )
-);
+$definitions = [
+    'aggregate' => [
+        'mode' => cache_store::MODE_APPLICATION,
+    ],
+    'pro' => [
+        'mode' => cache_store::MODE_APPLICATION,
+    ],
+];

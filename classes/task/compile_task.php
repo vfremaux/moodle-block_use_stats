@@ -15,19 +15,16 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Task to precompile logs.
  * @package block_use_stats
- * @category blocks
  * @author Valery Fremaux <valery.fremaux@gmail.com>, <valery@edunao.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @copyright (C) 2014 onwards Microsoft Open Technologies, Inc. (http://msopentech.com/)
  */
-
 namespace block_use_stats\task;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
- * Scheduled task to compile lap tims.
+ * Scheduled task to compile lap times.
  */
 class compile_task extends \core\task\scheduled_task {
 

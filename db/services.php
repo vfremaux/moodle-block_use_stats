@@ -23,33 +23,33 @@
  */
 defined('MOODLE_INTERNAL') || die();
 
-$functions = array(
+$functions = [
 
-    'block_use_stats_get_user_stats' => array(
+    'block_use_stats_get_user_stats' => [
         'classname' => 'block_use_stats_external',
         'methodname' => 'get_user_stats',
         'classpath' => 'blocks/use_stats/externallib.php',
         'description' => 'Get the stats for a user',
         'type' => 'read',
-        'capabilities' => 'block/use_stats:export'
-    ),
+        'capabilities' => 'block/use_stats:export',
+    ],
 
-    'block_use_stats_get_users_stats' => array(
+    'block_use_stats_get_users_stats' => [
         'classname' => 'block_use_stats_external',
         'methodname' => 'get_users_stats',
         'classpath' => 'blocks/use_stats/externallib.php',
         'description' => 'Get the stats for a set of users',
         'type' => 'read',
-        'capabilities' => 'block/use_stats:export'
-    ),
+        'capabilities' => 'block/use_stats:export',
+    ],
 
-    'block_use_stats_get_users_course_stats' => array(
+    'block_use_stats_get_users_course_stats' => [
         'classname' => 'block_use_stats_external',
         'methodname' => 'get_users_course_stats',
         'classpath' => 'blocks/use_stats/externallib.php',
         'description' => 'Get the stats for a set of users',
         'type' => 'read',
-        'capabilities' => 'block/use_stats:export'
-    ),
+        'capabilities' => 'block/use_stats:export',
+    ],
 
-);
+];

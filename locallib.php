@@ -17,7 +17,7 @@
 /**
  * Master block class for use_stats compiler
  *
- * @package    blocks_use_stats
+ * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,15 +26,25 @@ defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session_manager.class.php');
 
-define('BLOCK_USESTATS_TRACE_ERRORS', 1); // Errors should be always traced when trace is on.
-define('BLOCK_USESTATS_TRACE_NOTICE', 3); // Notices are important notices in normal execution.
-define('BLOCK_USESTATS_TRACE_DEBUG', 5); // Debug are debug time notices that should be burried in debug_fine level when debug is ok.
-define('BLOCK_USESTATS_TRACE_DATA', 8); // Data level is when requiring to see data structures content.
-define('BLOCK_USESTATS_TRACE_DEBUG_FINE', 10); // Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
+// phpcs:disable moodle.Commenting.ValidTags.Invalid
+
+// Errors should be always traced when trace is on.
+define('BLOCK_USESTATS_TRACE_ERRORS', 1);
+// Notices are important notices in normal execution.
+define('BLOCK_USESTATS_TRACE_NOTICE', 3);
+// Debug are debug time notices that should be burried in debug_fine level when debug is ok.
+define('BLOCK_USESTATS_TRACE_DEBUG', 5);
+// Data level is when requiring to see data structures content.
+define('BLOCK_USESTATS_TRACE_DATA', 8);
+// Debug fine are control points we want to keep when code is refactored and debug needs to be reactivated.
+define('BLOCK_USESTATS_TRACE_DEBUG_FINE', 10);
 
 define('DISPLAY_FULL_COURSE', 0);
 define('DISPLAY_TIME_ACTIVITIES', 1);
 
+/**
+ * Get the reader class.
+ */
 function use_stats_get_reader() {
     return '\core\log\sql_reader';
 }
@@ -44,9 +54,11 @@ function use_stats_get_reader() {
  * @param int $from
  * @param int $to
  * @param mixed $for a user ID or an array of user IDs
- * @param int $course a course object or array of courses // Not used anymore.
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
  */
-function use_stats_extract_logs($from, $to, $for = null, $course = null) {
+function use_stats_extract_logs($from, $to, $for = null) {
     global $USER, $DB;
 
     $config = get_config('block_use_stats');
@@ -59,11 +71,7 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         return false; // No log reader found.
     }
 
-    if ($reader instanceof \logstore_standard\log\store) {
-        $courseparm = 'courseid';
-    } else if ($reader instanceof \logstore_legacy\log\store) {
-        $courseparm = 'course';
-    } else {
+    if (!($reader instanceof \logstore_standard\log\store)) {
         return;
     }
 
@@ -81,7 +89,6 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         $userclause = " AND userid = {$for} ";
     }
 
-    $courseclause = ''; // not used any more. Get all logs of user.
     $courseenrolclause = '';
     $inparams = [];
 
@@ -108,62 +115,32 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
         }
     }
 
-    if ($reader instanceof \logstore_standard\log\store) {
-        $sql = "
-           SELECT
-             id,
-             courseid as course,
-             action,
-             target,
-             timecreated as time,
-             userid,
-             contextid,
-             contextinstanceid,
-             contextlevel,
-             ip
-           FROM
-             {logstore_standard_log}
-           WHERE
-             origin != 'cli' AND
-             timecreated >= ? AND
-             timecreated <= ? AND
-             action != 'failed' AND
-             ((courseid = 0 AND action = 'loggedin') OR
-             (courseid = 0 AND action = 'loggedout') OR
-              (1=1
-              $courseclause))
-            $userclause AND realuserid IS NULL
-           ORDER BY
-             timecreated
-        ";
-    } else if ($reader instanceof \logstore_legacy\log\store) {
-        $sql = "
-           SELECT
-             id,
-             course,
-             action,
-             time,
-             module,
-             userid,
-             cmid,
-             ip
-           FROM
-             {log}
-           WHERE
-             time >= ? AND
-             time <= ? AND
-             ((course = 1 AND action = 'login') OR
-             (course = 1 AND action = 'logout') OR
-              (1=1
-              $courseclause))
-            $userclause
-           ORDER BY
-             time
-        ";
-    } else {
-        assert(false);
-        // External DB logs is NOT supported.
-    }
+    $sql = "
+       SELECT
+         id,
+         courseid as course,
+         action,
+         target,
+         timecreated as time,
+         userid,
+         contextid,
+         contextinstanceid,
+         contextlevel,
+         ip
+       FROM
+         {logstore_standard_log}
+       WHERE
+         origin != 'cli' AND
+         timecreated >= ? AND
+         timecreated <= ? AND
+         action != 'failed' AND
+         ((courseid = 0 AND action = 'loggedin') OR
+         (courseid = 0 AND action = 'loggedout') OR
+          (courseid <> 0))
+        $userclause AND realuserid IS NULL
+       ORDER BY
+         timecreated
+    ";
 
     if ($rs = $DB->get_recordset_sql($sql, [$from, $to])) {
         $logs = [];
@@ -184,11 +161,17 @@ function use_stats_extract_logs($from, $to, $for = null, $course = null) {
  * @param string $to
  * @param string $progress
  * @param string $nosessions
- * @param object $currentcourse // for use with learningtimecheck module only, to integrate time overrides from LTC credit time model.
+ * @param object $currentcourse // for use with learningtimecheck module only, to integrate
+ *        time overrides from LTC credit time model.
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
+ * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
+ * @TODO : restructure this huge function.
  */
 function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $nosessions = false, $currentcourse = null) {
-    global $CFG, $DB, $OUTPUT, $USER, $COURSE, $PAGE;
-    static $CMSECTIONS = [];
+    global $CFG, $DB, $USER, $COURSE, $PAGE;
+    static $cmsections = [];
 
     if (is_null($currentcourse)) {
         $currentcourse = $COURSE;
@@ -228,11 +211,14 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
     $currentuser = 0;
     $automatondebug = 0;
+    $debugcm = 0;
     if (is_siteadmin() || !empty($USER->realuser)) {
         $automatondebug = optional_param('debug', 0, PARAM_INT);
+        // Allows single debugging analysis of a unique cm in the course.
+        $debugcm = optional_param('debugcm', 0, PARAM_INT);
     }
 
-    // Initialise agregation
+    // Initialise agregation.
     $aggregate = [];
     $aggregate['sessions'] = [];
     $aggregate['activities'] = [];
@@ -243,12 +229,14 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     $reader = reset($readers);
 
     $logbuffer = '';
-    $lastcourseid  = 0;
     $now = time();
     if ($to == 0) {
         $to = $now;
     }
 
+    if ($from == '-INF') {
+        $from = 0;
+    }
     $fromdate = userdate($from);
     $todate = userdate($to);
     $logbuffer .= "Compiling in course {$currentcourse->id} context from $fromdate to $todate \n";
@@ -275,7 +263,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             if ($progress) {
                 $logbuffer .= "\r".str_replace('%%PROGRESS%%', '('.($nexti ?? 0).'/'.$logsize.')', $progress);
             } else {
-                $logbuffer .= "Log id: {$log->id}\n";
+                if (!$debugcm) {
+                    $logbuffer .= "Log id: {$log->id}\n";
+                }
             }
 
             // We "guess" here the real identity of the log's owner.
@@ -311,7 +301,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             }
 
-            if (($automatondebug > 0) || $backdebug) {
+            $iscmdebugging = ($log->cmid == $debugcm);
+
+            if (($automatondebug > 0) || $backdebug || $iscmdebugging) {
                 if ($log->module != 'course') {
                     $logbuffer .= "[S-$sessionid/$log->id:{$log->module}>{$log->cmid}:";
                 } else {
@@ -321,7 +313,6 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             }
 
             $isactionlogin = block_use_stats_is_login_event($log->action);
-            $isnextactionlogin = block_use_stats_is_login_event($lognext->action ?? '');
             $isovertimed = $lap > $threshold;
 
             // Fix session breaks over the threshold time.
@@ -394,7 +385,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 $sessionmanager->register_event($log->userid, $log->time, $log->course, $lap);
             }
 
-            // *** Aggegation Start. ***
+            /* *** Aggegation Start. *** */
 
             // Standard global lap aggregation.
             if ($log->$dimension == 'course') {
@@ -461,16 +452,16 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             if ($log->$dimension != 'course') {
                 if ($log->cmid) {
                     $key = 'activities';
-                    if (!array_key_exists($log->cmid, $CMSECTIONS)) {
+                    if (!array_key_exists($log->cmid, $cmsections)) {
                         // Put in static cache.
-                        $CMSECTIONS[$log->cmid] = $DB->get_field('course_modules', 'section', ['id' => $log->cmid]);
+                        $cmsections[$log->cmid] = $DB->get_field('course_modules', 'section', ['id' => $log->cmid]);
                     }
                 } else {
                     $key = 'other';
                 }
                 if (!array_key_exists($key, $aggregate)) {
                     $aggregate[$key] = [];
-                } 
+                }
                 if (!array_key_exists($log->course, $aggregate[$key])) {
                     $obj = new StdClass();
                     $obj->elapsed = $lap;
@@ -483,7 +474,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                 if ($key == 'activities') {
                     // Aggregate by section.
-                    $sectionid = $CMSECTIONS[0 + $log->cmid];
+                    $sectionid = $cmsections[0 + $log->cmid];
                     if (!array_key_exists('section', $aggregate)) {
                         $aggregate['section'] = [];
                     }
@@ -547,8 +538,6 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 $aggregate['coursetotal'][$log->course]->events += 1;
                 $aggregate['coursetotal'][$log->course]->lastaccess = $log->time;
             }
-            $origintime = $log->time;
-            $lastcourseid = $log->course;
         }
     }
 
@@ -575,7 +564,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 echo "Bad sumcheck on time for course $courseid <br/>";
             }
 
-            // Sum of section times should be activity time. this is valid for single course... 
+            // Sum of section times should be activity time. this is valid for single course...
             $st = 0;
             if (array_key_exists('coursesection', $aggregate) && array_key_exists($courseid, $aggregate['coursesection'])) {
                 foreach ($aggregate['coursesection'][$courseid] as $s) {
@@ -583,7 +572,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                 }
             }
             if ($st != $at) {
-                throw new Exception("Bad sumcheck on section time for course $courseid : section time is $st / activities time is $at <br/>");
+                $msg = "Bad sumcheck on section time for course $courseid: ";
+                $msg .= "section time is $st / activities time is $at <br/>";
+                throw new moodle_exception($msg);
             }
         }
     }
@@ -608,7 +599,8 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
             include_once($CFG->dirroot.'/mod/learningtimecheck/xlib.php');
             $checklists = [];
             if (array_key_exists('coursetotal', $aggregate)) {
-                $checklists = learningtimecheck_get_instances_for_courses(array_keys($aggregate['coursetotal']), true); // Get timecredit enabled ones.
+                // Get timecredit enabled ones.
+                $checklists = learningtimecheck_get_instances_for_courses(array_keys($aggregate['coursetotal']), true);
             }
 
             if ($checklists) {
@@ -630,10 +622,11 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                 $cklcm = get_coursemodule_from_instance('learningtimecheck', $ckl->id);
                                 $credittime->cmid = $cklcm->id;
                             }
-                            if (!array_key_exists($credittime->cmid, $CMSECTIONS)) {
-                                $CMSECTIONS[$credittime->cmid] = $DB->get_field('course_modules', 'section', ['id' => $credittime->cmid]);
+                            if (!array_key_exists($credittime->cmid, $cmsections)) {
+                                $params = ['id' => $credittime->cmid];
+                                $cmsections[$credittime->cmid] = $DB->get_field('course_modules', 'section', $params);
                             }
-                            $sectionid = $CMSECTIONS[$credittime->cmid] ?? 0;
+                            $sectionid = $cmsections[$credittime->cmid] ?? 0;
 
                             $cond = 0;
 
@@ -645,14 +638,16 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                  */
                                 if (isset($aggregate[$credittime->modname][$credittime->cmid])) {
                                     if ($ltcconfig->strictcredits == 1) {
-                                        // if credit is over real time, apply credit.
-                                        $cond = ($credittime->credittime >= $aggregate[$credittime->modname][$credittime->cmid]->elapsed) &&
+                                        // If credit is over real time, apply credit.
+                                        $el = $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                        $cond = ($credittime->credittime >= $el) &&
                                                     isset($aggregate[$credittime->modname][$credittime->cmid]->elapsed);
                                     } else if ($ltcconfig->strictcredits == 2) {
-                                        // if credit is under real time, apply credit.
-                                        $cond = $credittime->credittime <= $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                        // If credit is under real time, apply credit.
+                                        $el = $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                        $cond = $credittime->credittime <= $el;
                                     } else {
-                                        // Apply cedit anyway.
+                                        // Apply credit anyway.
                                         if (isset($aggregate[$credittime->modname][$credittime->cmid]->elapsed)) {
                                             $cond = 1;
                                         }
@@ -669,8 +664,9 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
                                 if ($cond) {
                                     // Cut over with credit time.
-                                    $diff = $credittime->credittime - ($aggregate[$credittime->modname][$credittime->cmid]->elapsed ?? 0);
-                                    $aggregate[$credittime->modname][$credittime->cmid]->real = $aggregate[$credittime->modname][$credittime->cmid]->elapsed ?? 0;
+                                    $modelapsed = $aggregate[$credittime->modname][$credittime->cmid]->elapsed ?? 0;
+                                    $diff = $credittime->credittime - $modelapsed;
+                                    $aggregate[$credittime->modname][$credittime->cmid]->real = $modelapsed;
                                     $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
                                     $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
 
@@ -689,9 +685,11 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                         $aggregate['section'][$sectionid]->events = 0;
                                     }
 
-                                    $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
+                                    $el = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0);
+                                    $aggregate['coursetotal'][$ckl->course]->elapsed = $el + $diff;
                                     $aggregate['activities'][$ckl->course]->elapsed += $diff;
-                                    $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ?? 0) + $diff;
+                                    $el = ($aggregate['section'][$sectionid]->elapsed ?? 0);
+                                    $aggregate['section'][$sectionid]->elapsed = $el + $diff;
                                 } else {
                                     if (!empty($credittime->credittime)) {
                                         if (!isset($aggregate[$credittime->modname][$credittime->cmid])) {
@@ -700,9 +698,15 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                             $aggregate[$credittime->modname][$credittime->cmid]->events = 0;
                                         }
                                         $aggregate[$credittime->modname][$credittime->cmid]->credit = $credittime->credittime;
+                                        $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'realtime';
                                     }
                                 }
                             } else {
+                                /*
+                                 * If not strict credits, the reported time might be higher to the standard time credit for the
+                                 * item. The user is credited with the real time if lower then the credit, or the credit
+                                 * as peak cutoff. This does not care of the item being checked or not.
+                                 */
                                 if ($credittime->ismarked) {
 
                                     // This processes validated modules that although have no logs.
@@ -717,20 +721,24 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                         $aggregate[$credittime->modname][$credittime->cmid]->lastaccess = 0;
 
                                         // Fix the global aggregators accordingly.
-                                        block_use_stats_debug_trace("Fixing globals ltccutover no logs {$ckl->course}: ".$diff);
+                                        $msg = "Fixing globals ltccutover no logs {$ckl->course}: ".$diff;
+                                        block_use_stats_debug_trace($msg);
                                         if (!array_key_exists($ckl->course, $aggregate['activities'])) {
                                             $aggregate['activities'][$ckl->course] = new StdClass;
                                             $aggregate['activities'][$ckl->course]->elapsed = 0;
                                             $aggregate['activities'][$ckl->course]->events = 0;
                                         }
-                                        $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
+                                        $el = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0);
+                                        $aggregate['coursetotal'][$ckl->course]->elapsed = $el + $diff;
                                         $aggregate['activities'][$ckl->course]->elapsed += $diff;
-                                        $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ?? 0) + $diff;
+                                        $el = ($aggregate['section'][$sectionid]->elapsed ?? 0);
+                                        $aggregate['section'][$sectionid]->elapsed = $el + $diff;
                                     }
 
                                     if ($aggregate[$credittime->modname][$credittime->cmid]->elapsed <= $credittime->credittime) {
                                         // Override value if not enough spent time.
-                                        $diff = $credittime->credittime - $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                        $el = $aggregate[$credittime->modname][$credittime->cmid]->elapsed;
+                                        $diff = $credittime->credittime - $el;
                                         $aggregate[$credittime->modname][$credittime->cmid]->elapsed = $credittime->credittime;
                                         $aggregate[$credittime->modname][$credittime->cmid]->timesource = 'credit';
                                         $fa = $aggregate[$credittime->modname][$credittime->cmid]->lastaccess ?? 0;
@@ -739,9 +747,11 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                         // Fix the global aggregators accordingly.
                                         block_use_stats_debug_trace("Fixing globals ltccutunder no logs {$ckl->course}: ".$diff,
                                                 BLOCK_USESTATS_TRACE_DEBUG);
-                                        $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
+                                        $el = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0);
+                                        $aggregate['coursetotal'][$ckl->course]->elapsed = $el + $diff;
                                         $aggregate['activities'][$ckl->course]->elapsed += $diff;
-                                        $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ?? 0) + $diff;
+                                        $el = ($aggregate['section'][$sectionid]->elapsed ?? 0);
+                                        $aggregate['section'][$sectionid]->elapsed = $el + $diff;
                                     }
                                 }
                             }
@@ -757,16 +767,26 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                 $declaredtime->cmid = $cklcm->id;
                             }
 
+                            if (!array_key_exists($declaredtime->cmid, $cmsections)) {
+                                $params = ['id' => $declaredtime->cmid];
+                                $cmsections[$declaredtime->cmid] = $DB->get_field('course_modules', 'section', $params);
+                            }
+                            $sectionid = $cmsections[$credittime->cmid] ?? 0;
+
                             if (!empty($ltcconfig->strict_declared)) {
                                 // If strict declared, do override time even if real time is higher.
-                                $diff = $declaredtime->declaredtime - $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
+                                $el = $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
+                                $diff = $declaredtime->declaredtime - $el;
                                 $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
                                 $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
 
                                 // Fix the global aggregators accordingly.
-                                $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
-                                $aggregate['activities'][$ckl->course]->elapsed = ($aggregate['activities'][$ckl->course]->elapsed ?? 0) + $diff;
-                                $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ?? 0) + $diff;
+                                $el = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0);
+                                $aggregate['coursetotal'][$ckl->course]->elapsed = $el + $diff;
+                                $el = ($aggregate['activities'][$ckl->course]->elapsed ?? 0);
+                                $aggregate['activities'][$ckl->course]->elapsed = $el + $diff;
+                                $el = ($aggregate['section'][$sectionid]->elapsed ?? 0);
+                                $aggregate['section'][$sectionid]->elapsed = $el + $diff;
                             } else {
                                 // This processes validated modules that although have no logs.
                                 if (!isset($aggregate[$declaredtime->modname][$declaredtime->cmid])) {
@@ -774,32 +794,43 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid] = new StdClass;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = 0;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->events = 0;
-                                    $fa = $aggregate[$credittime->modname][$credittime->cmid]->firstaccess ?? 0;
+                                    $fa = $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess ?? 0;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->firstaccess = $fa;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = 0;
 
-                                    if (!array_key_exists($ckl->course, $aggregate['activities'])) {
+                                    // Fix the global aggregators accordingly.
+                                    $msg = "Fixing globals declared cutover no logs {$ckl->course}: ".$diff;
+                                    block_use_stats_debug_trace($msg);
+                                    $courseelapsed = $aggregate['coursetotal'][$ckl->course]->elapsed ?? 0;
+                                    $aggregate['coursetotal'][$ckl->course]->elapsed = $courseelapsed + $diff;
+                                    $activityelapsed = $aggregate['activities'][$ckl->course]->elapsed ?? 0;
+                                    if (!isset($aggregate['activities'][$ckl->course])) {
                                         $aggregate['activities'][$ckl->course] = new StdClass;
                                     }
-
-                                    // Fix the global aggregators accordingly.
-                                    block_use_stats_debug_trace("Fixing globals declared cutover no logs {$ckl->course}: ".$diff);
-                                    $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
-                                    $aggregate['activities'][$ckl->course]->elapsed = ($aggregate['activities'][$ckl->course]->elapsed ?? 0) + $diff;
-                                    $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ??0) + $diff;
+                                    $aggregate['activities'][$ckl->course]->elapsed = $activityelapsed + $diff;
+                                    $sectionelapsed = $aggregate['section'][$sectionid]->elapsed ?? 0;
+                                    if (!isset($aggregate['section'][$sectionid])) {
+                                        $aggregate['section'][$sectionid] = new StdClass;
+                                    }
+                                    $aggregate['section'][$sectionid]->elapsed = $sectionelapsed + $diff;
                                 }
-                                if ($aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed <= $declaredtime->declaredtime) {
-                                    $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $declaredtime->declaredtime;
+                                $el = $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed;
+                                $dt = $declaredtime->declaredtime;
+                                if ($el <= $dt) {
+                                    $aggregate[$declaredtime->modname][$declaredtime->cmid]->elapsed = $dt;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->timesource = 'declared';
-                                    $fa = $aggregate[$credittime->modname][$credittime->cmid]->lastaccess ?? 0;
+                                    $fa = $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess ?? 0;
                                     $aggregate[$declaredtime->modname][$declaredtime->cmid]->lastaccess = $fa;
 
                                     // Fix the global aggregators accordingly.
                                     block_use_stats_debug_trace("Fixing globals declared cutunder no logs {$ckl->course}: ".$diff,
                                             BLOCK_USESTATS_TRACE_DEBUG);
-                                    $aggregate['coursetotal'][$ckl->course]->elapsed = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0) + $diff;
-                                    $aggregate['activities'][$ckl->course]->elapsed = ($aggregate['activities'][$ckl->course]->elapsed ?? 0) + $diff;
-                                    $aggregate['section'][$sectionid]->elapsed = ($aggregate['section'][$sectionid]->elapsed ?? 0) + $diff;
+                                    $el = ($aggregate['coursetotal'][$ckl->course]->elapsed ?? 0);
+                                    $aggregate['coursetotal'][$ckl->course]->elapsed = $el + $diff;
+                                    $el = $aggregate['activities'][$ckl->course]->elapsed ?? 0;
+                                    $aggregate['activities'][$ckl->course]->elapsed = $el + $diff;
+                                    $el = $aggregate['section'][$sectionid]->elapsed ?? 0;
+                                    $aggregate['section'][$sectionid]->elapsed = $el + $diff;
                                 }
                             }
                         }
@@ -815,7 +846,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
 
     if (array_key_exists('scorm', $aggregate)) {
 
-        // Since Moodle 4.4
+        // Since Moodle 4.4.
         $cmisessionelmid = $DB->get_field('scorm_element', 'id', ['element' => 'cmi.session_time']);
         $cmicoretotaltimeid = $DB->get_field('scorm_element', 'id', ['element' => 'cmi.core_total_time']);
 
@@ -844,22 +875,30 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
                     // Try first time (session) as takeover.
                     $params['elementid'] = $cmisessionelmid;
                     $params['attemptid'] = $attempt->id;
-                    if ($realtimes = $DB->get_records_select('scorm_scoes_value', $select, $params, 'elementid', 'id, elementid, value')) {
+                    $fields = 'id, elementid, value';
+                    if ($realtimes = $DB->get_records_select('scorm_scoes_value', $select, $params, 'elementid', $fields)) {
                         foreach ($realtimes as $rt) {
                             block_use_stats_debug_trace("Scorm session value : $rt->value", TRACE_DEBUG);
-                            preg_match("/PT(\d+)H(\d+)M(\d+)(\.\d+)?S/", $rt->value, $matches);
-                            $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                            if (preg_match("/PT(\d+)H(\d+)M(\d+)(\.\d+)?S/", $rt->value, $matches)) {
+                                $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                            } else {
+                                block_use_stats_debug_trace("Unrecognized time format /PT(\d+)H(\d+)M(\d+)(\.\d+)?S/");
+                            }
                         }
                     } else {
                         $params['elementid'] = $cmicoretotaltimeid;
                         $params['attemptid'] = $attempt->id;
 
                         // When no session time is recorded. Find id another way.
-                        if ($realtimes = $DB->get_records_select('scorm_scoes_value', $select, $params, 'elementid', 'id, elementid, value')) {
+                        $fields = 'id, elementid, value';
+                        if ($realtimes = $DB->get_records_select('scorm_scoes_value', $select, $params, 'elementid', $fields)) {
                             foreach ($realtimes as $rt) {
                                 block_use_stats_debug_trace("Scorm session value : $rt->value", TRACE_DEBUG);
-                                preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches);
-                                $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                                if (preg_match("/(\d\d):(\d\d):(\d\d)\./", $rt->value, $matches)) {
+                                    $realtotaltime += $matches[1] * 3600 + $matches[2] * 60 + $matches[3];
+                                } else {
+                                    block_use_stats_debug_trace("Unrecognized time format /(\d\d):(\d\d):(\d\d)/");
+                                }
                             }
                         }
                     }
@@ -909,7 +948,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
     if ($backdebug) {
         block_use_stats_debug_trace($logbuffer);
     }
-    if ($automatondebug >= 2) {
+    if ($automatondebug >= 2 || $debugcm) {
         echo '<pre>';
         echo $logbuffer;
         echo '</pre>';
@@ -952,7 +991,7 @@ function use_stats_fetch_ahead(&$logs, $i, $reader) {
         }
     }
     $lap = $lastlog->time - $log->time;
-    return array($lastlog, $lap, $j);
+    return [$lastlog, $lap, $j];
 }
 
 /**
@@ -964,6 +1003,9 @@ function use_stats_fetch_ahead(&$logs, $i, $reader) {
  * @param string $users
  * @param string $courses
  * @param string $dimensions
+ * @SuppressWarnings(PHPMD.CyclomaticComplexity)
+ * @SuppressWarnings(PHPMD.NPathComplexity)
+ * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
  */
 function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = null, $courses = null,
                                        $dimensions = 'course,user,institution') {
@@ -1055,7 +1097,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
 
     // Pre_loop structure inits.
     if ($institutionresult) {
-        $result->institutions = array();
+        $result->institutions = [];
         $institutionid = 1;
     }
 
@@ -1072,7 +1114,7 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
     $threshold = $config->threshold * MINSECS;
     $lastpingcredit = $config->lastpingcredit * MINSECS;
 
-    $rs = $DB->get_recordset_sql($sql, array($from, $to));
+    $rs = $DB->get_recordset_sql($sql, [$from, $to]);
     if ($rs) {
 
         while ($rs->valid()) {
@@ -1117,7 +1159,8 @@ function use_stats_site_aggregate_time(&$result, $from = 0, $to = 0, $users = nu
                 }
                 $gapinstitutionid = $result->institutions[$gap->institution];
                 $result->institution[$gapinstitutionid]->events = ($result->institution[$gapinstitutionid]->events ?? 0) + 1;
-                $result->institution[$gapinstitutionid]->elapsed = ($result->institution[$gapinstitutionid]->elapsed ?? 0) + $gap->gap;
+                $elapsed = ($result->institution[$gapinstitutionid]->elapsed ?? 0);
+                $result->institution[$gapinstitutionid]->elapsed = $elapsed + $gap->gap;
                 if (!isset($result->institution[$gapinstitutionid]->firsthit)) {
                     $result->institution[$gapinstitutionid]->firsthit = $gap->time;
                 }
@@ -1173,11 +1216,11 @@ function use_stats_add_module_from_context(&$log) {
             break;
         case CONTEXT_MODULE:
             if (!array_key_exists($log->contextid, $contexttocmids)) {
-                $contexttocmids[$log->contextid] = $DB->get_field('context', 'instanceid', array('id' => $log->contextid));
+                $contexttocmids[$log->contextid] = $DB->get_field('context', 'instanceid', ['id' => $log->contextid]);
             }
             if (!array_key_exists($log->contextid, $cmnames)) {
-                $moduleid = $DB->get_field('course_modules', 'module', array('id' => $contexttocmids[$log->contextid]));
-                $cmnames[$log->contextid] = $DB->get_field('modules', 'name', array('id' => $moduleid));
+                $moduleid = $DB->get_field('course_modules', 'module', ['id' => $contexttocmids[$log->contextid]]);
+                $cmnames[$log->contextid] = $DB->get_field('modules', 'name', ['id' => $moduleid]);
             }
 
             $log->module = $cmnames[$log->contextid];
@@ -1212,10 +1255,18 @@ function block_use_stats_format_time($timevalue) {
     return '0s';
 }
 
+/**
+ * Checks if is login
+ * @param string $action
+ */
 function block_use_stats_is_login_event($action) {
     return (($action == 'login') || ($action == 'loggedin'));
 }
 
+/**
+ * Checks if is logout
+ * @param string $action
+ */
 function block_use_stats_is_logout_event($action) {
     return (($action == 'logout') || ($action == 'loggedout'));
 }
@@ -1224,35 +1275,13 @@ function block_use_stats_is_logout_event($action) {
  * Gets the significant log range for this user.
  * UPDATED : Try to use user's firstaccess and lastaccess for performance.
  * @param int $userid
- * @param int $from Unix timestamp
- * @param int $to Unix timestamp
  * @return an object with min and max fields.
  */
-function block_use_stats_get_log_range($userid, $from, $to) {
+function block_use_stats_get_log_range($userid) {
     global $DB;
 
     $logrange = new StdClass;
 
-    /*
-    if (!$params = block_use_stats_get_sql_params()) {
-        return false;
-    }
-
-    // Ask cache for data.
-    $userstart = $rangecache->get('userstart');
-    if (!empty($userstart)) {
-        $logrange->min = $userstart;
-    } else {
-        // This may be a costful query in a loaded log table.
-        $field = 'MIN('.$params->timeparam.')';
-        $select = ' userid = ? AND '.$params->timeparam.' > ?';
-        $logrange->min = $DB->get_field_select($params->tablename, $field, $select, array($userid, $from));
-    }
-
-    $field = 'MAX('.$params->timeparam.')';
-    $select = ' userid = ? AND '.$params->timeparam.' < ?';
-    $logrange->max = $DB->get_field_select($params->tablename, $field, $select, array($userid, $to));
-    */
     $logrange->min = $DB->get_field('user', 'firstaccess', ['id' => $userid]);
     $logrange->max = $DB->get_field('user', 'lastaccess', ['id' => $userid]);
 

@@ -16,18 +16,23 @@
 
 /**
  * Cross version compatibility functions.
- * @package block_use_stats
- * @category blocks
- * @author Valery Fremaux
- * @version Moodle 2.7
- * @license http://www.gnu.org/copyleft/gpl.html GNU Public License
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats;
 
-defined('MOODLE_INTERNAL') || die();
-
+/**
+ * Encapulates moodle version compatibility alternatives.
+ */
 class compat {
 
+    /**
+     * Get user field
+     * @param string $prefix
+     */
     public static function get_user_fields($prefix = 'u') {
 
         global $CFG;

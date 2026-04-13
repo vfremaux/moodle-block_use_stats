@@ -15,15 +15,14 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Task for cleaning up data.
+ *
  * @package block_use_stats
  * @author Valery Fremaux <valery.fremaux@gmail.com>, <valery@edunao.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @copyright (C) 2014 onwards Microsoft Open Technologies, Inc. (http://msopentech.com/)
  */
-
 namespace block_use_stats\task;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Scheduled task to compile lap tims.

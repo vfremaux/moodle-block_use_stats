@@ -18,7 +18,6 @@
  * Version details.
  *
  * @package     block_use_stats
- * @category    blocks
  * @author      Valery Fremaux <valery.fremaux@gmail.com>
  * @copyright   2006 Valery Fremaux (valery.fremaux@gmail.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -33,7 +32,7 @@ $plugin->maturity = MATURITY_STABLE;
 $plugin->release = '4.5.0 (build 2025041200)';
 $plugin->supported = [403, 405];
 if (function_exists('block_use_stats_supports_feature') && block_use_stats_supports_feature() === 'pro') {
-    $plugin->dependencies = ['local_vfcore' => 2024053100];
+    $plugin->dependencies = ['local_aplcore' => 2024053100];
 }
 
 // Non Moodle attributes.

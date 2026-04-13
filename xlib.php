@@ -15,8 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Lib of exposed functions to other plugins.
  * @package    block_use_stats
- * @category   blocks
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
@@ -26,6 +26,12 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/blocks/use_stats/block_use_stats.php');
 
+/**
+ * Get course table data
+ * @param arrayref &$aggregate
+ * @param intref &$fulltotal time overal counter
+ * @param intref &$fullevents events overal counter
+ */
 function block_use_stats_get_coursetable(&$aggregate, &$fulltotal, &$fullevents) {
     return block_use_stats::prepare_coursetable($aggregate, $fulltotal, $fullevents);
 }
@@ -41,6 +47,11 @@ function block_use_stats_get_user_course_time($courseid, $userid) {
     return use_stats_aggregate_logs($logs, 0, time());
 }
 
+/**
+ * Allow using use_stats time formatter from outside
+ * @param int $timevalue
+ * @return text formatted string
+ */
 function block_use_stats_x_format_time($timevalue) {
     return block_use_stats_format_time($timevalue);
 }

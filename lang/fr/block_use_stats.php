@@ -14,36 +14,35 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Capabilities.
-$string['use_stats:addinstance'] = 'Peut ajouter une instance'; // Is a @DYNAKEY.
-$string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée'; // Is a @DYNAKEY.
-$string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours'; // Is a @DYNAKEY.
-$string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes'; // Is a @DYNAKEY.
-$string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage'; // Is a @DYNAKEY.
-$string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilisateurs'; // Is a @DYNAKEY.
-$string['use_stats:view'] = 'Peut voir les statistiques'; // Is a @DYNAKEY.
-$string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)'; // Is a @DYNAKEY.
+/**
+ * Lang file.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-$string['admininfo'] = 'Les administrateurs de site ont habituellement beaucoup d\'activité sur Moodle. Le rapport d\'activité aura beaucoup de données
-à traiter et la performance de cette page peut être significativement dégradée. Vous pouvez outrepasser cette sécurité en cliquant sur le bouton ci-dessous.';
-$string['adminoverride'] = 'Outrepasser la sécurité administrateur';
+// phpcs:disable moodle.Files.LangFilesOrdering.UnexpectedComment
+// We use comments to help our String audit tool to skip dynamically built string keys.
+
 $string['activetrackingparams'] = 'Réglage du tracking actif';
 $string['activities'] = 'Activités';
+$string['admininfo'] = 'Les administrateurs de site ont habituellement beaucoup d\'activité sur Moodle. Le rapport d\'activité aura beaucoup de données à traiter et la performance de cette page peut être significativement dégradée. Vous pouvez outrepasser cette sécurité en cliquant sur le bouton ci-dessous.';
+$string['adminoverride'] = 'Outrepasser la sécurité administrateur';
 $string['allowrule'] = 'Envoie si la règle est vérifiée';
 $string['allusers'] = 'Actif pour tous les utilisateurs';
 $string['blockdisplay'] = 'Réglages de l\'affichage du bloc';
 $string['blockname'] = 'Mesure d\'activité';
 $string['byname'] = 'Par nom';
 $string['bytimedesc'] = 'Par temps de présence';
-$string['choose'] = 'Choisir une option...';
 $string['cachedef_aggregate'] = 'Cache d\'aggregats'; // Is in @DYNAKEY.
 $string['capabilitycontrol'] = 'Sur capacité';
-$string['configignoremodules'] = 'Modules ignorés';
-$string['configignoremodules_desc'] = 'Le temps de ces modules ne sera pas comptabilisé dans les sommes de temps';
-$string['configcapturemodules'] = 'Modules capturés';
-$string['configcapturemodules_desc'] = 'Le temps de ces modules sera pas comptabilisé, mais ils ne seront pas mentionnés dans les rapports';
+$string['choose'] = 'Choisir une option...';
 $string['configcalendarskin'] = 'Style du calendrier';
 $string['configcalendarskin_desc'] = 'Choisit le theme du calendrier';
+$string['configcapturemodules'] = 'Modules capturés';
+$string['configcapturemodules_desc'] = 'Le temps de ces modules sera pas comptabilisé, mais ils ne seront pas mentionnés dans les rapports';
 $string['configcustomtagselect'] = 'Requête pour tag custom ';
 $string['configcustomtagselect_desc'] = 'Cette requête ne doit retourner qu\'une seule colonne de résultat. Ce résultat alimente la colonne customtag {$a}.';
 $string['configdisplayactivitytimeonly'] = 'Temps de référence à afficher';
@@ -58,6 +57,8 @@ $string['configfilterdisplayunder'] = 'Filtrer les temps inférieurs à';
 $string['configfilterdisplayunder_desc'] = 'Si non nul, seuls les cours avec un temps de présence supérieur à la consigne seront affichés dans le bloc';
 $string['configfromwhen'] = 'A partir de ';
 $string['configfromwhen_desc'] = 'Durée de compilation (en jours depuis aujourd\'hui) ';
+$string['configignoremodules'] = 'Modules ignorés';
+$string['configignoremodules_desc'] = 'Le temps de ces modules ne sera pas comptabilisé dans les sommes de temps';
 $string['configkeepalivecontrol'] = 'Méthode';
 $string['configkeepalivecontrol_desc'] = 'Le type de donnée interne qui contrôle la règle';
 $string['configkeepalivecontrolvalue'] = 'Nom de l\'item de contrôle';
@@ -78,11 +79,11 @@ $string['configthreshold'] = 'Seuil';
 $string['configthreshold_desc'] = 'Seuil de détection (en minutes). Au dessus de ce délai entre deux traces successives, l\'analyseur conclut à une déconnexion de l\'utilisateur et attribue le temps forfaitaire.';
 $string['credittime'] = '(LTC) ';
 $string['datacubing'] = 'Données multidimensionnelles';
-$string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
-$string['debugmode'] = 'Mode debug';
-$string['debugno'] = 'Aucun';
 $string['debugaggregate'] = 'Voir les agrégats';
 $string['debugdetails'] = 'Voir les détails des événements';
+$string['debugmode'] = 'Mode debug';
+$string['debugno'] = 'Aucun';
+$string['denyrule'] = 'Envoie SAUF si la règle est vérifiée';
 $string['dimensionitem'] = 'Classes observables';
 $string['displayactivitiestime'] = 'Uniquement le temps passés dans les activités formalisées du cours.';
 $string['displaycoursetime'] = 'Temps complet du cours (tous les temps assignables au cours et à ses sous-contextes)';
@@ -99,9 +100,11 @@ $string['loganalysisparams'] = 'Réglages de l\'analyseur d\'historiques';
 $string['modulename'] = 'Mesure d\'activité';
 $string['noavailablelogs'] = 'Pas de logs disponibles pour cette évaluation';
 $string['onthismoodlefrom'] = '&ensp;depuis&ensp;';
+$string['originofuniverse'] = '  l\'origine de l\'univers ! ';
 $string['other'] = 'Autres zones hors cours';
 $string['othershort'] = 'Hors cours';
 $string['pluginname'] = 'Mesure d\'activité';
+$string['pluginname_help'] = 'Un bloc qui agrège les durées de session des utilisateurs.';
 $string['printpdf'] = 'Exporter en PDF';
 $string['profilefieldcontrol'] = 'sur champ de profil';
 $string['showdetails'] = 'Montrer les détails';
@@ -111,12 +114,19 @@ $string['task_cleanup'] = 'Nettoyage des temps intercalaires';
 $string['task_compile'] = 'Compilation des temps intercalaires';
 $string['timeelapsed'] = 'Temps passé';
 $string['to'] = '&ensp;au&ensp;';
-$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs du serveur distant.<br/>'; // @DYNAKEY.
+$string['use_stats:addinstance'] = 'Peut ajouter une instance'; // Is a @DYNAKEY.
+$string['use_stats:export'] = 'Peut exporter un rapport (nécessite le rapport de sessions de formation)'; // Is a @DYNAKEY.
+$string['use_stats:myaddinstance'] = 'Peut ajouter une instance à la page personnalisée'; // Is a @DYNAKEY.
+$string['use_stats:seecoursedetails'] = 'Peut voir les détails de tous les utilisateurs de ses cours'; // Is a @DYNAKEY.
+$string['use_stats:seegroupdetails'] = 'Peut voir les détails de tous les utilisateurs de ses groupes'; // Is a @DYNAKEY.
+$string['use_stats:seeowndetails'] = 'Peut voir son propre détail d\'usage'; // Is a @DYNAKEY.
+$string['use_stats:seesitedetails'] = 'Peut voir les détails de tous les utilisateurs'; // Is a @DYNAKEY.
+$string['use_stats:view'] = 'Peut voir les statistiques'; // Is a @DYNAKEY.
+$string['use_stats_description'] = 'En publiant ce service, vous permettez au serveur distant de consulter les statistiques des utilisateurs locaux.<br/>En vous abonnant à ce service, vous autorisez le serveur local à consulter les satistiques d\'utilisateurs du serveur distant.<br/>'; // Is a @DYNAKEY.
 $string['use_stats_name'] = 'Acces distant aux statistiques d\'usage'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service'] = 'Lecture distante des statistiques'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Accès distant aux statistiques d\'usage'; // Is a @DYNAKEY.
+$string['warningusestateenrolfilter'] = 'La vérification des dates d\'inscription est activée dans le bloc "Mesure d\'activité". Ceci peut avoir un effet de filtrage innatendu pour des utiisateurs ayant eu des activités AVANT la date d\'inscription la plus récente constatée dans le cours.';
 $string['youspent'] = 'Cumul&nbsp;:&ensp;';
-$string['warningusestateenrolfilter'] = 'La vérification des dates d\'inscription est activée dans le bloc "Mesure d\'activité". Ceci peut avoir un effet de filtrage innatendu pour des utiisateurs ayant eu des
-activités AVANT la date d\'inscription la plus récente constatée dans le cours.';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');
