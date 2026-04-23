@@ -18,6 +18,7 @@
  * Definition of block use stats scheduled tasks.
  *
  * @package   block_use_stats
+ * @category  task
  * @copyright 2014 Dan Poltawski <dan@moodle.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -55,9 +56,5 @@ $tasks = [
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
-<<<<<<< HEAD
-    ]
-=======
     ],
->>>>>>> MOODLE_405_STABLE
 ];

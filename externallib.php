@@ -15,18 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-<<<<<<< HEAD
- * @package     block_use_stats
- * @author      Valery Fremaux (valery.fremaux@gmail.com)
- * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
- * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
-=======
  * Web service implementation.
  * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
->>>>>>> MOODLE_405_STABLE
  *
  * This file is a proxy class to the "pro" real implementation of moodle web services.
  * Web services will be actually registered in all distributions.
@@ -37,22 +30,14 @@ require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
 
 /**
-<<<<<<< HEAD
- * Standard WS definition.
-=======
  * Standard Web service exposition.
  * Web service are delegated to Pro Zone, but needs standard exposition to
  * be registered in Moodle.
->>>>>>> MOODLE_405_STABLE
  */
 class block_use_stats_external extends external_api {
 
     /**
-<<<<<<< HEAD
-     * Parameters for get user stats
-=======
      * Public wrapper to Parameters.
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats_parameters() {
 
@@ -70,16 +55,6 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Gets user's stats
-     * @param string $uidsource
-     * @param mixed $uid
-     * @param string $cidsource
-     * @param mixed $cid
-     * @param int $from
-     * @param int $to
-     * @param int $score
-=======
      * Get stats for a user
      * @param string $uidsource source field of the user identifier
      * @param string|int $uid a user identifier depending on uidsource value.
@@ -88,7 +63,6 @@ class block_use_stats_external extends external_api {
      * @param int $from
      * @param int $to
      * @param boolean $score
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score = 0) {
         global $CFG;
@@ -102,11 +76,7 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Returns definition
-=======
      * Public exposition of Return.
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats_returns() {
         return new external_single_structure(
@@ -150,11 +120,7 @@ class block_use_stats_external extends external_api {
                             'othertime' => new external_value(PARAM_INT, 'Elapsed time in system areas'),
                             'sitecoursetime' => new external_value(PARAM_INT, 'Elapsed time in site course during session'),
                             'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
-<<<<<<< HEAD
-                       ]
-=======
                         ]
->>>>>>> MOODLE_405_STABLE
                     )
                 ),
             ]
@@ -172,23 +138,10 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Get stats for a course
-     * @param string $uidsource
-     * @param mixed $uids
-     * @param string $cidsource
-     * @param mixed $cid
-     * @param int $from
-     * @param int $to
-     * àparam int $score
-     */
-    public static function get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
-=======
      * Public wrapper to Pro zone.
      */
     public static function get_users_course_stats($uidsource, $uids, $cidsource,
             $cid, $from, $to, $score) {
->>>>>>> MOODLE_405_STABLE
         global $CFG;
 
         if (block_use_stats_supports_feature('api/ws')) {
@@ -201,11 +154,7 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Return description for course stats.
-=======
      * Public wrapper to Return.
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_course_stats_returns() {
         return new external_multiple_structure(
@@ -214,14 +163,8 @@ class block_use_stats_external extends external_api {
     }
 
     /* *************************** Bulk data ************************* */
-<<<<<<< HEAD
-
-    /**
-     * Parameters description for multiple users stats.
-=======
     /**
      * Parameters for get users.
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats_parameters() {
 
@@ -241,16 +184,6 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Returns stats for a bunch of users. This might be costfull
-     * @param string $uidsource
-     * @param mixed $uids
-     * @param string $cidsource
-     * @param mixed $cid
-     * @param int $from
-     * @param int $to
-     * @param int $score
-=======
      * Get user stats, public wrapper to pro
      * @param string $uidsource source field of the user identifier
      * @param array $uids an array of user identifiers depending on uidsource value.
@@ -259,7 +192,6 @@ class block_use_stats_external extends external_api {
      * @param int $from
      * @param int $to
      * @param boolean $score
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
         global $CFG;
@@ -273,11 +205,7 @@ class block_use_stats_external extends external_api {
     }
 
     /**
-<<<<<<< HEAD
-     * Return description for multiple users stats.
-=======
      * Public wrapper to Return.
->>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
@@ -288,11 +216,7 @@ class block_use_stats_external extends external_api {
     /* *************** Common functions ******************* */
 
     /**
-<<<<<<< HEAD
-     * Return description for multiple user_course stats
-=======
      * Public wrapper to Return.
->>>>>>> MOODLE_405_STABLE
      */
     protected static function get_user_course_stats_returns() {
         return new external_single_structure(

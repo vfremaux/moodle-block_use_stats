@@ -15,15 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * The use_stats keepalive event.
+ * The mod_assign feedback viewed event.
  *
  * @package    block_use_stats
-<<<<<<< HEAD
- * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
-=======
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (http://www.activeprolearn.com)
->>>>>>> MOODLE_405_STABLE
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\event;

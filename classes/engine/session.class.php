@@ -33,26 +33,6 @@ use StdClass;
  */
 class session {
 
-<<<<<<< HEAD
-    /** 
-     * Session's owner
-     */
-    public $userid;
-
-    /** 
-     * Courses the session traverses
-     */
-    public $courses;
-
-    /** 
-     * First timestamp
-     */
-    public $start;
-
-    /** 
-     * Last timestamp
-     */
-=======
     /** @var int $userid */
     public $userid;
 
@@ -63,7 +43,6 @@ class session {
     public $start;
 
     /** @var int $end time */
->>>>>>> MOODLE_405_STABLE
     public $end;
 
     /**
@@ -77,12 +56,7 @@ class session {
     public $events;
 
     /**
-<<<<<<< HEAD
-     * Builds a session on a first event.
-     *
-=======
      * Constructor.
->>>>>>> MOODLE_405_STABLE
      * @param int $userid
      * @param int $starttime
      */
@@ -96,12 +70,7 @@ class session {
     }
 
     /**
-<<<<<<< HEAD
-     * Pushes end time up to 
-     *
-=======
      * Pushes end time up to endtime
->>>>>>> MOODLE_405_STABLE
      * @param int $endtime
      */
     public function extend_endtime($endtime) {
@@ -112,10 +81,6 @@ class session {
 
     /**
      * Add elapsed
-<<<<<<< HEAD
-     *
-=======
->>>>>>> MOODLE_405_STABLE
      * @param int $elapsed
      */
     public function extend_elapsed($elapsed) {
@@ -123,13 +88,8 @@ class session {
     }
 
     /**
-<<<<<<< HEAD
-     * Extends events
-     * @param int $events
-=======
      * Add events to the event log.
      * @param array $events
->>>>>>> MOODLE_405_STABLE
      */
     public function extend_events($events) {
         $this->events += $events;

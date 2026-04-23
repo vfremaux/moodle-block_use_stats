@@ -29,12 +29,7 @@
 class block_use_stats_edit_form extends block_edit_form {
 
     /**
-<<<<<<< HEAD
-     * Specific definition.
-     * @param object $mform the moodleform
-=======
      * Specific definition for blocks.
->>>>>>> MOODLE_405_STABLE
      */
     protected function specific_definition($mform) {
 

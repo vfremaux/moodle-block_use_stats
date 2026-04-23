@@ -1,9 +1,5 @@
 <?php
-<<<<<<< HEAD
-// This file is part of Moodle - http://moodle.org/
-=======
 // This file is part of Moodle - https://moodle.org/
->>>>>>> MOODLE_405_STABLE
 //
 // Moodle is free software: you can redistribute it and/or modify
 // it under the terms of the GNU General Public License as published by
@@ -16,19 +12,7 @@
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
-<<<<<<< HEAD
-// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
-
-/**
- * Wrapper to pro extension
- *
- * @package   block_use_stats
- * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-=======
 // along with Moodle.  If not, see <https://www.gnu.org/licenses/>.
->>>>>>> MOODLE_405_STABLE
 
 $string['plugindist'] = 'Distribution du plugin';
 $string['plugindist_desc'] = '
@@ -41,7 +25,7 @@ sous certaines conditions, afin de soutenir l\'effort de développement, amélio
 // Caches.
 $string['cachedef_pro'] = 'Stocke des données spécifiques de la zone "pro"';
 
-require_once($CFG->dirroot.'/blocks/use_stats/lib.php'); // To get xx_supports_feature(); .
+require_once($CFG->dirroot.'/blocks/use_stats/lib.php'); // to get xx_supports_feature();
 if ('pro' == block_use_stats_supports_feature()) {
     include($CFG->dirroot.'/blocks/use_stats/pro/lang/fr/pro.php');
 }

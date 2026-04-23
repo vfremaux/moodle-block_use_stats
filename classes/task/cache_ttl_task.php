@@ -18,7 +18,7 @@
  * Task for purging cache from old records.
  *
  * @package block_use_stats
- * @author Valery Fremaux <valery.fremaux@gmail.com>, <valery.fremaux@gmail.com>
+ * @author Valery Fremaux <valery.fremaux@gmail.com>, <valery@edunao.com>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  * @copyright (C) 2014 onwards Microsoft Open Technologies, Inc. (http://msopentech.com/)
  */

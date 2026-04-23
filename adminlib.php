@@ -24,11 +24,7 @@
  */
 namespace block_use_stats;
 
-<<<<<<< HEAD
-namespace block\use_stats;
-=======
 // phpcs:disable moodle.Commenting.ValidTags.Invalid
->>>>>>> MOODLE_405_STABLE
 
 /**
  * Time selector
@@ -50,21 +46,11 @@ class admin_setting_configdatetime extends \admin_setting {
 
         $datearr = getdate($result);
 
-<<<<<<< HEAD
-        $data = [
-            'h' => $datearr['hours'],
-            'm' => $datearr['minutes'],
-            'y' => $datearr['year'],
-            'M' => $datearr['mon'],
-            'd' => $datearr['mday'],
-        ];
-=======
         $data = ['h' => $datearr['hours'],
             'm' => $datearr['minutes'],
             'y' => $datearr['year'],
             'M' => $datearr['mon'],
             'd' => $datearr['mday']];
->>>>>>> MOODLE_405_STABLE
         return $data;
     }
 

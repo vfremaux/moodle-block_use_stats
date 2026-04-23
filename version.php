@@ -25,16 +25,14 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->version   = 2025041200;        // The current plugin version (Date: YYYYMMDDXX).
+$plugin->version   = 2026041300;        // The current plugin version (Date: YYYYMMDDXX).
 $plugin->requires  = 2022112801;        // Requires this Moodle version.
 $plugin->component = 'block_use_stats'; // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_STABLE;
-$plugin->release = '4.5.0 (build 2025041200)';
-$plugin->supported = [403, 405];
-if (function_exists('block_use_stats_supports_feature') && block_use_stats_supports_feature() === 'pro') {
-    $plugin->dependencies = ['local_aplcore' => 2024053100];
-}
+$plugin->release = '5.1.0 (build 2026041300)';
+$plugin->supported = [500, 503];
+$plugin->dependencies = ['local_aplcore' => 2026010100];
 
 // Non Moodle attributes.
-$plugin->codeincrement = '4.5.0030';
+$plugin->codeincrement = '5.1.0030';
 $plugin->privacy = 'dualrelease';

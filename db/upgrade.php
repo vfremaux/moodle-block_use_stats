@@ -15,15 +15,6 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
-<<<<<<< HEAD
- * Upgrade script for use stats block
- *
- * @package   block_use_stats
- * @copyright 2006 Valery Fremaux
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
- */
-
-=======
  * Standard upgrade sequence.
  * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
@@ -33,18 +24,13 @@
 
 // phpcs:disable moodle.Commenting.ValidTags.Invalid
 
->>>>>>> MOODLE_405_STABLE
 /**
  * Standard uprade callback.
  * This function does anything necessary to upgrade
  * older versions to match current functionality
-<<<<<<< HEAD
- * @param int $oldversion
-=======
  * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  * @SuppressWarnings(PHPMD.NPathComplexity)
  * @SuppressWarnings(PHPMD.ExcessiveMethodLength)
->>>>>>> MOODLE_405_STABLE
  */
 function xmldb_block_use_stats_upgrade($oldversion = 0) {
     global $CFG, $DB;

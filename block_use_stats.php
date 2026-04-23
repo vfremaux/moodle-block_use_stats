@@ -36,21 +36,13 @@ if (block_use_stats_supports_feature('data/multidimensionnal')) {
 }
 
 /**
-<<<<<<< HEAD
- * The block instance class
-=======
  * Block instance implementation.
  * @SuppressWarnings(PHPMD.ExcessiveClassComplexity)
->>>>>>> MOODLE_405_STABLE
  */
 class block_use_stats extends block_base {
 
     /**
-<<<<<<< HEAD
-     * Standard block init
-=======
      * Block initialization.
->>>>>>> MOODLE_405_STABLE
      */
     public function init() {
         $this->title = get_string('blockname', 'block_use_stats');
@@ -142,17 +134,9 @@ class block_use_stats extends block_base {
 
         list($from, $to) = $this->get_range();
 
-<<<<<<< HEAD
-        $capabilities = [
-            'block/use_stats:seesitedetails',
-            'block/use_stats:seecoursedetails',
-            'block/use_stats:seegroupdetails',
-        ];
-=======
         $capabilities = ['block/use_stats:seesitedetails',
                               'block/use_stats:seecoursedetails',
                               'block/use_stats:seegroupdetails'];
->>>>>>> MOODLE_405_STABLE
         if (has_any_capability($capabilities, $context, $USER->id)) {
             $userid = optional_param('uid', $USER->id, PARAM_INT);
         } else {
@@ -247,21 +231,6 @@ class block_use_stats extends block_base {
             $this->content->text .= '</div>';
 
             if (block_use_stats_supports_feature('view/detail')) {
-<<<<<<< HEAD
-                $capabilities = [
-                    'block/use_stats:seeowndetails',
-                    'block/use_stats:seesitedetails',
-                    'block/use_stats:seecoursedetails',
-                    'block/use_stats:seegroupdetails'
-                ];
-                if (has_any_capability($capabilities, $context, $USER->id)) {
-                    $showdetailstr = get_string('showdetails', 'block_use_stats');
-                    $params = [
-                        'id' => $this->instance->id,
-                        'userid' => $userid,
-                        'course' => $COURSE->id
-                    ];
-=======
                 $capabilities = ['block/use_stats:seeowndetails',
                                       'block/use_stats:seesitedetails',
                                       'block/use_stats:seecoursedetails',
@@ -269,7 +238,6 @@ class block_use_stats extends block_base {
                 if (has_any_capability($capabilities, $context, $USER->id)) {
                     $showdetailstr = get_string('showdetails', 'block_use_stats');
                     $params = ['id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id];
->>>>>>> MOODLE_405_STABLE
                     if (!empty($fromwhen)) {
                          $params['ts_from'] = $fromwhen;
                     }
@@ -420,34 +388,6 @@ class block_use_stats extends block_base {
 
         // Feed the table with log gaps.
         $previouslog = [];
-<<<<<<< HEAD
-        if ($reader instanceof \logstore_standard\log\store) {
-            $sql = "
-                SELECT
-                    id,
-                    courseid as course,
-                    action,
-                    timecreated as time,
-                    target as module,
-                    userid,
-                    objectid as cmid
-                FROM
-                    {logstore_standard_log}
-                WHERE
-                    timecreated > ?
-                ORDER BY
-                    timecreated
-            ";
-            $rs = $DB->get_recordset_sql($sql, [$config->lastcompiled]);
-        } else if ($reader instanceof \logstore_legacy\log\store) {
-            $params = [$config->lastcompiled];
-            $fields = 'id,time,userid,course,cmid';
-            $rs = $DB->get_recordset_select('log', " time > ? ", $params, 'time', $fields);
-        } else {
-            mtrace("this logstore is not supported");
-            return;
-        }
-=======
         $sql = "
             SELECT
                 id,
@@ -465,7 +405,6 @@ class block_use_stats extends block_base {
                 timecreated
         ";
         $rs = $DB->get_recordset_sql($sql, [$config->lastcompiled]);
->>>>>>> MOODLE_405_STABLE
 
         if ($rs) {
 
@@ -505,13 +444,8 @@ class block_use_stats extends block_base {
                     $lastlogs = array_values($lastlog);
                     $previouslog[$log->userid] = array_shift($lastlogs);
                 }
-<<<<<<< HEAD
-                $value = $log->time - (0 + @$previouslog[$log->userid]->time);
-                $DB->set_field('block_use_stats_log', 'gap', $value, ['logid' => @$previouslog[$log->userid]->id]);
-=======
                 $value = $log->time - ($previouslog[$log->userid]->time ?? 0);
                 $DB->set_field('block_use_stats_log', 'gap', $value, ['logid' => ($previouslog[$log->userid]->id ?? 0)]);
->>>>>>> MOODLE_405_STABLE
                 $previouslog[$log->userid] = $log;
                 $lasttime = $log->time;
                 $r++;
@@ -695,19 +629,6 @@ class block_use_stats extends block_base {
         }
 
         return [$displaycourses, $courseshort, $coursefull, $courseelapsed, $courseevents];
-<<<<<<< HEAD
-    }
-
-    private function _seeother() {
-        $context = context_block::instance($this->instance->id);
-        $capabilities = [
-            'block/use_stats:seesitedetails',
-            'block/use_stats:seecoursedetails',
-            'block/use_stats:seegroupdetails',
-        ];
-        return has_any_capability($capabilities, $context);
-=======
->>>>>>> MOODLE_405_STABLE
     }
 
     /**

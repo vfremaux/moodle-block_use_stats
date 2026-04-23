@@ -83,7 +83,6 @@ class session_manager {
 
     /**
      * Sets the manager mode.
-     * @param string $mode
      */
     public function set_mode($mode) {
         if (!in_array($mode, ['single', 'multiple'])) {
@@ -94,7 +93,6 @@ class session_manager {
 
     /**
      * Sets the manager mode.
-     * @param stringref &$logbuffer
      */
     public function set_log_buffer(&$logbuffer) {
         $this->logbuffer = $logbuffer;
@@ -102,7 +100,6 @@ class session_manager {
 
     /**
      * Extends the last session time.
-     * @param int $endtime
      */
     protected function extend_last_session($endtime) {
         $this->lastsession->extend_endtime($endtime);
@@ -110,7 +107,6 @@ class session_manager {
 
     /**
      * Extends the last session event count.
-     * @param int $events
      */
     protected function extend_events($events) {
         $this->lastsession->extend_events($events);
@@ -118,7 +114,6 @@ class session_manager {
 
     /**
      * Extends the last session elapsed time count.
-     * @param int $laptime
      */
     protected function extend_elapsed($laptime) {
         $this->lastsession->extend_elapsed($laptime);
@@ -126,7 +121,6 @@ class session_manager {
 
     /**
      * Adds a course id to last available session.
-     * @param int $courseid
      */
     public function last_session_add_course($courseid) {
         $this->lastsession->add_course($courseid);
@@ -163,9 +157,6 @@ class session_manager {
 
     /**
      * starts a new session, ensuring we do not have same start time.
-     * @param int $userid
-     * @param int $starttime
-     * @param int $courseid
      */
     public function start_session($userid, $starttime, $courseid) {
         if (array_key_exists($starttime, $this->sessions)) {
@@ -181,7 +172,6 @@ class session_manager {
 
     /**
      * Save all sessions.
-     * @return void
      */
     public function save() {
         if (!empty($this->sessions)) {
@@ -194,14 +184,9 @@ class session_manager {
     }
 
     /**
-<<<<<<< HEAD
-     * Agregate all sessions.
-     * @param arrayref &$aggregate
-=======
      * Aggregates sessions in global aggregate
      * @param arrayref $aggregate
      * @return void
->>>>>>> MOODLE_405_STABLE
      */
     public function aggregate(&$aggregate) {
         if (!empty($this->sessions)) {

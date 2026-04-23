@@ -30,13 +30,9 @@
  * Tells wether a feature is supported or not. Gives back the
  * implementation path where to fetch resources.
  * @param string $feature a feature key to be tested.
-<<<<<<< HEAD
- * @param bool $getsupported if true, returns the list of supported features.
-=======
  * @SuppressWarnings(PHPMD.CyclomaticComplexity)
  * @SuppressWarnings(PHPMD.NPathComplexity)
  * @SuppressWarnings(PHPMD.BooleanArgumentFlag)
->>>>>>> MOODLE_405_STABLE
  */
 function block_use_stats_supports_feature($feature = null, $getsupported = false) {
     static $supports;
@@ -113,11 +109,7 @@ function block_use_stats_supports_feature($feature = null, $getsupported = false
 }
 
 /**
-<<<<<<< HEAD
- * ??
-=======
  * Add keepalive features to the current theme.
->>>>>>> MOODLE_405_STABLE
  */
 function block_use_stats_setup_theme_notification() {
     global $CFG;
