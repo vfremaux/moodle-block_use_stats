@@ -55,5 +55,9 @@ $tasks = [
         'day' => '*',
         'month' => '*',
         'dayofweek' => '*',
+<<<<<<< HEAD
     ]
+=======
+    ],
+>>>>>>> MOODLE_405_STABLE
 ];

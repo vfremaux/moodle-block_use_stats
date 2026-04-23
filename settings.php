@@ -15,6 +15,8 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Global settings declaration.
+ *
  * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
@@ -24,13 +26,14 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once($CFG->dirroot.'/blocks/use_stats/adminlib.php');
 
-use \block\use_stats\admin_setting_configdatetime;
+use block_use_stats\admin_setting_configdatetime;
 
 if ($ADMIN->fulltree) {
 
     $settings->add(new admin_setting_heading('blockdisplay', get_string('blockdisplay', 'block_use_stats'), ''));
 
     $daystr = get_string('days');
+<<<<<<< HEAD
     $fromwhenoptions = [
         '5' => '5 '.$daystr,
         '15' => '15 '.$daystr,
@@ -41,25 +44,48 @@ if ($ADMIN->fulltree) {
         '270' => '270 '.$daystr,
         '365' => '365 '.$daystr,
     ];
+=======
+    $fromwhenoptions = ['5' => '5 '.$daystr,
+                             '15' => '15 '.$daystr,
+                             '30' => '30 '.$daystr,
+                             '60' => '60 '.$daystr,
+                             '90' => '90 '.$daystr,
+                             '180' => '180 '.$daystr,
+                             '270' => '270 '.$daystr,
+                             '365' => '365 '.$daystr,
+                             ];
+>>>>>>> MOODLE_405_STABLE
 
     $key = 'block_use_stats/fromwhen';
     $label = get_string('configfromwhen', 'block_use_stats');
     $desc = get_string('configfromwhen_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 60, $fromwhenoptions));
 
+<<<<<<< HEAD
     $backtrackmodeoptions = [
         'sliding' => get_string('sliding', 'block_use_stats'),
         'fixeddate' => get_string('fixeddate', 'block_use_stats'),
     ];
+=======
+    $backtrackmodeoptions = ['sliding' => get_string('sliding', 'block_use_stats'),
+        'fixeddate' => get_string('fixeddate', 'block_use_stats'),
+     ];
+>>>>>>> MOODLE_405_STABLE
     $key = 'block_use_stats/backtrackmode';
     $label = get_string('configbacktrackmode', 'block_use_stats');
     $desc = get_string('configbacktrackmode_desc', 'block_use_stats');
     $settings->add(new admin_setting_configselect($key, $label, $desc, 'sliding', $backtrackmodeoptions));
 
+<<<<<<< HEAD
     $backtracksourceoptions = [
         'studentchoice' => get_string('studentchoice', 'block_use_stats'),
         'fixedchoice' => get_string('fixedchoice', 'block_use_stats'),
     ];
+=======
+    $backtracksourceoptions = ['studentchoice' => get_string('studentchoice', 'block_use_stats'),
+        'fixedchoice' => get_string('fixedchoice', 'block_use_stats'),
+     ];
+>>>>>>> MOODLE_405_STABLE
     $key = 'block_use_stats/backtracksource';
     $label = get_string('configbacktracksource', 'block_use_stats');
     $desc = get_string('configbacktracksource_desc', 'block_use_stats');

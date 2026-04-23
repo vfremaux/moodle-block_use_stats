@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <?php
 // This file is part of Moodle - http://moodle.org/
 //
@@ -22,3 +23,46 @@
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
+=======
+<?php
+// This file is part of Moodle - http://moodle.org/
+//
+// Moodle is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// Moodle is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Recollection of usetime for externalization in zabbix.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+namespace block_use_stats\indicators;
+
+defined('MOODLE_INTERNAL') || die();
+
+use moodle_exception;
+use coding_exception;
+use report_zabbix\indicators\zabbix_indicator;
+use StdClass;
+
+require_once($CFG->dirroot.'/report/zabbix/classes/indicator.class.php');
+
+/**
+ * Indicator implementation
+ * @todo : implement usetime extraction.
+ */
+class daily_usetime_indicators extends zabbix_indicator {
+}
+>>>>>>> MOODLE_405_STABLE

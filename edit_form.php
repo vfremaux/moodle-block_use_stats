@@ -25,15 +25,16 @@
 
 /**
  * Form for editing Random glossary entry block instances.
- *
- * @copyright 2009 Tim Hunt
- * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_use_stats_edit_form extends block_edit_form {
 
     /**
+<<<<<<< HEAD
      * Specific definition.
      * @param object $mform the moodleform
+=======
+     * Specific definition for blocks.
+>>>>>>> MOODLE_405_STABLE
      */
     protected function specific_definition($mform) {
 
@@ -45,11 +46,11 @@ class block_use_stats_edit_form extends block_edit_form {
          * The same feature could have been obtained using local role derogation on block/use_stats:view capability.
          * But this is is NOT a straight away practice of the teachers.
          */
-        $options = array(0 => get_string('no'), 1 => get_string('yes'));
+        $options = [0 => get_string('no'), 1 => get_string('yes')];
         $mform->addElement('select', 'config_studentscansee', get_string('studentscansee', 'block_use_stats'), $options);
         $mform->setType('config_studentscansee', PARAM_BOOL);
 
-        $options = array(0 => get_string('no'), 1 => get_string('yes'));
+        $options = [0 => get_string('no'), 1 => get_string('yes')];
         $mform->addElement('select', 'config_hidecourselist', get_string('hidecourselist', 'block_use_stats'), $options);
         $mform->setType('config_hidecourselist', PARAM_BOOL);
     }

@@ -15,11 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+<<<<<<< HEAD
  * Mnet declarations for use_stats block
  *
  * @package   block_use_stats
  * @copyright 2006 Valery Fremaux
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+=======
+ * Mnet services definition.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+>>>>>>> MOODLE_405_STABLE
  */
 
 defined('MOODLE_INTERNAL') || die();

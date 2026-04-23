@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Master block class for use_stats compiler
+ * Manages sessions detection inuse_stats.
  *
  * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
@@ -38,24 +38,24 @@ require_once($CFG->dirroot.'/blocks/use_stats/classes/engine/session.class.php')
 class session_manager {
 
     /**
-     * Session course overlapping mode : 'single' or 'multiple'
+     * @var string $mode Session course overlapping mode : 'single' or 'multiple'
      * 'multiple' means a single session can traverse multiple courses.
      * 'single' means one session can only match a single course.
      */
     protected $mode;
 
     /**
-     * An array of sessions indexed by starttime.
+     * @var array $sessions An array of sessions indexed by starttime.
      */
     protected $sessions;
 
     /**
-     * An ref on last session.
+     * @var objectref $lastsession An ref on last session.
      */
     protected $lastsession;
 
     /**
-     * An external log buffer where to log manager events.
+     * @var array $logbuffer An external log buffer where to log manager events.
      */
     protected $logbuffer;
 
@@ -142,7 +142,7 @@ class session_manager {
      */
     public function register_event($userid, $time, $courseid, $laptime) {
 
-        // this may occur at start of the track.
+        // This may occur at start of the track.
         if (is_null($this->lastsession)) {
             $this->start_session($userid, $time, $courseid);
         }
@@ -151,7 +151,7 @@ class session_manager {
             // Let the last session continue.
             $this->last_session_add_course($courseid);
         } else {
-            // mode single : we need to respawn a session if course has changed.
+            // Mode single : we need to respawn a session if course has changed.
             if ($courseid != $this->lastsession->get_course()) {
                 $this->start_session($userid, $time, $courseid);
             }
@@ -167,10 +167,9 @@ class session_manager {
      * @param int $starttime
      * @param int $courseid
      */
-     public function start_session($userid, $starttime, $courseid) {
+    public function start_session($userid, $starttime, $courseid) {
         if (array_key_exists($starttime, $this->sessions)) {
-            // throw new coding_exception("Start time already registered");
-            // same sesssion, several log entries on same time.
+            // Same sesssion, several log entries on same time.
             return;
         }
 
@@ -178,9 +177,9 @@ class session_manager {
         $session->add_course($courseid);
         $this->sessions[$starttime] = $session;
         $this->lastsession = &$session;
-     }
+    }
 
-    /** 
+    /**
      * Save all sessions.
      * @return void
      */
@@ -195,8 +194,14 @@ class session_manager {
     }
 
     /**
+<<<<<<< HEAD
      * Agregate all sessions.
      * @param arrayref &$aggregate
+=======
+     * Aggregates sessions in global aggregate
+     * @param arrayref $aggregate
+     * @return void
+>>>>>>> MOODLE_405_STABLE
      */
     public function aggregate(&$aggregate) {
         if (!empty($this->sessions)) {
@@ -214,6 +219,10 @@ class session_manager {
         }
     }
 
+    /**
+     * Get last used sessionid
+     * @return int
+     */
     public function get_last_id() {
         return count($this->sessions);
     }

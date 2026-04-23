@@ -15,7 +15,7 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Master block class for use_stats compiler
+ * Defines a single session.
  *
  * @package    block_use_stats
  * @author     Valery Fremaux (valery.fremaux@gmail.com)
@@ -33,6 +33,7 @@ use StdClass;
  */
 class session {
 
+<<<<<<< HEAD
     /** 
      * Session's owner
      */
@@ -51,21 +52,37 @@ class session {
     /** 
      * Last timestamp
      */
+=======
+    /** @var int $userid */
+    public $userid;
+
+    /** @var array $courses courses passed through in the session */
+    public $courses;
+
+    /** @var int $start time */
+    public $start;
+
+    /** @var int $end time */
+>>>>>>> MOODLE_405_STABLE
     public $end;
 
     /**
-     * real log time elapsed in session.
+     * @var int $elapsed real log time elapsed in session.
      */
     public $elapsed;
 
     /**
-     * real log events in session.
+     * @var array $events real log events in session.
      */
     public $events;
 
     /**
+<<<<<<< HEAD
      * Builds a session on a first event.
      *
+=======
+     * Constructor.
+>>>>>>> MOODLE_405_STABLE
      * @param int $userid
      * @param int $starttime
      */
@@ -79,8 +96,12 @@ class session {
     }
 
     /**
+<<<<<<< HEAD
      * Pushes end time up to 
      *
+=======
+     * Pushes end time up to endtime
+>>>>>>> MOODLE_405_STABLE
      * @param int $endtime
      */
     public function extend_endtime($endtime) {
@@ -91,7 +112,10 @@ class session {
 
     /**
      * Add elapsed
+<<<<<<< HEAD
      *
+=======
+>>>>>>> MOODLE_405_STABLE
      * @param int $elapsed
      */
     public function extend_elapsed($elapsed) {
@@ -99,8 +123,13 @@ class session {
     }
 
     /**
+<<<<<<< HEAD
      * Extends events
      * @param int $events
+=======
+     * Add events to the event log.
+     * @param array $events
+>>>>>>> MOODLE_405_STABLE
      */
     public function extend_events($events) {
         $this->events += $events;
@@ -127,11 +156,11 @@ class session {
     }
 
     /**
-     *
+     * Detects empty session.
      */
-     public function is_null_session() {
+    public function is_null_session() {
         return $this->start == $this->end;
-     }
+    }
 
     /**
      * Saves a session record in database. Note that session timerange should NEVER overlap for a single user.

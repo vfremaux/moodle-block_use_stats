@@ -15,11 +15,20 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+<<<<<<< HEAD
  * Block use stats cache definition
  *
  * @package   block_use_stats
  * @copyright 2006 Valery Fremaux <valery.fremaux@gmail.com>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+=======
+ * Cache definitions.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+>>>>>>> MOODLE_405_STABLE
  */
 
 defined('MOODLE_INTERNAL') || die();

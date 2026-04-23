@@ -18,7 +18,12 @@
  * The use_stats keepalive event.
  *
  * @package    block_use_stats
+<<<<<<< HEAD
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+=======
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (http://www.activeprolearn.com)
+>>>>>>> MOODLE_405_STABLE
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 namespace block_use_stats\event;
@@ -99,26 +104,6 @@ class block_use_stats_keepalive extends \core\event\base {
     }
 
     /**
-     * Return legacy data for add_to_log().
-     *
-     * @return array
-     */
-    protected function get_legacy_logdata() {
-        $logmessage = get_string('keepuseralive', 'block_use_stats', $this->relateduserid);
-        $this->set_legacy_logdata('keepalive', $logmessage);
-        return parent::get_legacy_logdata();
-    }
-
-    /**
-     * Set the legacy log data.
-     *
-     * @param array $legacylogdata
-     * @return void
-     */
-    public function set_legacy_logdata($legacylogdata, $msg) {
-    }
-
-    /**
      * Custom validation.
      *
      * @throws \coding_exception
@@ -132,6 +117,5 @@ class block_use_stats_keepalive extends \core\event\base {
         if (!isset($this->relateduserid)) {
             throw new \coding_exception('The \'relateduserid\' must be set.');
         }
-
     }
 }

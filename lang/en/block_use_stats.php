@@ -14,24 +14,22 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-// Capabilities.
-$string['use_stats:addinstance'] = 'Can add an instance'; // Is a @DYNAKEY.
-$string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // Is a @DYNAKEY.
-$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course'; // Is a @DYNAKEY.
-$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups'; // Is a @DYNAKEY.
-$string['use_stats:seeowndetails'] = 'Can see his own detail'; // Is a @DYNAKEY.
-$string['use_stats:seesitedetails'] = 'Can see detail of all users'; // Is a @DYNAKEY.
-$string['use_stats:view'] = 'Can see stats'; // Is a @DYNAKEY.
-$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // Is a @DYNAKEY.
+/**
+ * Lang file.
+ *
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-// Privacy.
-$string['privacy:metadata'] = "The Use Stats Block does not directely store any data belonging to users";
+// phpcs:disable moodle.Files.LangFilesOrdering.UnexpectedComment
+// We use comments to help our String audit tool to skip dynamically built string keys.
 
-$string['admininfo'] = 'Administrators have usually a very lot of activity in Moodle. Use stat report will have a lot
-of data to compile and may provoque degraded performances of this page. You can by the way ovverride this catch by clicking the button above';
-$string['adminoverride'] = 'Override admin catch';
 $string['activetrackingparams'] = 'Active tracking settings';
 $string['activities'] = 'Activities';
+$string['admininfo'] = 'Administrators have usually a very lot of activity in Moodle. Use stat report will have a lot of data to compile and may provoque degraded performances of this page. You can by the way ovverride this catch by clicking the button above';
+$string['adminoverride'] = 'Override admin catch';
 $string['allowrule'] = 'Allow sending when matching rule';
 $string['allusers'] = 'All users';
 $string['blockdisplay'] = 'Block display tuning';
@@ -41,16 +39,14 @@ $string['bytimedesc'] = 'By time';
 $string['cachedef_aggregate'] = 'Aggregates';
 $string['capabilitycontrol'] = 'Capability';
 $string['choose'] = 'Choose an option...';
-$string['configignoremodules'] = 'Modules to ignore';
-$string['configignoremodules_desc'] = 'Those modules will be not aggregated in the time count';
-$string['configcapturemodules'] = 'Modules to capture';
-$string['configcapturemodules_desc'] = 'Those modules will be aggregated in time count, but not renderered in reporting';
 $string['configbacktrackmode'] = 'Back track mode';
 $string['configbacktrackmode_desc'] = 'Selects how the blocks chooses from when backtracking times.';
 $string['configbacktracksource'] = 'Back track source';
 $string['configbacktracksource_desc'] = 'Selects who tells the blocks the backtracking time reference.';
 $string['configcalendarskin'] = 'Calendar skin';
 $string['configcalendarskin_desc'] = 'Changes the calendar apparence.';
+$string['configcapturemodules'] = 'Modules to capture';
+$string['configcapturemodules_desc'] = 'Those modules will be aggregated in time count, but not renderered in reporting';
 $string['configcustomtagselect'] = 'Select for custom tag';
 $string['configcustomtagselect_desc'] = 'This query needs returning one unique result per log row. this result will feed the customtag {$a} column.';
 $string['configdisplayactivitytimeonly'] = 'Choose what reference time to display';
@@ -65,6 +61,8 @@ $string['configfilterdisplayunder'] = 'Filter display under';
 $string['configfilterdisplayunder_desc'] = 'If not nul, only course times above the given limit (in seconds) will be displayed in the block';
 $string['configfromwhen'] = 'Since ';
 $string['configfromwhen_desc'] = 'Compilation period (in days till today) ';
+$string['configignoremodules'] = 'Modules to ignore';
+$string['configignoremodules_desc'] = 'Those modules will be not aggregated in the time count';
 $string['configkeepalivecontrol'] = 'Control method';
 $string['configkeepalivecontrol_desc'] = 'internal data used to control sending capability';
 $string['configkeepalivecontrolvalue'] = 'Control item name';
@@ -85,12 +83,12 @@ $string['configthreshold'] = 'Threshold';
 $string['configthreshold_desc'] = 'Activity continuity threshold (minutes). Above this gap time between two successive tracks in the log, the user is considered as deconnected. Arbitrary "Last Ping Credit" time will be added to his time count.';
 $string['credittime'] = '(LTC) ';
 $string['datacubing'] = 'Data cubing';
-$string['declaredtime'] = 'Declared time'; // Is a @DYNAKEY.
-$string['denyrule'] = 'Allow sending unless matching rule';
-$string['debugmode'] = 'Debug mode';
-$string['debugno'] = 'None';
 $string['debugaggregate'] = 'Show Aggregates';
 $string['debugdetails'] = 'Show log details';
+$string['debugmode'] = 'Debug mode';
+$string['debugno'] = 'None';
+$string['declaredtime'] = 'Declared time'; // Is a @DYNAKEY.
+$string['denyrule'] = 'Allow sending unless matching rule';
 $string['dimensionitem'] = 'Observable classes';
 $string['displayactivitiestime'] = 'Only time assigned to effective activities in the course';
 $string['displaycoursetime'] = 'Course real time (all time spend in all contexts of the course)';
@@ -109,11 +107,13 @@ $string['loganalysisparams'] = 'Log analysis parameters';
 $string['modulename'] = 'Activity tracking';
 $string['noavailablelogs'] = 'No logs available';
 $string['onthismoodlefrom'] = ' here since ';
+$string['originofuniverse'] = '  the origin of the Universe! ';
 $string['other'] = 'Other out of course presence';
 $string['othershort'] = 'OTHER';
 $string['pluginname'] = 'Use Stats';
 $string['pluginname_desc'] = 'A block that compiles session times';
 $string['printpdf'] = 'Print PDF';
+$string['privacy:metadata'] = "The Use Stats Block does not directely store any data belonging to users";
 $string['profilefieldcontrol'] = 'Profile Field';
 $string['showdetails'] = 'Show details';
 $string['sliding'] = 'Sliding time window';
@@ -124,11 +124,19 @@ $string['task_cleanup'] = 'Time gaps cleanup';
 $string['task_compile'] = 'Time gaps compilation';
 $string['timeelapsed'] = 'Time elapsed';
 $string['to'] = '&ensp;to&ensp;';
+$string['use_stats:addinstance'] = 'Can add an instance'; // Is a @DYNAKEY.
+$string['use_stats:export'] = 'Can export as pdf (needs trainingsessions report)'; // Is a @DYNAKEY.
+$string['use_stats:myaddinstance'] = 'Can add an instance to My Page'; // Is a @DYNAKEY.
+$string['use_stats:seecoursedetails'] = 'Can see detail of all users from his course'; // Is a @DYNAKEY.
+$string['use_stats:seegroupdetails'] = 'Can see detail of all users from his groups'; // Is a @DYNAKEY.
+$string['use_stats:seeowndetails'] = 'Can see his own detail'; // Is a @DYNAKEY.
+$string['use_stats:seesitedetails'] = 'Can see detail of all users'; // Is a @DYNAKEY.
+$string['use_stats:view'] = 'Can see stats'; // Is a @DYNAKEY.
 $string['use_stats_description'] = 'By publishing this service, you allow remote servers to ask for reading statistics of local users.<br/>When subscribing to this service, you allow your local server to query a remote server about stats on his members.<br/>';
 $string['use_stats_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service'] = 'Remote access to statistics'; // Is a @DYNAKEY.
 $string['use_stats_rpc_service_name'] = 'Remote access to statistics'; // Is a @DYNAKEY.
-$string['youspent'] = 'You spent&ensp;';
 $string['warningusestateenrolfilter'] = 'The enrolment checker is on in the Use Stats bloc. This may have effects on reports if the user\'s activity falls before the latest enrolment start date.';
+$string['youspent'] = 'You spent&ensp;';
 
-include(__DIR__.'/pro_additional_strings.php');
+require(__DIR__.'/pro_additional_strings.php');

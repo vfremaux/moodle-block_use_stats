@@ -15,10 +15,18 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+<<<<<<< HEAD
  * @package     block_use_stats
  * @author      Valery Fremaux (valery.fremaux@gmail.com)
  * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
  * @license     http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+=======
+ * Web service implementation.
+ * @package    block_use_stats
+ * @author     Valery Fremaux (valery.fremaux@gmail.com)
+ * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+>>>>>>> MOODLE_405_STABLE
  *
  * This file is a proxy class to the "pro" real implementation of moodle web services.
  * Web services will be actually registered in all distributions.
@@ -29,17 +37,27 @@ require_once($CFG->dirroot.'/blocks/use_stats/locallib.php');
 require_once($CFG->dirroot.'/blocks/use_stats/lib.php');
 
 /**
+<<<<<<< HEAD
  * Standard WS definition.
+=======
+ * Standard Web service exposition.
+ * Web service are delegated to Pro Zone, but needs standard exposition to
+ * be registered in Moodle.
+>>>>>>> MOODLE_405_STABLE
  */
 class block_use_stats_external extends external_api {
 
     /**
+<<<<<<< HEAD
      * Parameters for get user stats
+=======
+     * Public wrapper to Parameters.
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats_parameters() {
 
         return new external_function_parameters (
-            array(
+            [
                 'uidsource' => new external_value(PARAM_ALPHA, 'Source for user id '),
                 'uid' => new external_value(PARAM_TEXT, 'User identifier'),
                 'cidsource' => new external_value(PARAM_ALPHA, 'course id', VALUE_DEFAULT, 'idnumber', true),
@@ -47,11 +65,12 @@ class block_use_stats_external extends external_api {
                 'from' => new external_value(PARAM_INT, 'period start timestamp', VALUE_DEFAULT, 0, true),
                 'to' => new external_value(PARAM_INT, 'period end timestamp', VALUE_DEFAULT, 0, true),
                 'score' => new external_value(PARAM_INT, 'Get course score back', VALUE_DEFAULT, 1, true),
-            )
+            ]
         );
     }
 
     /**
+<<<<<<< HEAD
      * Gets user's stats
      * @param string $uidsource
      * @param mixed $uid
@@ -60,9 +79,19 @@ class block_use_stats_external extends external_api {
      * @param int $from
      * @param int $to
      * @param int $score
+=======
+     * Get stats for a user
+     * @param string $uidsource source field of the user identifier
+     * @param string|int $uid a user identifier depending on uidsource value.
+     * @param string $cidsource source field of the course
+     * @param string|int $cid identifier of the course, depending on cidsource value
+     * @param int $from
+     * @param int $to
+     * @param boolean $score
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats($uidsource, $uid, $cidsource, $cid, $from, $to, $score = 0) {
-        global $DB, $CFG;
+        global $CFG;
 
         if (block_use_stats_supports_feature('api/ws')) {
             include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
@@ -73,7 +102,11 @@ class block_use_stats_external extends external_api {
     }
 
     /**
+<<<<<<< HEAD
      * Returns definition
+=======
+     * Public exposition of Return.
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_user_stats_returns() {
         return new external_single_structure(
@@ -117,7 +150,11 @@ class block_use_stats_external extends external_api {
                             'othertime' => new external_value(PARAM_INT, 'Elapsed time in system areas'),
                             'sitecoursetime' => new external_value(PARAM_INT, 'Elapsed time in site course during session'),
                             'score' => new external_value(PARAM_TEXT, 'Final course grade', VALUE_OPTIONAL),
+<<<<<<< HEAD
                        ]
+=======
+                        ]
+>>>>>>> MOODLE_405_STABLE
                     )
                 ),
             ]
@@ -135,6 +172,7 @@ class block_use_stats_external extends external_api {
     }
 
     /**
+<<<<<<< HEAD
      * Get stats for a course
      * @param string $uidsource
      * @param mixed $uids
@@ -145,18 +183,29 @@ class block_use_stats_external extends external_api {
      * àparam int $score
      */
     public static function get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
+=======
+     * Public wrapper to Pro zone.
+     */
+    public static function get_users_course_stats($uidsource, $uids, $cidsource,
+            $cid, $from, $to, $score) {
+>>>>>>> MOODLE_405_STABLE
         global $CFG;
 
         if (block_use_stats_supports_feature('api/ws')) {
             include_once($CFG->dirroot.'/blocks/use_stats/pro/externallib.php');
-            return block_use_stats_external_extended::get_users_course_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score);
+            return block_use_stats_external_extended::get_users_course_stats($uidsource, $uids, $cidsource,
+                    $cid, $from, $to, $score);
         }
 
         throw new moodle_exception('WS Not available in this distribution');
     }
 
     /**
+<<<<<<< HEAD
      * Return description for course stats.
+=======
+     * Public wrapper to Return.
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_course_stats_returns() {
         return new external_multiple_structure(
@@ -165,13 +214,16 @@ class block_use_stats_external extends external_api {
     }
 
     /* *************************** Bulk data ************************* */
+<<<<<<< HEAD
 
     /**
      * Parameters description for multiple users stats.
+=======
+    /**
+     * Parameters for get users.
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats_parameters() {
-
-        $statsfields = 'elapsed,events,courseelapsed,courseevents,otherelapsed,otherevents';
 
         return new external_function_parameters (
             [
@@ -189,6 +241,7 @@ class block_use_stats_external extends external_api {
     }
 
     /**
+<<<<<<< HEAD
      * Returns stats for a bunch of users. This might be costfull
      * @param string $uidsource
      * @param mixed $uids
@@ -197,6 +250,16 @@ class block_use_stats_external extends external_api {
      * @param int $from
      * @param int $to
      * @param int $score
+=======
+     * Get user stats, public wrapper to pro
+     * @param string $uidsource source field of the user identifier
+     * @param array $uids an array of user identifiers depending on uidsource value.
+     * @param string $cidsource source field of the course
+     * @param string|int $cid identifier of the course, depending on cidsource value
+     * @param int $from
+     * @param int $to
+     * @param boolean $score
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats($uidsource, $uids, $cidsource, $cid, $from, $to, $score) {
         global $CFG;
@@ -210,7 +273,11 @@ class block_use_stats_external extends external_api {
     }
 
     /**
+<<<<<<< HEAD
      * Return description for multiple users stats.
+=======
+     * Public wrapper to Return.
+>>>>>>> MOODLE_405_STABLE
      */
     public static function get_users_stats_returns() {
         return new external_multiple_structure(
@@ -221,17 +288,21 @@ class block_use_stats_external extends external_api {
     /* *************** Common functions ******************* */
 
     /**
+<<<<<<< HEAD
      * Return description for multiple user_course stats
+=======
+     * Public wrapper to Return.
+>>>>>>> MOODLE_405_STABLE
      */
     protected static function get_user_course_stats_returns() {
         return new external_single_structure(
             [
                 'user' => new external_single_structure(
-                    array(
+                    [
                         'id' => new external_value(PARAM_INT, 'User id'),
                         'idnumber' => new external_value(PARAM_TEXT, 'User idnumber'),
                         'username' => new external_value(PARAM_TEXT, 'User username'),
-                    )
+                    ]
                 ),
 
                 'coursedata' => new external_single_structure(
