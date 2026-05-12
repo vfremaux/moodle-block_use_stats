@@ -18,20 +18,16 @@
  * Recollection of usetime for externalization in zabbix.
  *
  * @package    block_use_stats
- * @author     Valery Fremaux (valery.fremaux@gmail.com)
- * @copyright  Valery Fremaux (valery.fremaux@gmail.com)
+ * @author     Valery Fremaux <valery.fremaux@gmail.com>
+ * @copyright  Valery Fremaux (https://www.activeprolearn.com)
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-namespace block_use_stats\indicators;
-
-defined('MOODLE_INTERNAL') || die();
+namespace block_use_stats\indicators\daily;
 
 use moodle_exception;
 use coding_exception;
-use report_zabbix\indicators\zabbix_indicator;
+use report_zabbix\zabbix_indicator;
 use StdClass;
-
-require_once($CFG->dirroot.'/report/zabbix/classes/indicator.class.php');
 
 /**
  * Indicator implementation

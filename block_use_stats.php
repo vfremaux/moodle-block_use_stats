@@ -217,10 +217,10 @@ class block_use_stats extends block_base {
             $this->content->text .= ' '.block_use_stats_format_time($fulltotal);
             if ($config->backtrackmode == 'sliding') {
                 $this->content->text .= get_string('onthismoodlefrom', 'block_use_stats');
-                $this->content->text .= ($from != '-INF') ? userdate($from) : get_string('originofuniverse', 'block_use_stats');
+                $this->content->text .= ($from >= 0) ? userdate($from) : get_string('originofuniverse', 'block_use_stats');
             } else {
                 $this->content->text .= '&ensp;'.core_text::strtolower(get_string('fromrange', 'block_use_stats'));
-                $this->content->text .= ($from != '-INF') ? userdate($from) : get_string('originofuniverse', 'block_use_stats');
+                $this->content->text .= ($from > 0) ? userdate($from) : get_string('originofuniverse', 'block_use_stats');
                 $this->content->text .= get_string('to', 'block_use_stats');
                 $this->content->text .= userdate(($to != '-INF') ? $to : time());
             }
@@ -231,10 +231,12 @@ class block_use_stats extends block_base {
             $this->content->text .= '</div>';
 
             if (block_use_stats_supports_feature('view/detail')) {
-                $capabilities = ['block/use_stats:seeowndetails',
-                                      'block/use_stats:seesitedetails',
-                                      'block/use_stats:seecoursedetails',
-                                      'block/use_stats:seegroupdetails'];
+                $capabilities = [
+                    'block/use_stats:seeowndetails',
+                    'block/use_stats:seesitedetails',
+                    'block/use_stats:seecoursedetails',
+                    'block/use_stats:seegroupdetails',
+                ];
                 if (has_any_capability($capabilities, $context, $USER->id)) {
                     $showdetailstr = get_string('showdetails', 'block_use_stats');
                     $params = ['id' => $this->instance->id, 'userid' => $userid, 'course' => $COURSE->id];
@@ -268,9 +270,11 @@ class block_use_stats extends block_base {
      */
     private function can_see_other() {
         $context = context_block::instance($this->instance->id);
-        $capabilities = array('block/use_stats:seesitedetails',
-                              'block/use_stats:seecoursedetails',
-                              'block/use_stats:seegroupdetails');
+        $capabilities = [
+            'block/use_stats:seesitedetails',
+            'block/use_stats:seecoursedetails',
+            'block/use_stats:seegroupdetails',
+        ];
         return has_any_capability($capabilities, $context);
     }
 
@@ -315,7 +319,7 @@ class block_use_stats extends block_base {
                 $htmlkey = 'ts_to'.$context->id;
                 if ($tsto = optional_param($htmlkey, '', PARAM_TEXT)) {
                     // When coming from calendar, time is 00h00 of the given day.
-                    $to = strtotime($tsto) + DAYSECS - 5; // Push up to 23:59:55.
+                    $to = strtotime($tsto) + (int) DAYSECS - 5; // Push up to 23:59:55.
                     $SESSION->usestatsto = $to;
                 }
             }
@@ -338,14 +342,14 @@ class block_use_stats extends block_base {
 
             // Memorize in session for tracking changes.
             if (!isset($SESSION->usestatsfromwhen)) {
-                $SESSION->usestatsfromwhen = $config->fromwhen * DAYSECS;
+                $SESSION->usestatsfromwhen = $config->fromwhen * (int) DAYSECS;
             }
 
             $fromwhen = $config->fromwhen;
-            $daystocompilelogs = $fromwhen * DAYSECS;
+            $daystocompilelogs = $fromwhen * (int) DAYSECS;
             $now = time();
             if ($fromwhen = optional_param('ts_from'.$context->id, $SESSION->usestatsfromwhen, PARAM_INT)) {
-                $daystocompilelogs = $fromwhen * DAYSECS;
+                $daystocompilelogs = $fromwhen * (int) DAYSECS;
                 $to = $now;
                 $SESSION->usestatsfromwhen = $daystocompilelogs;
             }

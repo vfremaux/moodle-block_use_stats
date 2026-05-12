@@ -234,7 +234,7 @@ function use_stats_aggregate_logs($logs, $from = 0, $to = 0, $progress = '', $no
         $to = $now;
     }
 
-    if ($from == '-INF') {
+    if (($from == '-INF') || ($from < 0)) {
         $from = 0;
     }
     $fromdate = userdate($from);

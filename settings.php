@@ -138,7 +138,7 @@ if ($ADMIN->fulltree) {
         // This will accept any.
         include_once($CFG->dirroot.'/blocks/use_stats/pro/prolib.php');
         $promanager = block_use_stats\pro_manager::instance();
-        $promanager->add_settings($ADMIN, $settings);
+        $promanager->add_settings($settings);
     } else {
         $label = get_string('plugindist', 'block_use_stats');
         $desc = get_string('plugindist_desc', 'block_use_stats');
